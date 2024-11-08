@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace vc.Framework.Helper;
+namespace vc.Ifx.Helper;
 
 public static class ReflectionHelper
 {

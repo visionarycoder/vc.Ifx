@@ -1,2 +1,2 @@
-# vc.Framework
-Core framework elements for my development.
+# Ifx
+Core Infrastructure and framework elements.
