@@ -1,4 +1,4 @@
-﻿namespace vc.Ifx.Helper;
+﻿namespace vc.Helper;
 
 public static class DateTimeHelper
 {

@@ -1,9 +1,8 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Reflection;
 
-namespace vc.Ifx.Extension;
+namespace vc.Extension;
 
 public static class EnumerableExtension
 {

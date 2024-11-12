@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace vc.Ifx.Helper;
+﻿namespace vc.Helper;
 
 public static class CollectionHelper
 {

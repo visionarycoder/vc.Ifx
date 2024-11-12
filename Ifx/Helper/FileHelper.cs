@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.Contracts;
 
-namespace vc.Ifx.Helper;
+namespace vc.Helper;
 
 public static class FileHelper
 {
