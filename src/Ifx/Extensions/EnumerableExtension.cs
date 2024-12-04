@@ -2,7 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Reflection;
 
-namespace vc.Extension;
+namespace vc.Ifx.Extensions;
 
 public static class EnumerableExtension
 {

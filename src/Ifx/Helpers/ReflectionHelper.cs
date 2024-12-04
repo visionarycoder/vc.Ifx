@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
+#pragma warning disable ClassMethodMissingInterface
+#pragma warning disable DerivedClasses
 
-namespace vc.Helper;
+namespace vc.Ifx.Helpers;
 
 public static class ReflectionHelper
 {

@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 
-#pragma warning disable CS9113 // Parameter is unread.
-
-namespace vc;
+namespace vc.Ifx.Base;
 
 public abstract class ServiceBase<T>(ILogger<T> logger)
 {
+    internal ILogger<T> logger = logger;
     public Guid Instance { get; } = Guid.NewGuid();
 
 }

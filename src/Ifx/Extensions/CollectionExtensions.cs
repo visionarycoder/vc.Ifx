@@ -1,11 +1,11 @@
-﻿namespace vc.Helper;
+﻿namespace vc.Ifx.Extensions;
 
-public static class CollectionHelper
+public static class CollectionExtensions
 {
 
     public static bool IsNullOrEmpty<T>(this ICollection<T>? collection)
     {
-    
+
         return collection switch
         {
             null => true,

@@ -1,7 +1,19 @@
 <Project>
-  <PropertyGroup>
-    <!-- Specify the default project directory -->
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)src\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory)src\$(MSBuildProjectName)\bin\</OutputPath>
-  </PropertyGroup>
+    
+    <PropertyGroup>
+
+        <!-- Language Specification -->
+        <LangVersion>latest</LangVersion>
+
+        <!-- Code Quality -->
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+        <!-- Specify the default project directory -->
+        <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)src\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+        <OutputPath>$(MSBuildThisFileDirectory)src\$(MSBuildProjectName)\bin\</OutputPath>
+
+    </PropertyGroup>
+
 </Project>

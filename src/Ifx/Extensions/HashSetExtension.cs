@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 
-namespace vc.Extension;
+namespace vc.Ifx.Extensions;
 
 public static class HashSetExtension
 {
