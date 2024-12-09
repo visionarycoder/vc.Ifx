@@ -4,16 +4,17 @@
 
 namespace vc.Ifx.Helpers;
 
+/// <summary>
+/// Provides helper methods for reflection operations.
+/// </summary>
 public static class ReflectionHelper
 {
-
     /// <summary>
-    /// Get the name of the calling class.
+    /// Gets the name of the calling class.
     /// </summary>
-    /// <returns>Name of the calling class.  Returns if not found.</returns>
+    /// <returns>The name of the calling class. Returns the method name if the class is not found.</returns>
     public static string NameOfCallingClass()
     {
-
         string fullName;
         Type? declaringType;
         var skipFrames = 2;
@@ -31,18 +32,14 @@ public static class ReflectionHelper
         while (declaringType.Module.Name.Equals("mscorlib.dll", StringComparison.OrdinalIgnoreCase));
 
         return fullName;
-
     }
 
     /// <summary>
-    /// Read the stack frame to get the root calling type.
+    /// Reads the stack frame to get the root calling type.
     /// </summary>
-    /// <returns>Nullable calling type.</returns>
+    /// <returns>The type of the calling class, or <c>null</c> if not found.</returns>
     public static Type? TypeOfCallingClass()
     {
-
         return new StackFrame(2).GetMethod()?.ReflectedType;
-
     }
-
 }

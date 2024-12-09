@@ -1,47 +1,71 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
-namespace vc.Ifx.Storage.Azure;
+using Microsoft.Extensions.Logging;
 
-public class QueueConnector
+using vc.Ifx.Base;
+using vc.Ifx.Data.Contracts;
+using vc.Ifx.Delegates;
+
+namespace vc.Ifx.Data;
+
+public class QueueConnector(ILogger<QueueConnector> logger, QueueServiceClient queueServiceClient) : ServiceBase<QueueConnector>(logger), IQueueConnector
 {
-    private readonly QueueServiceClient queueServiceClient;
-    private readonly ILogger<QueueConnector> logger;
 
-    public QueueConnector(string connectionString)
-    {
-        logger = LoggerFactory.Create(builder => builder.AddDebug()).CreateLogger<QueueConnector>();
-        queueServiceClient = new QueueServiceClient(connectionString);
-    }
+    // Assign the logger methods to the delegates
+    private readonly LogInformation logInformation = logger.LogInformation;
+    private readonly LogWarning logWarning = logger.LogWarning;
 
-    public QueueConnector(ILogger<QueueConnector> logger, string connectionString)
-    {
-        this.logger = logger;
-        queueServiceClient = new QueueServiceClient(connectionString);
-    }
 
-    public async Task SendMessageAsync(string queueName, string message)
+    public QueueMessage? ReceiveMessage(string queueName)
     {
         var queueClient = queueServiceClient.GetQueueClient(queueName);
-        await queueClient.CreateIfNotExistsAsync();
-
-        await queueClient.SendMessageAsync(message);
-        logger.LogInformation($"Message sent to queue {queueName}: {message}");
+        var response = queueClient.ReceiveMessages(maxMessages: 1);
+        var queueMessages = response.Value;
+        if (queueMessages.Length > 0)
+        {
+            var queueMessage = queueMessages[0];
+            queueClient.DeleteMessage(queueMessage.MessageId, queueMessage.PopReceipt);
+            logInformation($"QueueName={queueName};QueueMessage={queueMessage.MessageText}");
+            return queueMessage;
+        }
+        logWarning($"QueueName={queueName};Error=No queue messages received;");
+        return null;
     }
 
-    public async Task<string> ReceiveMessageAsync(string queueName)
+    public async Task<QueueMessage?> ReceiveMessageAsync(string queueName)
     {
         var queueClient = queueServiceClient.GetQueueClient(queueName);
         var response = await queueClient.ReceiveMessagesAsync(maxMessages: 1);
-
-        var receivedMessage = response.Value.Length > 0 ? response.Value[0] : null;
-        if (receivedMessage != null)
+        var queueMessages = response.Value;
+        if (queueMessages.Length > 0)
         {
-            await queueClient.DeleteMessageAsync(receivedMessage.MessageId, receivedMessage.PopReceipt);
-            logger.LogInformation($"Message received from queue {queueName}: {receivedMessage.MessageText}");
-            return receivedMessage.MessageText;
+            var queueMessage = queueMessages[0];
+            await queueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt);
+            logInformation($"QueueName={queueName};QueueMessage={queueMessage.MessageText}");
+            return queueMessage;
         }
-
-        logger.LogInformation($"No messages found in queue {queueName}");
+        logWarning($"QueueName={queueName};Error=No queue messages received;");
         return null;
     }
+
+    public Response<SendReceipt> SendMessage(string queueName, string message)
+    {
+        var queueClient = queueServiceClient.GetQueueClient(queueName);
+        queueClient.CreateIfNotExists();
+        var response = queueClient.SendMessage(message);
+        logInformation($"QueueName={queueName};Message={message}");
+        return response;
+    }
+
+    public async Task<Response<SendReceipt>> SendMessageAsync(string queueName, string message)
+    {
+        var queueClient = queueServiceClient.GetQueueClient(queueName);
+        await queueClient.CreateIfNotExistsAsync();
+        var response = await queueClient.SendMessageAsync(message);
+        logInformation($"QueueName={queueName};Message={message}");
+        return response;
+    }
+
 }
