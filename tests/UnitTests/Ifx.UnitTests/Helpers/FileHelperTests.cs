@@ -1,70 +1,68 @@
 using vc.Ifx.Helpers;
 
-namespace Ifx.UnitTests.Helpers
+namespace Ifx.UnitTests.Helpers;
+
+public class FileHelperTests
 {
-    public class FileHelperTests
+    [Fact]
+    public void Load_ShouldReturnFileContent_WhenFileExists()
     {
-        [Fact]
-        public void Load_ShouldReturnFileContent_WhenFileExists()
-        {
-            // Arrange
-            var filePath = "testfile.txt";
-            var expectedContent = "Hello, World!";
-            File.WriteAllText(filePath, expectedContent);
+        // Arrange
+        var filePath = "testfile.txt";
+        var expectedContent = "Hello, World!";
+        File.WriteAllText(filePath, expectedContent);
 
-            // Act
-            var content = FileHelper.Load(filePath);
+        // Act
+        var content = FileHelper.Load(filePath);
 
-            // Assert
-            Assert.Equal(expectedContent, content);
+        // Assert
+        Assert.Equal(expectedContent, content);
 
-            // Cleanup
-            File.Delete(filePath);
-        }
+        // Cleanup
+        File.Delete(filePath);
+    }
 
-        [Fact]
-        public void Load_ShouldReturnEmptyString_WhenFileDoesNotExist()
-        {
-            // Arrange
-            var filePath = "nonexistentfile.txt";
+    [Fact]
+    public void Load_ShouldReturnEmptyString_WhenFileDoesNotExist()
+    {
+        // Arrange
+        var filePath = "nonexistentfile.txt";
 
-            // Act
-            var content = FileHelper.Load(filePath);
+        // Act
+        var content = FileHelper.Load(filePath);
 
-            // Assert
-            Assert.Equal(string.Empty, content);
-        }
+        // Assert
+        Assert.Equal(string.Empty, content);
+    }
 
-        [Fact]
-        public async Task LoadAsync_ShouldReturnFileContent_WhenFileExists()
-        {
-            // Arrange
-            var filePath = "testfile.txt";
-            var expectedContent = "Hello, World!";
-            await File.WriteAllTextAsync(filePath, expectedContent);
+    [Fact]
+    public async Task LoadAsync_ShouldReturnFileContent_WhenFileExists()
+    {
+        // Arrange
+        var filePath = "testfile.txt";
+        var expectedContent = "Hello, World!";
+        await File.WriteAllTextAsync(filePath, expectedContent);
 
-            // Act
-            var content = await FileHelper.LoadAsync(filePath);
+        // Act
+        var content = await FileHelper.LoadAsync(filePath);
 
-            // Assert
-            Assert.Equal(expectedContent, content);
+        // Assert
+        Assert.Equal(expectedContent, content);
 
-            // Cleanup
-            File.Delete(filePath);
-        }
+        // Cleanup
+        File.Delete(filePath);
+    }
 
-        [Fact]
-        public async Task LoadAsync_ShouldReturnEmptyString_WhenFileDoesNotExist()
-        {
-            // Arrange
-            var filePath = "nonexistentfile.txt";
+    [Fact]
+    public async Task LoadAsync_ShouldReturnEmptyString_WhenFileDoesNotExist()
+    {
+        // Arrange
+        var filePath = "nonexistentfile.txt";
 
-            // Act
-            var content = await FileHelper.LoadAsync(filePath);
+        // Act
+        var content = await FileHelper.LoadAsync(filePath);
 
-            // Assert
-            Assert.Equal(string.Empty, content);
-        }
+        // Assert
+        Assert.Equal(string.Empty, content);
     }
 }
-

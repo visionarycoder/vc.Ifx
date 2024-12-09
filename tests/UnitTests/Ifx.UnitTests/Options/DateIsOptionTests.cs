@@ -1,14 +1,12 @@
-namespace Ifx.UnitTests.Options
+namespace Ifx.UnitTests.Options;
+
+public class DateIsOptionTests
 {
-    public class DateIsOptionTests
+    [Fact]
+    public void DateIs_ShouldHaveCorrectValues()
     {
-        [Fact]
-        public void DateIs_ShouldHaveCorrectValues()
-        {
-            // Assert
-            Assert.Equal(0, (int)DateIs.InThePast);
-            Assert.Equal(1, (int)DateIs.InTheFuture);
-        }
+        // Assert
+        Assert.Equal(0, (int)DateIs.InThePast);
+        Assert.Equal(1, (int)DateIs.InTheFuture);
     }
 }
-
