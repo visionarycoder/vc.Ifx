@@ -1,10 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
-namespace Eyefinity.Utility.AuditLogging;
+﻿namespace Eyefinity.Utility.AuditLogging;
 
 public abstract class AuditLoggingDbContextOptionsExtension<TContext> : IDbContextOptionsExtension where TContext : DbContext
 {

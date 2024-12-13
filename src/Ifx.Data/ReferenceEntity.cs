@@ -1,4 +1,6 @@
-﻿namespace vc.Ifx.Data;
+﻿#pragma warning disable ClassWithData
+#pragma warning disable DerivedClasses
+namespace vc.Ifx.Data;
 
 public abstract class ReferenceEntity : Entity
 {

@@ -4,28 +4,20 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <!-- Code Quality -->
-    <PropertyGroup>
-        <AnalysisMode>Recommended</AnalysisMode>
-        <AnalysisLevel>latest</AnalysisLevel>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    </PropertyGroup>
-
-    <!-- Language Specification -->
-    <PropertyGroup>
-        <LangVersion>latest</LangVersion>
-    </PropertyGroup>
-
-    <!-- Override Default Namespace -->
-    <PropertyGroup>
-        <RootNamespace>vc.Ifx.Data.Azure</RootNamespace>
+        <RootNamespace>vc.Ifx.Data</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Azure.Core" Version="1.44.1" />
         <PackageReference Include="Azure.Data.Tables" Version="12.9.1" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.23.0" />
+        <PackageReference Include="Azure.Storage.Queues" Version="12.21.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+        <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Ifx\Ifx.csproj" />
     </ItemGroup>
 
 

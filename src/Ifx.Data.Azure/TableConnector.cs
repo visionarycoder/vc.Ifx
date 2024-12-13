@@ -1,48 +1,54 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace vc.Ifx.Data.Azure;
+using Microsoft.Extensions.Logging;
 
-public class TableConnector
+using vc.Ifx.Base;
+using vc.Ifx.Data.Contracts;
+using vc.Ifx.Delegates;
+
+namespace vc.Ifx.Data;
+
+public class TableConnector(ILogger<TableConnector> logger, TableServiceClient tableServiceClient) : ServiceBase<TableConnector>(logger), ITableConnector
 {
-    private readonly TableServiceClient tableServiceClient;
-    private readonly ILogger<TableConnector> logger;
 
-    public TableConnector(string connectionString)
+    private readonly LogInformation logInformation = logger.LogInformation;
+    private readonly LogWarning logWarning = logger.LogWarning;
+
+    public Response AddEntity<T>(string tableName, T entity) where T : class, ITableEntity, new()
     {
-        logger = LoggerFactory.Create(builder => builder.AddDebug()).CreateLogger<TableConnector>();
-        tableServiceClient = new TableServiceClient(connectionString);
+        var tableClient = tableServiceClient.GetTableClient(tableName);
+        tableClient.CreateIfNotExists();
+        var response = tableClient.AddEntity(entity);
+        logInformation($"Entity added to table {tableName}: {entity}");
+        return response;
     }
 
-    public TableConnector(ILogger<TableConnector> logger, string connectionString)
+    public Response<T> GetEntity<T>(string tableName, string partitionKey, string rowKey) where T : class, ITableEntity, new()
     {
-        this.logger = logger;
-        tableServiceClient = new TableServiceClient(connectionString);
+        var tableClient = tableServiceClient.GetTableClient(tableName);
+        var response = tableClient.GetEntity<T>(partitionKey, rowKey);
+        logInformation($"Entity retrieved from table {tableName} with PartitionKey={partitionKey} and RowKey={rowKey}: {response.Value}");
+        return response;
     }
 
-    public async Task AddEntityAsync<T>(string tableName, T entity) where T : class, ITableEntity, new()
+    public async Task<Response> AddEntityAsync<T>(string tableName, T entity) where T : class, ITableEntity, new()
     {
         var tableClient = tableServiceClient.GetTableClient(tableName);
         await tableClient.CreateIfNotExistsAsync();
 
-        await tableClient.AddEntityAsync(entity);
-        logger.LogInformation($"Entity added to table {tableName}: {entity}");
+        var response = await tableClient.AddEntityAsync(entity);
+        logInformation($"Entity added to table {tableName}: {entity}");
+        return response;
     }
 
-    public async Task<T> GetEntityAsync<T>(string tableName, string partitionKey, string rowKey) where T : class, ITableEntity, new()
+    public async Task<Response<T>> GetEntityAsync<T>(string tableName, string partitionKey, string rowKey) where T : class, ITableEntity, new()
     {
-        var tableClient = tableServiceClient.GetTableClient(tableName);
 
-        try
-        {
-            T entity = await tableClient.GetEntityAsync<T>(partitionKey, rowKey);
-            logger.LogInformation($"Entity retrieved from table {tableName} with PartitionKey={partitionKey} and RowKey={rowKey}: {entity}");
-            return entity;
-        }
-        catch (RequestFailedException ex) when (ex.Status == 404)
-        {
-            logger.LogInformation($"Entity not found in table {tableName} with PartitionKey={partitionKey} and RowKey={rowKey}");
-            return null;
-        }
+        var tableClient = tableServiceClient.GetTableClient(tableName);
+        var response = await tableClient.GetEntityAsync<T>(partitionKey, rowKey);
+        logInformation($"Entity retrieved from table {tableName} with PartitionKey={partitionKey} and RowKey={rowKey}: {response.Value}");
+        return response;
     }
+
 }

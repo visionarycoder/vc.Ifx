@@ -11,7 +11,8 @@ namespace dw.Utilities.Architecture
 
 			get
 			{
-				return typeof(T).InvokeMember(typeof(T).Name, BindingFlags.CreateInstance | BindingFlags.Instance | BindingFlags.NonPublic, null, null, null) as T;
+				return typeof(T)
+					.InvokeMember(typeof(T).Name, BindingFlags.CreateInstance | BindingFlags.Instance | BindingFlags.NonPublic, null, null, null) as T;
 			}
 
 		}

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Eyefinity.Utility.AuditLogging;
 
-public abstract class AuditingInterceptor : IInterceptor, IDbContextOptionsExtension
+public abstract class AuditingInterceptorBase : IInterceptor, IDbContextOptionsExtension
 {
 
     private readonly Dictionary<string, object> stateCollection = new ();
