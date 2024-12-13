@@ -8,10 +8,10 @@ public interface IBlobConnector
     Guid Instance { get; }
     DateTime CreatedAt { get; }
 
-    void UploadFile(string containerName, string blobName, string filePath, FileOverwriteOption fileOverwriteOption);
-    void DownloadFile(string containerName, string blobName, string downloadFilePath, FileOverwriteOption fileOverwriteOption);
+    void UploadFile(string containerName, string blobName, string filePath, OverwriteFile overwriteFile);
+    void DownloadFile(string containerName, string blobName, string downloadFilePath, OverwriteFile overwriteFile);
 
-    Task UploadFileAsync(string containerName, string blobName, string filePath, FileOverwriteOption fileOverwriteOption);
-    Task DownloadFileAsync(string containerName, string blobName, string downloadFilePath, FileOverwriteOption fileOverwriteOption);
+    Task UploadFileAsync(string containerName, string blobName, string filePath, OverwriteFile overwriteFile);
+    Task DownloadFileAsync(string containerName, string blobName, string downloadFilePath, OverwriteFile overwriteFile);
 
 }

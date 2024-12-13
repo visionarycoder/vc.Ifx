@@ -27,11 +27,11 @@ public static class DateTimeExtensions
     /// </summary>
     /// <param name="dateTime">The original date and time.</param>
     /// <param name="offset">The time span to offset the date and time.</param>
-    /// <param name="dateIsOption">Specifies whether the offset should be added or subtracted. Default is <see cref="DateIsOption.InThePast"/>.</param>
+    /// <param name="relativeDateIs">Specifies whether the offset should be added or subtracted. Default is <see cref="RelativeDateIs.InThePast"/>.</param>
     /// <returns>The date part of the <see cref="DateTime"/> after applying the offset.</returns>
-    public static DateTime GetDateOnly(this DateTime dateTime, TimeSpan offset, DateIsOption dateIsOption = DateIsOption.InThePast)
+    public static DateTime GetDateOnly(this DateTime dateTime, TimeSpan offset, RelativeDateIs relativeDateIs = RelativeDateIs.InThePast)
     {
-        var offsetDateTime = dateIsOption == DateIsOption.InThePast
+        var offsetDateTime = relativeDateIs == RelativeDateIs.InThePast
             ? dateTime.Subtract(offset)
             : dateTime.Add(offset);
         var dateOnly = offsetDateTime.Date;

@@ -6,8 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CF68B68C-8A91-4020-AA05-C6862858DAB7}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		Directory.Build.props = Directory.Build.props
 		.github\copilot-instructions.md = .github\copilot-instructions.md
+		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -37,7 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gfx", "gfx", "{A4A8A811-8D1
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2CF74C4F-D1D6-45E3-9AF6-AFCCD1E64665}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "unittests", "unittests", "{07A1AB58-4051-4B75-99A0-3A2DC48458E3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{07A1AB58-4051-4B75-99A0-3A2DC48458E3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.UnitTests", "tests\UnitTests\Ifx.UnitTests\Ifx.UnitTests.csproj", "{3A012DB3-D0BF-4084-AB33-CBBEC8C5779F}"
 EndProject
@@ -50,6 +50,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.Data", "src\Ifx.Data\Ifx.Data.csproj", "{B3752461-0B17-4535-8952-24890DA21D07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.Data.UnitTests", "tests\UnitTests\Ifx.Data.UnitTests\Ifx.Data.UnitTests.csproj", "{442981C3-C395-44F8-B417-257DBBA3DCBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.Web", "src\Ifx.Web\Ifx.Web.csproj", "{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTests", "IntegrationTests", "{8C137A06-BB87-46B4-B95B-A48E5E1EC50C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +109,10 @@ Global
 		{442981C3-C395-44F8-B417-257DBBA3DCBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{442981C3-C395-44F8-B417-257DBBA3DCBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{442981C3-C395-44F8-B417-257DBBA3DCBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,6 +133,8 @@ Global
 		{C92AC4CC-46D0-435C-BA67-BCFA6F6C013E} = {07A1AB58-4051-4B75-99A0-3A2DC48458E3}
 		{B3752461-0B17-4535-8952-24890DA21D07} = {833C6CFC-903B-4DAD-BD57-AE9892D7952B}
 		{442981C3-C395-44F8-B417-257DBBA3DCBF} = {07A1AB58-4051-4B75-99A0-3A2DC48458E3}
+		{E1ED3AFB-751D-4AEE-BCE6-7E41D3DB1BC3} = {833C6CFC-903B-4DAD-BD57-AE9892D7952B}
+		{8C137A06-BB87-46B4-B95B-A48E5E1EC50C} = {2CF74C4F-D1D6-45E3-9AF6-AFCCD1E64665}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E278ADA2-B7D4-46F5-91C8-988E8CB3B734}

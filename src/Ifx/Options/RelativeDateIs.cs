@@ -3,7 +3,7 @@
 /// <summary>
 /// Specifies whether a date is in the past or in the future.
 /// </summary>
-public enum DateIsOption
+public enum RelativeDateIs
 {
     /// <summary>
     /// Indicates that the date is in the past.

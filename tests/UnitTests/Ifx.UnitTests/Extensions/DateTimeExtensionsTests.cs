@@ -28,7 +28,7 @@ namespace Ifx.UnitTests.Extensions
             var expectedDate = new DateTime(2023, 9, 30); // 30th September 2023
 
             // Act
-            var result = inputDate.GetDateOnly(offset, DateIsOption.InThePast);
+            var result = inputDate.GetDateOnly(offset, RelativeDateIs.InThePast);
 
             // Assert
             Assert.Equal(expectedDate, result);
@@ -43,7 +43,7 @@ namespace Ifx.UnitTests.Extensions
             var expectedDate = new DateTime(2023, 10, 2); // 2nd October 2023
 
             // Act
-            var result = inputDate.GetDateOnly(offset, DateIsOption.InTheFuture);
+            var result = inputDate.GetDateOnly(offset, RelativeDateIs.InTheFuture);
 
             // Assert
             Assert.Equal(expectedDate, result);

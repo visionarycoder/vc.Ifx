@@ -1,6 +1,6 @@
 namespace Ifx.UnitTests.Options
 {
-    public class FileOverwriteOptionTests
+    public class OverwriteFileTests
     {
         [Fact]
         public void FileOverwriteOption_ShouldHaveCorrectValues()

@@ -3,7 +3,7 @@
 /// <summary>
 /// Specifies the file overwrite options.
 /// </summary>
-public enum FileOverwriteOption
+public enum Overwrite
 {
     /// <summary>
     /// Overwrite the existing file.

@@ -1,6 +1,6 @@
 namespace Ifx.UnitTests.Options
 {
-    public class DateIsOptionTests
+    public class RelativeDateIsTests
     {
         [Fact]
         public void DateIs_ShouldHaveCorrectValues()

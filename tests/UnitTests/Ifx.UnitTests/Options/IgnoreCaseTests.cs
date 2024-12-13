@@ -1,6 +1,6 @@
 namespace Ifx.UnitTests.Options
 {
-    public class IgnoreCaseOptionTests
+    public class IgnoreCaseTests
     {
         [Fact]
         public void IgnoreCase_ShouldHaveCorrectValues()
