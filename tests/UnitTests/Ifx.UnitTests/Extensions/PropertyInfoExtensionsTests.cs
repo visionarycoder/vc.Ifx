@@ -1,4 +1,6 @@
-    namespace Ifx.UnitTests.Extensions;
+    using vc.Ifx.Extensions;
+
+    namespace vc.Ifx.Cli.UnitTests.Extensions;
 
     public class PropertyInfoExtensionsTests
     {

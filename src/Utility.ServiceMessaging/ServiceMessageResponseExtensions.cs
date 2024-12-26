@@ -1,5 +1,6 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
-namespace Utility.ServiceMessaging;
+
+namespace Ifx.Messaging;
 
 
 public static class ServiceMessageResponseExtensions

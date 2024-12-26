@@ -2,7 +2,7 @@ using vc.Ifx.Base;
 
 #pragma warning disable ClassMethodMissingInterface
 
-namespace Ifx.UnitTests.Base;
+namespace vc.Ifx.Cli.UnitTests.Base;
 
 public class DtoBaseTests
 {

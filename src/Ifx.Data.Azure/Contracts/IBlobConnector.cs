@@ -1,6 +1,4 @@
-﻿using vc.Ifx.Options;
-
-namespace vc.Ifx.Data.Contracts;
+﻿namespace vc.Ifx.Data.Contracts;
 
 public interface IBlobConnector
 {

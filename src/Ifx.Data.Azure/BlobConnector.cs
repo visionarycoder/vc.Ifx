@@ -1,11 +1,8 @@
 ﻿using Azure.Storage.Blobs;
-
+using Ifx.Logging;
 using Microsoft.Extensions.Logging;
-
 using vc.Ifx.Base;
 using vc.Ifx.Data.Contracts;
-using vc.Ifx.Delegates;
-using vc.Ifx.Options;
 
 namespace vc.Ifx.Data;
 
@@ -13,7 +10,6 @@ public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blob
 {
 
     private readonly LogInformation logInformation = logger.LogInformation;
-    private readonly LogWarning logWarning = logger.LogWarning;
 
     public void UploadFile(string containerName, string blobName, string filePath, OverwriteFile overwriteFile)
     {
@@ -23,7 +19,7 @@ public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blob
         var blobClient = containerClient.GetBlobClient(blobName);
 
         using var fileStream = File.OpenRead(filePath);
-        blobClient.Upload(fileStream, overwriteFile == OverwriteFile.yes);
+        blobClient.Upload(fileStream, overwriteFile == OverwriteFile.Yes);
 
         logInformation($"File {filePath} uploaded to blob {blobName} in container {containerName}.");
 
@@ -37,7 +33,7 @@ public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blob
         var blobClient = containerClient.GetBlobClient(blobName);
 
         await using var fileStream = File.OpenRead(filePath);
-        await blobClient.UploadAsync(fileStream, overwriteFile == OverwriteFile.yes);
+        await blobClient.UploadAsync(fileStream, overwriteFile == OverwriteFile.Yes);
 
         logInformation($"File {filePath} uploaded to blob {blobName} in container {containerName}.");
 
@@ -63,14 +59,14 @@ public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blob
         var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
         var blobClient = containerClient.GetBlobClient(blobName);
 
-        if (File.Exists(downloadFilePath) && overwriteFile == OverwriteFile.DoNotOverwrite)
+        if (File.Exists(downloadFilePath) && overwriteFile == OverwriteFile.No)
         {
             logInformation($"File {downloadFilePath} already exists and will not be overwritten.");
             return;
         }
 
         var response = await blobClient.DownloadAsync();
-        await using var downloadFileStream = new FileStream(downloadFilePath, overwriteFile == OverwriteFile.yes ? FileMode.Create : FileMode.CreateNew);
+        await using var downloadFileStream = new FileStream(downloadFilePath, overwriteFile == OverwriteFile.Yes ? FileMode.Create : FileMode.CreateNew);
         await response.Value.Content.CopyToAsync(downloadFileStream);
         downloadFileStream.Close();
 

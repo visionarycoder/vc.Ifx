@@ -1,11 +1,10 @@
 ﻿using Azure;
 using Azure.Data.Tables;
-
+using Ifx.Logging;
 using Microsoft.Extensions.Logging;
 
 using vc.Ifx.Base;
 using vc.Ifx.Data.Contracts;
-using vc.Ifx.Delegates;
 
 namespace vc.Ifx.Data;
 

@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Ifx.Data\Ifx.Data.csproj" />
+      <ProjectReference Include="..\Ifx\Ifx.csproj" />
     </ItemGroup>
 
 </Project>

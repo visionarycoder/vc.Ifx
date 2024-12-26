@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.Contracts;
+﻿
 // ReSharper disable UnusedType.Global
 #pragma warning disable DerivedClasses
 #pragma warning disable ClassMethodMissingInterface

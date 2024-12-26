@@ -1,12 +1,11 @@
 ﻿using Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-
+using Ifx.Logging;
 using Microsoft.Extensions.Logging;
 
 using vc.Ifx.Base;
 using vc.Ifx.Data.Contracts;
-using vc.Ifx.Delegates;
 
 namespace vc.Ifx.Data;
 

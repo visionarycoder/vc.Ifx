@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src]\Ifx.Logging\Ifx.Logging.csproj" />
       <ProjectReference Include="..\Ifx\Ifx.csproj" />
     </ItemGroup>
 

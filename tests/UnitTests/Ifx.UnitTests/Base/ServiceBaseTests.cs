@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using vc.Ifx.Base;
 
-namespace Ifx.UnitTests.Base;
+namespace vc.Ifx.Cli.UnitTests.Base;
 
 public class ServiceBaseTests
 {

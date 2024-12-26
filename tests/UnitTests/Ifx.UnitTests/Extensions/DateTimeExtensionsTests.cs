@@ -1,7 +1,6 @@
 using vc.Ifx.Extensions;
-using vc.Ifx.Options;
 
-namespace Ifx.UnitTests.Extensions
+namespace vc.Ifx.Cli.UnitTests.Extensions
 {
     public class DateTimeExtensionsTests
     {
@@ -28,7 +27,7 @@ namespace Ifx.UnitTests.Extensions
             var expectedDate = new DateTime(2023, 9, 30); // 30th September 2023
 
             // Act
-            var result = inputDate.GetDateOnly(offset, RelativeDateIs.InThePast);
+            var result = inputDate.GetDateOnly(offset, DateTimeExtensions.ShiftDate.IntoThePast);
 
             // Assert
             Assert.Equal(expectedDate, result);
@@ -43,7 +42,7 @@ namespace Ifx.UnitTests.Extensions
             var expectedDate = new DateTime(2023, 10, 2); // 2nd October 2023
 
             // Act
-            var result = inputDate.GetDateOnly(offset, RelativeDateIs.InTheFuture);
+            var result = inputDate.GetDateOnly(offset, DateTimeExtensions.ShiftDate.AfterToday);
 
             // Assert
             Assert.Equal(expectedDate, result);
