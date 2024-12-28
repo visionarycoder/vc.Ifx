@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Ifx.Data\Ifx.Data.csproj" />
     <ProjectReference Include="..\src\Ifx.Messaging\Ifx.Messaging.csproj" />
+    <ProjectReference Include="..\src\Ifx\Ifx.csproj" />
   </ItemGroup>
 
 </Project>

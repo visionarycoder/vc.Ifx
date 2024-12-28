@@ -49,13 +49,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTests", "Integra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ifx", "src\Ifx\Ifx.csproj", "{143DFD70-E302-47EB-A029-9A5736B9EB13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.Logging", "src]\Ifx.Logging\Ifx.Logging.csproj", "{FB06FB4F-3B4E-4912-B867-3AD66DADDA01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ifx.Logging", "src]\Ifx.Logging\Ifx.Logging.csproj", "{FB06FB4F-3B4E-4912-B867-3AD66DADDA01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ifx.Messaging", "src\Ifx.Messaging\Ifx.Messaging.csproj", "{A4E731E8-3C28-488B-BF57-04E9DA0C65F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ifx.Messaging", "src\Ifx.Messaging\Ifx.Messaging.csproj", "{A4E731E8-3C28-488B-BF57-04E9DA0C65F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{3E19593D-3A81-4779-A607-41AD9E287F67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Filtering", "Example.Filtering\Example.Filtering.csproj", "{6ABEB99F-EE92-447C-B52B-B6CA0DF17789}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Filtering", "Example.Filtering\Example.Filtering.csproj", "{6ABEB99F-EE92-447C-B52B-B6CA0DF17789}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E165AD4E-B578-4CE8-8CE4-CBB748D02F7A}"
+	ProjectSection(SolutionItems) = preProject
+		docs\Apps.zip = docs\Apps.zip
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

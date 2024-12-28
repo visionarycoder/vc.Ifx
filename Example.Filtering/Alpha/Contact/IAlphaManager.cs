@@ -1,5 +1,6 @@
 ﻿using Example.Filtering.Alpha.Contact.Models;
 using Ifx.Messaging;
+using vc.Ifx;
 
 namespace Example.Filtering.Alpha.Contact;
 
