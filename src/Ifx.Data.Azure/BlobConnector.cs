@@ -1,12 +1,11 @@
 ﻿using Azure.Storage.Blobs;
-using Ifx.Logging;
 using Microsoft.Extensions.Logging;
-using vc.Ifx.Base;
 using vc.Ifx.Data.Contracts;
 
 namespace vc.Ifx.Data;
 
-public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blobServiceClient) : ServiceBase<BlobConnector>(logger), IBlobConnector
+public class BlobConnector(ILogger<BlobConnector> logger, BlobServiceClient blobServiceClient) 
+    : IBlobConnector
 {
 
     private readonly LogInformation logInformation = logger.LogInformation;

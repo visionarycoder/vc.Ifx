@@ -1,14 +1,11 @@
-namespace vc.Ifx.Cli.UnitTests
+namespace vc.Ifx.Cli.UnitTests;
+
+public class IgnoreCaseTests
 {
-    public class IgnoreCaseTests
+    [Fact]
+    public void IgnoreCase_ShouldHaveCorrectValues()
     {
-        [Fact]
-        public void IgnoreCase_ShouldHaveCorrectValues()
-        {
-            Assert.Equal(0, (int)IgnoreCase.Yes);
-            Assert.Equal(1, (int)IgnoreCase.No);
-        }
+        Assert.Equal(0, (int)IgnoreCase.Yes);
+        Assert.Equal(1, (int)IgnoreCase.No);
     }
 }
-
-

@@ -83,6 +83,5 @@ public class JwtHandler(string secretKey, string issuer, string audience)
         };
     }
 
-    private static IEnumerable<Claim> CreateClaims(Dictionary<string, string> claims) =>
-        claims.Select(claim => new Claim(claim.Key, claim.Value));
+    private static IEnumerable<Claim> CreateClaims(Dictionary<string, string> claims) => claims.Select(claim => new Claim(claim.Key, claim.Value));
 }

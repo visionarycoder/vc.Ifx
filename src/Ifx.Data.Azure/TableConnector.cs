@@ -1,6 +1,5 @@
 ﻿using Azure;
 using Azure.Data.Tables;
-using Ifx.Logging;
 using Microsoft.Extensions.Logging;
 
 using vc.Ifx.Base;
@@ -11,7 +10,6 @@ namespace vc.Ifx.Data;
 public class TableConnector(ILogger<TableConnector> logger, TableServiceClient tableServiceClient) : ServiceBase<TableConnector>(logger), ITableConnector
 {
 
-    private readonly LogInformation logInformation = logger.LogInformation;
     private readonly LogWarning logWarning = logger.LogWarning;
 
     public Response AddEntity<T>(string tableName, T entity) where T : class, ITableEntity, new()

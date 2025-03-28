@@ -1,8 +1,7 @@
-﻿namespace Example.Filtering.Gamma.Contract.Models
+﻿namespace Example.Filtering.Gamma.Contract.Models;
+
+public class Product
 {
-    public class Product
-    {
 
 
-    }
 }

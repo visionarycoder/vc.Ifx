@@ -1,16 +1,13 @@
-﻿namespace Example.Filtering.Alpha.Contact.Models
+﻿namespace Example.Filtering.Alpha.Contact.Models;
+
+public class Product
+
 {
 
-    public class Product
+    public required int Id { get; set; }
 
-    {
+    public string Name { get; set; } = string.Empty;
 
-        public required int Id { get; set; }
-
-        public string Name { get; set; } = string.Empty;
-
-        public decimal Price { get; set; }
-
-    }
+    public decimal Price { get; set; }
 
 }

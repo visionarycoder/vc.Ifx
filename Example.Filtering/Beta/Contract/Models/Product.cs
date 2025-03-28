@@ -1,14 +1,11 @@
-﻿namespace Example.Filtering.Beta.Contract.Models
+﻿namespace Example.Filtering.Beta.Contract.Models;
+
+public class Product
 {
+    public required int Id { get; set; }
 
-    public class Product
-    {
-        public required int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-        public string Name { get; set; } = string.Empty;
-
-        public decimal Price { get; set; }
-
-    }
+    public decimal Price { get; set; }
 
 }
