@@ -1,6 +1,6 @@
 ﻿using Example.Filtering.Alpha.Contact.Models;
-using Ifx.Messaging;
-using vc.Ifx;
+using Ifx.Filtering;
+using Ifx.Services.Messaging;
 
 namespace Example.Filtering.Alpha.Contact;
 
@@ -13,13 +13,13 @@ public interface IAlphaManager
 
 public class FindProductsResponse : ServiceMessageResponse
 {
-    public List<Product> Products { get; set; } = new List<Product>();
+    public List<Product> Products { get; set; } = [];
 }
 
 public class FindProductsRequest : ServiceMessageRequest
 {
 
-    public Filter<Product> Filter { get; set; } = new Filter<Product>();
+    public Filter Filter { get; set; } = new();
     public bool CalculateCost { get; set; }
 
 }

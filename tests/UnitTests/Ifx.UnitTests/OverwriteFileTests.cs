@@ -1,4 +1,4 @@
-namespace vc.Ifx.Cli.UnitTests;
+namespace vc.Ifx.UnitTests;
 
 public class OverwriteFileTests
 {

@@ -1,4 +1,4 @@
-﻿namespace Ifx.Services.Contract;
+﻿namespace vc.Ifx.Services.Contract;
 
 public interface IServiceContract
 {

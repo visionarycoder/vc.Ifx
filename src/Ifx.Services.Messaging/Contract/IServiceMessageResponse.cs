@@ -1,12 +1,12 @@
-using Ifx.Services.Messaging.Models;
+using vc.Ifx.Services.Messaging.Models;
 
-namespace Ifx.Services.Messaging.Contract;
+namespace vc.Ifx.Services.Messaging.Contract;
 
 public interface IServiceMessageResponse
 {
-    public bool IsSuccess { get; }
+    public bool Success { get; }
     public string Message { get; }
 
-    public bool HasErrors { get; }
-    public ICollection<ErrorMessage> ErrorMessages { get; }
+    public bool HasFaults { get; }
+    public ICollection<FaultMessage> Faults { get; }
 }

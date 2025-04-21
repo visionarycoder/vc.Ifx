@@ -8,16 +8,16 @@ namespace vc.Ifx.Extensions;
 public static class DateTimeExtensions
 {
     /// <summary>
-    /// Gets the proceeding weekday from the specified date.
+    /// Gets the next occurrence of the specified weekday from the given date.
     /// </summary>
     /// <param name="input">The original date and time.</param>
     /// <param name="dayOfWeek">The day of the week to get. Default is <see cref="DayOfWeek.Sunday"/>.</param>
-    /// <returns>The date of the proceeding weekday.</returns>
+    /// <returns>The date of the next occurrence of the specified weekday.</returns>
     public static DateTime GetProceedingWeekday(this DateTime input, DayOfWeek dayOfWeek = DayOfWeek.Sunday)
     {
-        var offset = (int)dayOfWeek - (int)input.DayOfWeek;
-        var output = input.AddDays(offset).Date;
-        return output;
+        var offset = ((int)dayOfWeek - (int)input.DayOfWeek + 7) % 7;
+        offset = offset == 0 ? 7 : offset; // Ensure it always returns a future date
+        return input.AddDays(offset).Date;
     }
 
     /// <summary>
@@ -32,8 +32,39 @@ public static class DateTimeExtensions
         var offsetDateTime = shiftDate == ShiftDate.IntoThePast
             ? dateTime.Subtract(offset)
             : dateTime.Add(offset);
-        var dateOnly = offsetDateTime.Date;
-        return dateOnly;
+        return offsetDateTime.Date;
+    }
+
+    /// <summary>
+    /// Determines whether the given date is a weekend.
+    /// </summary>
+    /// <param name="dateTime">The date to check.</param>
+    /// <returns>True if the date is a weekend; otherwise, false.</returns>
+    public static bool IsWeekend(this DateTime dateTime)
+    {
+        return dateTime.DayOfWeek == DayOfWeek.Saturday || dateTime.DayOfWeek == DayOfWeek.Sunday;
+    }
+
+    /// <summary>
+    /// Determines whether the given date is a weekday.
+    /// </summary>
+    /// <param name="dateTime">The date to check.</param>
+    /// <returns>True if the date is a weekday; otherwise, false.</returns>
+    public static bool IsWeekday(this DateTime dateTime)
+    {
+        return !dateTime.IsWeekend();
+    }
+
+    /// <summary>
+    /// Gets the start of the week for the given date.
+    /// </summary>
+    /// <param name="dateTime">The date to calculate from.</param>
+    /// <param name="startOfWeek">The day considered as the start of the week. Default is <see cref="DayOfWeek.Monday"/>.</param>
+    /// <returns>The date of the start of the week.</returns>
+    public static DateTime GetStartOfWeek(this DateTime dateTime, DayOfWeek startOfWeek = DayOfWeek.Monday)
+    {
+        int diff = (7 + (dateTime.DayOfWeek - startOfWeek)) % 7;
+        return dateTime.AddDays(-diff).Date;
     }
 
     /// <summary>
@@ -41,21 +72,14 @@ public static class DateTimeExtensions
     /// </summary>
     public enum ShiftDate
     {
-
         /// <summary>
         /// Indicates that the date is in the future.
         /// </summary>
         IntoTheFuture,
-        BeforeToday = IntoTheFuture,
-        Future = IntoTheFuture,
 
         /// <summary>
         /// Indicates that the date is in the past.
         /// </summary>
-        IntoThePast,
-        AfterToday = IntoThePast,
-        Past = IntoThePast
-
+        IntoThePast
     }
-
 }

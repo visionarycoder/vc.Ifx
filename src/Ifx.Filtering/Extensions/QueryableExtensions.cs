@@ -46,10 +46,12 @@ public static class QueryableExtensions
     /// <returns>The ordered query.</returns>
     private static IQueryable<T> ApplyOrdering<T>(this IQueryable<T> query, Filter<T> filter) where T : class
     {
-        if (string.IsNullOrEmpty(filter.OrderBy)) return query;
+        if (string.IsNullOrEmpty(filter.OrderBy)) 
+            return query;
         query = ApplyOrderingImp(query, filter.OrderBy, filter.OrderByDirection);
 
-        if (!string.IsNullOrEmpty(filter.ThenBy)) query = ApplyOrderingImp(query, filter.ThenBy, filter.ThenByDirection, true);
+        if (!string.IsNullOrEmpty(filter.ThenBy)) 
+            query = ApplyOrderingImp(query, filter.ThenBy, filter.ThenByDirection, true);
         return query;
     }
 

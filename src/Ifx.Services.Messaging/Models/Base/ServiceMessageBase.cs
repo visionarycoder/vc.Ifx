@@ -1,6 +1,6 @@
-using Ifx.Services.Messaging.Contract;
+using vc.Ifx.Services.Messaging.Contract;
 
-namespace Ifx.Services.Messaging.Models.Base;
+namespace vc.Ifx.Services.Messaging.Models.Base;
 
 /// <summary>
 ///     Abstract base of all service messages, both requests and responses.  Contains common properties to track message correlation

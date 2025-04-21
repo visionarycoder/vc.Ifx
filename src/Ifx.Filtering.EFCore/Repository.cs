@@ -1,10 +1,14 @@
 using System.Diagnostics;
+using Ifx.Filtering.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable MethodSupportsCancellation
 
 namespace Ifx.Filtering.EFCore;
 
-public class Repository<TDbContext>(ILogger logger, TDbContext ctx) where TDbContext : DbContext
+public class Repository<TDbContext>(ILogger logger, TDbContext ctx) where TDbContext 
+    : DbContext
 {
     public async Task<ICollection<T>> FindAsync<T>(Filter<T> filter, CancellationToken cancellationToken = default) where T : class, new()
     {

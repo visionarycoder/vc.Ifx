@@ -1,4 +1,4 @@
-﻿namespace vc.Ifx.Data.Contracts;
+﻿namespace vc.Ifx.Data;
 
 public interface IBlobConnector
 {

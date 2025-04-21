@@ -1,4 +1,6 @@
 using Ifx.Filtering.Contracts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Ifx.Filtering.EFCore;
 
@@ -17,7 +19,7 @@ public class EfCoreFilteringStrategy<T> : IFilteringStrategy<T> where T : class
         return query;
     }
 
-    private IQueryable<T> ApplyEfCoreFiltering(IQueryable<T> query, Filter.Criterion criterion)
+    private static IQueryable<T> ApplyEfCoreFiltering(IQueryable<T> query, Filter.Criterion criterion)
     {
         var propertyName = criterion.PropertyName;
         var value = criterion.PropertyValue?.ToString() ?? string.Empty;

@@ -1,8 +1,6 @@
-using vc.Ifx.Base;
-
 #pragma warning disable ClassMethodMissingInterface
 
-namespace vc.Ifx.Cli.UnitTests.Base;
+namespace vc.Ifx.UnitTests.Base;
 
 public class DtoBaseTests
 {

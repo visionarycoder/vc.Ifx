@@ -1,4 +1,4 @@
-namespace Ifx.Data.SqlServer.Helpers;
+namespace vc.Ifx.Data.Helpers;
 
 public static class RepositoryHelper
 {

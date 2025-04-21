@@ -19,15 +19,36 @@ public class Filter
 
     public enum SortDirectionOption
     {
-        Ascending,
+        Undefined = 0,
+        Ascending = Undefined,
         Descending
     }
 
+    public static Filter Empty => new();
+
     private readonly Dictionary<string, Criterion> criteria = new();
 
+    public IReadOnlyDictionary<string, Criterion> Criteria => criteria;
+
     private int? skip;
+    public int? Skip
+    {
+        get => skip;
+        set => skip = value < 0 ? null : value;
+    }
 
     private int? take;
+    public int? Take
+    {
+        get => take;
+        set => take = value < 0 ? null : value;
+    }
+
+    public string? OrderBy { get; set; }
+    public SortDirectionOption OrderByDirection { get; set; } = SortDirectionOption.Ascending;
+
+    public string? ThenBy { get; set; }
+    public SortDirectionOption ThenByDirection { get; set; } = SortDirectionOption.Ascending;
 
     public Filter()
     {
@@ -42,27 +63,6 @@ public class Filter
     {
         AddCriteria(criteria);
     }
-
-    public static Filter Empty => new();
-    public IReadOnlyDictionary<string, Criterion> Criteria => criteria;
-
-    public int? Skip
-    {
-        get => skip;
-        set => skip = value < 0 ? null : value;
-    }
-
-    public int? Take
-    {
-        get => take;
-        set => take = value < 0 ? null : value;
-    }
-
-    public string? OrderBy { get; set; }
-    public SortDirectionOption OrderByDirection { get; set; } = SortDirectionOption.Ascending;
-
-    public string? ThenBy { get; set; }
-    public SortDirectionOption ThenByDirection { get; set; } = SortDirectionOption.Ascending;
 
     public void AddCriterion(string propertyName, object? propertyValue, IgnoreCaseOption ignoreCase = IgnoreCaseOption.Yes, ComparisonOperatorOption comparisonOperator = ComparisonOperatorOption.Equals)
     {
@@ -109,6 +109,4 @@ public class Filter<T> : Filter where T : class
     {
         AddCriteria(criteria);
     }
-
-    public new static Filter<T> Empty => new();
 }

@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Storage.Queues.Models;
 
-namespace vc.Ifx.Data.Contracts;
+namespace vc.Ifx.Data;
 
 public interface IQueueConnector
 {

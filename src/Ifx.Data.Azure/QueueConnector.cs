@@ -4,7 +4,6 @@ using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 
 using vc.Ifx.Base;
-using vc.Ifx.Data.Contracts;
 
 namespace vc.Ifx.Data;
 

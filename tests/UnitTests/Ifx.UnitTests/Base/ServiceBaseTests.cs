@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using vc.Ifx.Base;
 
-namespace vc.Ifx.Cli.UnitTests.Base;
+namespace vc.Ifx.UnitTests.Base;
 
 public class ServiceBaseTests
 {

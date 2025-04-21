@@ -1,6 +1,6 @@
-using Ifx.Services.Messaging.Models.Base;
+using vc.Ifx.Services.Messaging.Models.Base;
 
-namespace Ifx.Services.Messaging.Factory;
+namespace vc.Ifx.Services.Messaging.Factory;
 
 public static class ServiceMessageFactory
 {

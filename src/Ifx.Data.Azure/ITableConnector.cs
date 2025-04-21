@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace vc.Ifx.Data.Contracts;
+namespace vc.Ifx.Data;
 
 public interface ITableConnector
 {

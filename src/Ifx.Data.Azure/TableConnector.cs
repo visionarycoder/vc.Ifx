@@ -3,7 +3,6 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 
 using vc.Ifx.Base;
-using vc.Ifx.Data.Contracts;
 
 namespace vc.Ifx.Data;
 

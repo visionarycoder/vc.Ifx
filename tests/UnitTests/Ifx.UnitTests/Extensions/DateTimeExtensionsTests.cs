@@ -1,6 +1,6 @@
 using vc.Ifx.Extensions;
 
-namespace vc.Ifx.Cli.UnitTests.Extensions;
+namespace vc.Ifx.UnitTests.Extensions;
 
 public class DateTimeExtensionsTests
 {

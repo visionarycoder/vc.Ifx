@@ -3,9 +3,14 @@ namespace vc.Ifx;
 
 /// <summary>
 /// Specifies the file overwrite options.
+/// This enum is used to determine whether an existing file should be overwritten.
 /// </summary>
 public enum OverwriteFile
 {
+    /// <summary>
+    /// The default value. No specific action is defined.
+    /// </summary>
+    Undefined = -1,
 
     /// <summary>
     /// Do not overwrite the existing file.
@@ -16,5 +21,4 @@ public enum OverwriteFile
     /// Overwrite the existing file.
     /// </summary>
     Yes = 1
-
 }
