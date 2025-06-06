@@ -1,6 +1,6 @@
 using vc.Ifx.Helpers;
 
-namespace vc.Ifx.UnitTests.Helpers;
+namespace vc.Ifx.UnitTests;
 
 public class ReflectionHelperTests
 {

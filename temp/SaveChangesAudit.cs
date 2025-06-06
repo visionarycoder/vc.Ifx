@@ -1,4 +1,4 @@
-﻿namespace Eyefinity.Utility.AuditLogging;
+﻿namespace Utility.AuditLogging;
 
 public class SaveChangesAudit
 {

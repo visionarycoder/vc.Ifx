@@ -1,6 +1,6 @@
     using vc.Ifx.Extensions;
 
-    namespace vc.Ifx.UnitTests.Extensions;
+    namespace vc.Ifx.UnitTests;
 
     public class PropertyInfoExtensionsTests
     {

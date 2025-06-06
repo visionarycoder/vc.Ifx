@@ -1,6 +1,7 @@
     using vc.Ifx.Extensions;
+#pragma warning disable CA1707
 
-    namespace vc.Ifx.UnitTests.Extensions;
+    namespace vc.Ifx.UnitTests;
 
     public class CollectionExtensionsTests
     {

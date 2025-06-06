@@ -21,7 +21,6 @@ public static class HashSetExtensions
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(collection);
-
         target.UnionWith(collection);
     }
 
@@ -36,7 +35,6 @@ public static class HashSetExtensions
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(collection);
-
         target.ExceptWith(collection);
     }
 
@@ -52,7 +50,6 @@ public static class HashSetExtensions
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(collection);
-
         return collection.All(target.Contains);
     }
 
@@ -68,7 +65,7 @@ public static class HashSetExtensions
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(collection);
-
         return collection.Any(target.Contains);
     }
+
 }

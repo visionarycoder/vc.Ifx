@@ -1,17 +1,6 @@
 ﻿using System.Collections;
 using System.Reflection;
 
-/* Unmerged change from project 'Ifx (net8.0)'
-Before:
-// ReSharper disable MemberCanBePrivate.Global
-After:
-using vc;
-using vc.Ifx;
-using vc.Ifx;
-using vc.Ifx.Extensions;
-// ReSharper disable MemberCanBePrivate.Global
-*/
-
 // ReSharper disable MemberCanBePrivate.Global
 #pragma warning disable ClassMethodMissingInterface
 #pragma warning disable DerivedClasses
@@ -23,6 +12,7 @@ namespace vc.Ifx.Extensions;
 /// </summary>
 public static class PropertyInfoExtensions
 {
+
     /// <summary>
     /// Determines whether the property is a non-string enumerable.
     /// </summary>
@@ -70,7 +60,6 @@ public static class PropertyInfoExtensions
     {
         ArgumentNullException.ThrowIfNull(pi);
         ArgumentNullException.ThrowIfNull(obj);
-
         return pi.GetValue(obj);
     }
 
@@ -110,4 +99,5 @@ public static class PropertyInfoExtensions
         ArgumentNullException.ThrowIfNull(pi);
         return pi.GetCustomAttribute<T>();
     }
+
 }

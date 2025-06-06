@@ -1,15 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Eyefinity.Utility.AuditLogging;
+namespace Utility.AuditLogging;
 
-public abstract class AuditLoggingDbContextOptionsBuilderExtensionInfo<TContext> : DbContextOptionsExtensionInfo where TContext : DbContext
-{
-
-    protected AuditLoggingDbContextOptionsBuilderExtensionInfo(IDbContextOptionsExtension extension) 
-        : base(extension)
-    {
-        
-    }
-
-}
+public abstract class AuditLoggingDbContextOptionsBuilderExtensionInfo<TContext>(IDbContextOptionsExtension extension) 
+    : DbContextOptionsExtensionInfo(extension) where TContext 
+    : DbContext;

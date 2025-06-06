@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CA1708
-namespace vc.Ifx;
+namespace vc.Ifx.Enums;
 
 /// <summary>
 /// Specifies the file overwrite options.

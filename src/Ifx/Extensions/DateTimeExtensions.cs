@@ -25,11 +25,11 @@ public static class DateTimeExtensions
     /// </summary>
     /// <param name="dateTime">The original date and time.</param>
     /// <param name="offset">The time span to offset the date and time.</param>
-    /// <param name="shiftDate">Specifies whether the offset should be added or subtracted. Default is <see cref="ShiftDate.IntoThePast"/>.</param>
+    /// <param name="shiftDate">Specifies whether the offset should be added or subtracted. Default is <see cref="ShiftDate.ToPast"/>.</param>
     /// <returns>The date part of the <see cref="DateTime"/> after applying the offset.</returns>
-    public static DateTime GetDateOnly(this DateTime dateTime, TimeSpan offset, ShiftDate shiftDate = ShiftDate.IntoThePast)
+    public static DateTime GetDateOnly(this DateTime dateTime, TimeSpan offset, ShiftDate shiftDate = ShiftDate.ToPast)
     {
-        var offsetDateTime = shiftDate == ShiftDate.IntoThePast
+        var offsetDateTime = shiftDate == ShiftDate.ToPast
             ? dateTime.Subtract(offset)
             : dateTime.Add(offset);
         return offsetDateTime.Date;
@@ -42,7 +42,7 @@ public static class DateTimeExtensions
     /// <returns>True if the date is a weekend; otherwise, false.</returns>
     public static bool IsWeekend(this DateTime dateTime)
     {
-        return dateTime.DayOfWeek == DayOfWeek.Saturday || dateTime.DayOfWeek == DayOfWeek.Sunday;
+        return dateTime.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public static class DateTimeExtensions
     /// <returns>The date of the start of the week.</returns>
     public static DateTime GetStartOfWeek(this DateTime dateTime, DayOfWeek startOfWeek = DayOfWeek.Monday)
     {
-        int diff = (7 + (dateTime.DayOfWeek - startOfWeek)) % 7;
+        var diff = (7 + (dateTime.DayOfWeek - startOfWeek)) % 7;
         return dateTime.AddDays(-diff).Date;
     }
 
@@ -75,11 +75,11 @@ public static class DateTimeExtensions
         /// <summary>
         /// Indicates that the date is in the future.
         /// </summary>
-        IntoTheFuture,
+        ToFuture,
 
         /// <summary>
         /// Indicates that the date is in the past.
         /// </summary>
-        IntoThePast
+        ToPast
     }
 }
