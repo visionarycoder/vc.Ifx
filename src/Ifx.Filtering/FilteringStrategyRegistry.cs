@@ -7,6 +7,7 @@ namespace Ifx.Filtering;
 
 public static class FilteringStrategyRegistry
 {
+
     private static readonly ConcurrentDictionary<string, IFilteringStrategy<object>> Strategies = new();
 
     static FilteringStrategyRegistry()

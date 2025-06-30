@@ -23,6 +23,10 @@ public static class QueryableExtensions
     /// <returns>The filtered query.</returns>
     public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filter<T> filter) where T : class
     {
+
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(filter);
+
         foreach (var criterion in filter.Criteria.Values)
         {
             var property = typeof(T).GetProperty(criterion.PropertyName);
@@ -35,6 +39,7 @@ public static class QueryableExtensions
         query = query.ApplyOrdering(filter);
         query = query.ApplyPagination(filter);
         return query;
+
     }
 
     /// <summary>
@@ -46,12 +51,13 @@ public static class QueryableExtensions
     /// <returns>The ordered query.</returns>
     private static IQueryable<T> ApplyOrdering<T>(this IQueryable<T> query, Filter<T> filter) where T : class
     {
-        if (string.IsNullOrEmpty(filter.OrderBy)) 
-            return query;
-        query = ApplyOrderingImp(query, filter.OrderBy, filter.OrderByDirection);
 
-        if (!string.IsNullOrEmpty(filter.ThenBy)) 
-            query = ApplyOrderingImp(query, filter.ThenBy, filter.ThenByDirection, true);
+        var orderByClauses = filter.OrderByClauses.ToArray();
+        if (orderByClauses.Length >= 1)
+            query = query.ApplyOrderBy(orderByClauses[0]);
+
+        if (orderByClauses.Length > 1)
+            query = query.ApplyThenBy(orderByClauses[1..]);
         return query;
     }
 
@@ -64,19 +70,16 @@ public static class QueryableExtensions
     /// <param name="direction">The direction of the ordering.</param>
     /// <param name="thenBy">Indicates whether this is a secondary ordering.</param>
     /// <returns>The ordered query.</returns>
-    private static IQueryable<T> ApplyOrderingImp<T>(IQueryable<T> query, string propertyName, Filter.SortDirectionOption direction, bool thenBy = false) where T : class
+    private static IQueryable<T> ApplyOrdering<T>(IQueryable<T> query, Filter.OrderByClause orderByClause) where T : class
     {
         var parameter = Expression.Parameter(typeof(T), "e");
-        var property = Expression.Property(parameter, propertyName);
+        var property = Expression.Property(parameter, orderByClause.PropertyName);
         var lambda = Expression.Lambda(property, parameter);
 
-        var methodName = thenBy
-            ? direction == Filter.SortDirectionOption.Descending ? "ThenByDescending" : "ThenBy"
-            : direction == Filter.SortDirectionOption.Descending
-                ? "OrderByDescending"
-                : "OrderBy";
+        var methodName = orderByClause.SortDirection == Filter.SortDirectionOption.Descending
+            ? "OrderByDescending"
+            : "OrderBy";
         var resultExpression = Expression.Call(typeof(Queryable), methodName, [typeof(T), property.Type], query.Expression, Expression.Quote(lambda));
-
         return query.Provider.CreateQuery<T>(resultExpression);
     }
 
@@ -89,14 +92,14 @@ public static class QueryableExtensions
     /// <returns>The paginated query.</returns>
     public static IQueryable<T> ApplyPagination<T>(this IQueryable<T> query, Filter<T> filter) where T : class
     {
-        if (filter.Skip is > 0) 
+        if (filter.Skip is > 0)
             query = query.Skip(filter.Skip.Value);
 
-        if (filter.Take is not > 0) 
+        if (filter.Take is not > 0)
             return query;
 
         // If take is valid, but skip is not, set skip to 0
-        if (filter.Skip is null or < 0) 
+        if (filter.Skip is null or < 0)
             query = query.Skip(0);
         query = query.Take(filter.Take.Value);
         return query;

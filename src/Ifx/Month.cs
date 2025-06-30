@@ -2,7 +2,6 @@
 
 public class Month
 {
-
     #region consts
     public const string UNKNOWN = "???";
 
@@ -47,7 +46,6 @@ public class Month
 
     public Month(int order)
     {
-
         if (order >= 0 && order < longMonthNames.Count)
         {
             Order = order;
@@ -57,28 +55,22 @@ public class Month
         {
             throw new ArgumentOutOfRangeException(nameof(order), "Order must be between 0 and " + longMonthNames.Count);
         }
-
     }
 
     public Month(string name)
     {
-
         ArgumentNullException.ThrowIfNull(name, nameof(name));
-
         if (longMonthNames.Contains(name))
             Order = longMonthNames.IndexOf(name);
         else if (shortMonthNames.Contains(name))
             Order = shortMonthNames.IndexOf(name);
         else
             throw new ArgumentOutOfRangeException(nameof(name), $"Name is not a valid month name: {name}");
-
         Name = longMonthNames[Order];
-
     }
 
     public override string ToString()
     {
         return Name;
     }
-
 }

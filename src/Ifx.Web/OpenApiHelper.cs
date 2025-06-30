@@ -85,9 +85,7 @@ public class OpenApiHelper : IDisposable
                 // Dispose managed resources
                 httpClient.Dispose();
             }
-
             // Note: No unmanaged resources to release
-
             disposed = true;
         }
     }
@@ -102,4 +100,5 @@ public class OpenApiHelper : IDisposable
     {
         Dispose(false);
     }
+
 }

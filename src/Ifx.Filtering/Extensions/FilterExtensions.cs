@@ -74,15 +74,12 @@ public static class FilterExtensions
     /// <returns>A new filter of the destination type.</returns>
     public static Filter<TDestination> Convert<TSource, TDestination>(this Filter<TSource> source) where TSource : class where TDestination : class
     {
-        var target = new Filter<TDestination>(source.Criteria.Values.ToArray())
+        var target = new Filter<TDestination>()
         {
             Skip = source.Skip,
             Take = source.Take,
-            OrderBy = source.OrderBy,
-            OrderByDirection = source.OrderByDirection,
-            ThenBy = source.ThenBy,
-            ThenByDirection = source.ThenByDirection
         };
+        target.AddCriteria(source.Criteria.ToArray());
         return target;
     }
 }
