@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 
 namespace VisionaryCoder.Framework.Extensions;
+
 public static class EnumerableExtensions
 {
     /// <summary>
@@ -95,43 +96,43 @@ public static class EnumerableExtensions
     /// <returns>A sequence of batches, each containing at most the specified number of elements.</returns>
     public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int size)
     {
+        ArgumentNullException.ThrowIfNull(source);
         if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size), "Batch size must be greater than 0.");
+
         using IEnumerator<T> enumerator = source.GetEnumerator();
         while (enumerator.MoveNext())
         {
             yield return GetBatch(enumerator, size);
         }
+        yield break;
 
         static IEnumerable<T> GetBatch(IEnumerator<T> enumerator, int size)
         {
-            yield return enumerator.Current;
+            // Materialize the batch immediately to avoid deferred execution issues
+            var batch = new List<T>(size) { enumerator.Current };
             for (int i = 1; i < size && enumerator.MoveNext(); i++)
             {
-                yield return enumerator.Current;
+                batch.Add(enumerator.Current);
             }
+            return batch;
         }
     }
 
-    /// <summary>
-    /// Shuffles the elements of a sequence randomly.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
-    /// <param name="source">The source sequence.</param>
-    /// <returns>A sequence whose elements are randomly ordered.</returns>
-    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
-    {
-        return source.Shuffle(new Random());
-    }
+    // Note: .NET 10 LINQ provides native Shuffle() extension method
+    // The custom ShuffleWith(Random) method below is provided for deterministic shuffling with a specific Random instance
 
     /// <summary>
     /// Shuffles the elements of a sequence using the specified random number generator.
+    /// Use this method when you need deterministic shuffling with a seeded Random instance.
+    /// For non-deterministic shuffling, use the built-in LINQ Shuffle() method.
     /// </summary>
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
     /// <param name="source">The source sequence.</param>
     /// <param name="random">The random number generator to use.</param>
-    /// <returns>A sequence whose elements are randomly ordered.</returns>
-    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random random)
+    /// <returns>A sequence whose elements are randomly ordered using the specified random generator.</returns>
+    public static IEnumerable<T> ShuffleWith<T>(this IEnumerable<T> source, Random random)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(random);
         return source.OrderBy(_ => random.Next());
     }

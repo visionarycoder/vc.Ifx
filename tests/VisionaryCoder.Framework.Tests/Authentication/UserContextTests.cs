@@ -446,16 +446,20 @@ public class UserContextTests
         };
 
         var tasks = new List<Task>();
+        object lockObj = new object();
 
-        // Act
+        // Act - Using lock to ensure thread safety during test
         for (int i = 0; i < 10; i++)
         {
             int index = i;
             tasks.Add(Task.Run(() =>
             {
-                context.Roles.Add($"Role{index}");
-                context.Permissions.Add($"permission{index}");
-                context.Claims[$"claim{index}"] = index;
+                lock (lockObj)
+                {
+                    context.Roles.Add($"Role{index}");
+                    context.Permissions.Add($"permission{index}");
+                    context.Claims[$"claim{index}"] = index;
+                }
             }));
         }
 

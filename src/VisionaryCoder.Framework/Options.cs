@@ -17,8 +17,8 @@ public sealed class Options
     public bool EnableStructuredLogging { get; set; } = true;
 
     /// Gets or sets the default HTTP timeout in seconds.
-    public int DefaultHttpTimeoutSeconds { get; set; } = Constants.Timeouts.DefaultHttpTimeoutSeconds;
+    public int DefaultHttpTimeoutSeconds { get; set; } = Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds;
 
     /// Gets or sets the default cache expiration in minutes.
-    public int DefaultCacheExpirationMinutes { get; set; } = Constants.Timeouts.DefaultCacheExpirationMinutes;
+    public int DefaultCacheExpirationMinutes { get; set; } = Constants.DefaultTimeouts.DefaultCacheExpirationMinutes;
 }

@@ -1,9 +1,10 @@
-using FluentFTP;
-using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using FluentFTP;
+using Microsoft.Extensions.Logging;
+using IoPath = System.IO.Path;
 
 namespace VisionaryCoder.Framework.Storage.Ftp;
 
@@ -172,14 +173,14 @@ public sealed class FtpStorageProvider : ServiceBase<FtpStorageProvider>, IStora
     public string? GetDirectoryName(string path)
     {
         string normalized = NormalizePath(path);
-        string? directory = Path.GetDirectoryName(normalized.Replace('/', Path.DirectorySeparatorChar));
-        return directory?.Replace(Path.DirectorySeparatorChar, '/');
+        string? directory = IoPath.GetDirectoryName(normalized.Replace('/', IoPath.DirectorySeparatorChar));
+        return directory?.Replace(IoPath.DirectorySeparatorChar, '/');
     }
 
     public string GetFileName(string path)
     {
         string normalized = NormalizePath(path);
-        return Path.GetFileName(normalized);
+        return IoPath.GetFileName(normalized);
     }
 
     private FtpClient CreateClient()
@@ -249,7 +250,7 @@ public sealed class FtpStorageProvider : ServiceBase<FtpStorageProvider>, IStora
 
     private static string? GetDirectoryFromFilePath(string normalizedFilePath)
     {
-        string? directory = Path.GetDirectoryName(normalizedFilePath.Replace('/', Path.DirectorySeparatorChar));
+        string? directory = IoPath.GetDirectoryName(normalizedFilePath.Replace('/', IoPath.DirectorySeparatorChar));
         if (string.IsNullOrWhiteSpace(directory))
         {
             return null;

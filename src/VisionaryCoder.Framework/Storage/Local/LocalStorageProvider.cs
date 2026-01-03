@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using IoPath = System.IO.Path;
 
 namespace VisionaryCoder.Framework.Storage.Local;
 
@@ -340,7 +341,7 @@ public class LocalStorageProvider(ILogger<LocalStorageProvider> logger) : IStora
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         try
         {
-            string fullPath = Path.GetFullPath(path);
+            string fullPath = IoPath.GetFullPath(path);
             logger.LogTrace("Resolved full path for '{Path}': '{FullPath}'", path, fullPath);
             return fullPath;
         }
@@ -356,7 +357,7 @@ public class LocalStorageProvider(ILogger<LocalStorageProvider> logger) : IStora
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         try
         {
-            string? directoryName = Path.GetDirectoryName(path);
+            string? directoryName = IoPath.GetDirectoryName(path);
             logger.LogTrace("Resolved directory name for '{Path}': '{DirectoryName}'", path, directoryName ?? "<null>");
             return directoryName;
         }
@@ -372,7 +373,7 @@ public class LocalStorageProvider(ILogger<LocalStorageProvider> logger) : IStora
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         try
         {
-            string fileName = Path.GetFileName(path);
+            string fileName = IoPath.GetFileName(path);
             logger.LogTrace("Resolved file name for '{Path}': '{FileName}'", path, fileName);
             return fileName;
         }

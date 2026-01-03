@@ -1,5 +1,4 @@
 using System.Reflection;
-
 using VisionaryCoder.Framework.Querying;
 using VisionaryCoder.Framework.Querying.Serialization;
 

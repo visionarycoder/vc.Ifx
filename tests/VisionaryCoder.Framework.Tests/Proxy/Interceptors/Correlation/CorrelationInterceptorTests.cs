@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using VisionaryCoder.Framework.Proxy;
 using VisionaryCoder.Framework.Proxy.Interceptors.Correlation;
-
 using ICorrelationContext = VisionaryCoder.Framework.Proxy.Interceptors.Correlation.ICorrelationContext;
 using ICorrelationIdGenerator = VisionaryCoder.Framework.Proxy.Interceptors.Correlation.ICorrelationIdGenerator;
 
@@ -107,7 +106,7 @@ public class CorrelationInterceptorTests
         result.IsSuccess.Should().BeTrue();
         context.Items["CorrelationId"].Should().Be(generatedId);
         mockIdGenerator.Verify(g => g.GenerateId(), Times.Once);
-        mockCorrelationContext.Verify(c => c.SetCorrelationId(generatedId), Times.Once);
+        mockCorrelationContext.VerifySet(c => c.CorrelationId = generatedId, Times.Once);
     }
 
     [TestMethod]

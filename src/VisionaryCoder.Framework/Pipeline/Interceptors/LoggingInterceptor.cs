@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Pipeline.Abstractions;
 
 namespace VisionaryCoder.Framework.Pipeline.Interceptors;

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
+
 using VisionaryCoder.Framework.Filtering.Abstractions;
 
 namespace VisionaryCoder.Framework.Filtering.Poco;
@@ -51,7 +52,7 @@ internal static class PocoFilterExpressionBuilder
             if (string.IsNullOrEmpty(condition.Value)) return null;
             try
             {
-                var items = JsonSerializer.Deserialize<List<string?>>(condition.Value) ?? new();
+                List<string?> items = JsonSerializer.Deserialize<List<string?>>(condition.Value) ?? new();
                 if (items.Count == 0) return null;
 
                 // Build OR equals: (member == v1) || (member == v2) ...

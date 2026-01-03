@@ -1,5 +1,4 @@
 using System.Reflection;
-
 using VisionaryCoder.Framework.Proxy.Attributes;
 
 namespace VisionaryCoder.Framework.Proxy;

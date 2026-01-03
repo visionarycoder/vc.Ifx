@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Language Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Build Output -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Source Link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Package Identity -->
+    <PackageId>VisionaryCoder.Framework.EntityFrameworkCore</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>VisionaryCoder</Authors>
+    <Company>VisionaryCoder</Company>
+    <Product>VisionaryCoder Framework EntityFrameworkCore</Product>
+
+    <!-- Package Metadata -->
+    <Title>VisionaryCoder.Framework.EntityFrameworkCore</Title>
+    <Description>Entity Framework Core integrations for VisionaryCoder Framework including EntityId value converters, model builders, filtering, and querying extensions. Built on .NET 10 LTS.</Description>
+    <PackageTags>framework;entityframeworkcore;efcore;orm;database;filtering;querying;net10;lts</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v1.0.0: Initial release with EF Core integrations extracted from VisionaryCoder.Framework v2.0.0</PackageReleaseNotes>
+
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/visionarycoder/Framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Project References -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\VisionaryCoder.Framework.Abstractions\Framework.Abstractions.csproj" />
+    <ProjectReference Include="..\VisionaryCoder.Framework.Patterns\Framework.Patterns.csproj" />
+    <ProjectReference Include="..\VisionaryCoder.Framework.DataAccess\Framework.DataAccess.csproj" />
+  </ItemGroup>
+
+  <!-- Entity Framework Core -->
+  <ItemGroup Label="EntityFrameworkCore">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="EFCore.NamingConventions" />
+  </ItemGroup>
+
+  <!-- Development Tools -->
+  <ItemGroup Label="Development">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

@@ -1,9 +1,8 @@
 // Copyright (c) 2025 VisionaryCoder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using VisionaryCoder.Framework.Proxy;
+using Microsoft.Extensions.Logging;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors;
 

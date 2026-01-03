@@ -1,11 +1,76 @@
 {
-  "json.schemas": [
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://visionarycoder.com/schemas/queryfilter.schema.json",
+  "title": "QueryFilter",
+  "description": "JSON Schema for QueryFilter serialization",
+  "oneOf": [
     {
-      "fileMatch": [
-        "**/queries/*.json",
-        "**/filters/*.json"
-      ],
-      "url": "./.json/schemas/queryfilter.schema.json"
+      "$ref": "#/definitions/PropertyFilter"
+    },
+    {
+      "$ref": "#/definitions/CompositeFilter"
     }
-  ]
+  ],
+  "definitions": {
+    "PropertyFilter": {
+      "type": "object",
+      "description": "A filter that operates on a single property",
+      "required": ["operator", "property"],
+      "properties": {
+        "operator": {
+          "type": "string",
+          "description": "The comparison operator to apply",
+          "enum": [
+            "Equals",
+            "NotEquals",
+            "Contains",
+            "StartsWith",
+            "EndsWith",
+            "GreaterThan",
+            "GreaterThanOrEqual",
+            "LessThan",
+            "LessThanOrEqual",
+            "In",
+            "NotIn",
+            "IsNull",
+            "IsNotNull"
+          ]
+        },
+        "property": {
+          "type": "string",
+          "description": "The property name to filter on"
+        },
+        "value": {
+          "description": "The value to compare against (optional for IsNull/IsNotNull operators)"
+        },
+        "ignoreCase": {
+          "type": "boolean",
+          "description": "Whether to ignore case in string comparisons",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CompositeFilter": {
+      "type": "object",
+      "description": "A filter that combines multiple filters using logical operators",
+      "required": ["operator", "children"],
+      "properties": {
+        "operator": {
+          "type": "string",
+          "description": "The logical operator to apply",
+          "enum": ["And", "Or", "Not"]
+        },
+        "children": {
+          "type": "array",
+          "description": "The child filters to combine",
+          "items": {
+            "$ref": "#"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

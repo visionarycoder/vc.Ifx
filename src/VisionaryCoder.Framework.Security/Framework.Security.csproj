@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Language Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Build Output -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Source Link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Package Identity -->
+    <PackageId>VisionaryCoder.Framework.Security</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>VisionaryCoder</Authors>
+    <Company>VisionaryCoder</Company>
+    <Product>VisionaryCoder Framework Security</Product>
+
+    <!-- Package Metadata -->
+    <Title>VisionaryCoder.Framework.Security</Title>
+    <Description>Security features for VisionaryCoder Framework including authentication, authorization, password hashing, JWT token handling, data protection, and security interceptors. Built on .NET 10 LTS.</Description>
+    <PackageTags>framework;security;authentication;authorization;jwt;oauth;rbac;encryption;dataprotection;net10;lts</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v1.0.0: Initial release with security features extracted from VisionaryCoder.Framework v2.0.0</PackageReleaseNotes>
+
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/visionarycoder/Framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Project References -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\VisionaryCoder.Framework.Abstractions\Framework.Abstractions.csproj" />
+    <ProjectReference Include="..\VisionaryCoder.Framework.Patterns\Framework.Patterns.csproj" />
+  </ItemGroup>
+
+  <!-- Security Dependencies -->
+  <ItemGroup Label="Security">
+    <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" />
+  </ItemGroup>
+
+  <!-- Development Tools -->
+  <ItemGroup Label="Development">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Framework References -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

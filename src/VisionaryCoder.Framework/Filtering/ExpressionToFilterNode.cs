@@ -10,7 +10,7 @@ namespace VisionaryCoder.Framework.Filtering;
 /// </summary>
 /// <remarks>
 /// This translator supports a subset of expression syntax sufficient for typical
-/// filtering scenarios: boolean combinations (&&, ||), comparisons (==, !=, &lt;, &gt;, etc.),
+/// filtering scenarios: boolean combinations (&amp;&amp;, ||), comparisons (==, !=, &lt;, &gt;, etc.),
 /// simple unary negation (!), string operations (Contains/StartsWith/EndsWith) and
 /// common Enumerable methods such as Any/All/Contains used in collection predicates.
 ///
@@ -25,16 +25,26 @@ public static class ExpressionToFilterNode
     /// <typeparam name="T">The parameter type used in the expression (e.g. entity type).</typeparam>
     /// <param name="expression">The predicate expression to translate.</param>
     /// <returns>A <see cref="FilterNode"/> representing the predicate.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when expression is null.</exception>
     /// <exception cref="NotSupportedException">Thrown when the expression contains unsupported constructs.</exception>
-    public static FilterNode Translate<T>(Expression<Func<T, bool>> expression) => TranslateNode(expression.Body) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
+    public static FilterNode Translate<T>(Expression<Func<T, bool>> expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        return TranslateNode(expression.Body) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
+    }
 
     /// <summary>
     /// Translate a general expression into a <see cref="FilterNode"/>.
     /// </summary>
     /// <param name="expression">The expression to translate.</param>
     /// <returns>A <see cref="FilterNode"/> representing the expression.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when expression is null.</exception>
     /// <exception cref="NotSupportedException">Thrown when the expression contains unsupported constructs.</exception>
-    public static FilterNode Translate(Expression expression) => TranslateNode(expression) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
+    public static FilterNode Translate(Expression expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        return TranslateNode(expression) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
+    }
 
     /// <summary>
     /// Internal recursive dispatcher that maps expression node types to translator methods.
@@ -46,8 +56,22 @@ public static class ExpressionToFilterNode
             BinaryExpression binary => TranslateBinary(binary),
             MethodCallExpression call => TranslateMethodCall(call),
             UnaryExpression { NodeType: ExpressionType.Not } unary => TranslateNot(unary),
+            MemberExpression member when member.Type == typeof(bool) => TranslateBooleanMember(member),
             _ => null
         };
+
+    /// <summary>
+    /// Translates a boolean member expression (e.g., c.IsActive) to a FilterCondition with Equals true.
+    /// </summary>
+    private static FilterNode? TranslateBooleanMember(MemberExpression member)
+    {
+        string? path = GetMemberPath(member);
+        if (path is null)
+        {
+            return null;
+        }
+        return new FilterCondition(path, FilterOperation.Equals, "True");
+    }
 
     /// <summary>
     /// Translates binary expressions. Handles logical groups (AndAlso/OrElse) by
@@ -62,7 +86,7 @@ public static class ExpressionToFilterNode
             return TranslateComparison(binary);
         }
 
-        // Logical group: && / ||
+        // Logical group: &amp;&amp; / ||
         FilterCombination combination = binary.NodeType == ExpressionType.AndAlso
             ? FilterCombination.And
             : FilterCombination.Or;
@@ -79,7 +103,7 @@ public static class ExpressionToFilterNode
 
     /// <summary>
     /// Helper that flattens nested groups of the same combination type to avoid
-    /// deeply nested group trees (e.g. (A && B) && C becomes A && B && C).
+    /// deeply nested group trees (e.g. (A &amp;&amp; B) &amp;&amp; C becomes A &amp;&amp; B &amp;&amp; C).
     /// </summary>
     private static IEnumerable<FilterNode> FlattenIfSameGroup(FilterNode node, FilterCombination combination)
     {
@@ -262,8 +286,19 @@ public static class ExpressionToFilterNode
     /// </summary>
     private static FilterNode? TranslateNot(UnaryExpression unary)
     {
-        // Only handle simple negation of a comparison or method call for now
-        // e.g. !c.IsActive or !c.Name.Contains("x")
+        // Handle negation of boolean member: !c.IsActive
+        if (unary.Operand is MemberExpression boolMember && boolMember.Type == typeof(bool))
+        {
+            string? boolPath = GetMemberPath(boolMember);
+            if (boolPath is null)
+            {
+                return null;
+            }
+            return new FilterCondition(boolPath, FilterOperation.Equals, "False");
+        }
+
+        // Handle negation of a comparison or method call
+        // e.g. !(x.Value > 4) or !c.Name.Contains("x")
         if (unary.Operand is not BinaryExpression binary)
         {
             return null;
@@ -307,6 +342,17 @@ public static class ExpressionToFilterNode
         {
             MemberExpression m => m,
             UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression inner } => inner,
+            _ => null
+        };
+
+    /// <summary>
+    /// Extracts a LambdaExpression from an expression, handling both direct lambda and quoted (UnaryExpression wrapped) forms.
+    /// </summary>
+    private static LambdaExpression? ExtractLambda(Expression expression) =>
+        expression switch
+        {
+            LambdaExpression lambda => lambda,
+            UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression quoted } => quoted,
             _ => null
         };
 
@@ -369,8 +415,13 @@ public static class ExpressionToFilterNode
                             return new FilterCollectionCondition(path, FilterOperation.HasElements, null);
 
                         // Any(predicate) - check if any element matches the predicate
-                        case 2 when call.Arguments[1] is UnaryExpression { Operand: LambdaExpression anyLambdaPredicate }:
+                        case 2:
                             {
+                                LambdaExpression? anyLambdaPredicate = ExtractLambda(call.Arguments[1]);
+                                if (anyLambdaPredicate is null)
+                                {
+                                    return null;
+                                }
                                 FilterNode? predicateFilter = TranslateNode(anyLambdaPredicate.Body);
                                 return predicateFilter is null
                                     ? null
@@ -383,8 +434,13 @@ public static class ExpressionToFilterNode
                 case nameof(Enumerable.All):
 
                     // All(predicate) - check if all elements match the predicate
-                    if (call.Arguments.Count == 2 && call.Arguments[1] is UnaryExpression { Operand: LambdaExpression allLambdaPredicate })
+                    if (call.Arguments.Count == 2)
                     {
+                        LambdaExpression? allLambdaPredicate = ExtractLambda(call.Arguments[1]);
+                        if (allLambdaPredicate is null)
+                        {
+                            return null;
+                        }
                         FilterNode? predicateFilter = TranslateNode(allLambdaPredicate.Body);
                         return predicateFilter is null
                             ? null

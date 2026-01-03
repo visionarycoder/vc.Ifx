@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using IoPath = System.IO.Path;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration.Local;
 
@@ -210,13 +211,13 @@ public sealed class LocalConfigurationProvider
 
     private string GetFullPath(string filePath)
     {
-        if (Path.IsPathRooted(filePath))
+        if (IoPath.IsPathRooted(filePath))
             return filePath;
 
         if (!string.IsNullOrEmpty(options.BasePath))
-            return Path.Combine(options.BasePath, filePath);
+            return IoPath.Combine(options.BasePath, filePath);
 
-        return Path.Combine(Directory.GetCurrentDirectory(), filePath);
+        return IoPath.Combine(Directory.GetCurrentDirectory(), filePath);
     }
 
     private void OnConfigurationFileChanged(object sender, FileSystemEventArgs e)
@@ -270,8 +271,8 @@ public sealed class LocalConfigurationProvider
         try
         {
             string filePath = GetFullPath(options.FilePath);
-            string? directory = Path.GetDirectoryName(filePath);
-            string fileName = Path.GetFileName(filePath);
+            string? directory = IoPath.GetDirectoryName(filePath);
+            string fileName = IoPath.GetFileName(filePath);
 
             if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
                 return null;

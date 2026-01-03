@@ -1,0 +1,84 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Language Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Build Output -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Source Link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Package Identity -->
+    <PackageId>VisionaryCoder.Framework.Messaging</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>VisionaryCoder</Authors>
+    <Company>VisionaryCoder</Company>
+    <Product>VisionaryCoder Framework Messaging</Product>
+
+    <!-- Package Metadata -->
+    <Title>VisionaryCoder.Framework.Messaging</Title>
+    <Description>Messaging domain abstractions and implementations for VisionaryCoder Framework. Includes Azure Service Bus, Queue Storage, Event Grid, and in-memory messaging. Technology-agnostic abstractions with pluggable providers. Built on .NET 10 LTS.</Description>
+    <PackageTags>framework;messaging;servicebus;queue;eventgrid;pub-sub;domain;azure;net10;lts</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v1.0.0: Initial release with messaging domain extracted from technology-specific packages</PackageReleaseNotes>
+
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/visionarycoder/Framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Project References -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\VisionaryCoder.Framework.Abstractions\Framework.Abstractions.csproj" />
+    <ProjectReference Include="..\VisionaryCoder.Framework.Core\Framework.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Azure Messaging Dependencies -->
+  <ItemGroup Label="Azure Messaging">
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" />
+    <PackageReference Include="Azure.Messaging.EventGrid" />
+    <PackageReference Include="Azure.Messaging.EventHubs" />
+    <PackageReference Include="Azure.Storage.Queues" />
+  </ItemGroup>
+
+  <!-- Microsoft Extensions -->
+  <ItemGroup Label="Microsoft Extensions">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <!-- Health Checks -->
+  <ItemGroup Label="HealthChecks">
+    <PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" />
+    <PackageReference Include="AspNetCore.HealthChecks.Azure.Storage.Queues" />
+  </ItemGroup>
+
+  <!-- Development Tools -->
+  <ItemGroup Label="Development">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

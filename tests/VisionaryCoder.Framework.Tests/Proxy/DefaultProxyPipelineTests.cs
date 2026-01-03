@@ -256,8 +256,8 @@ public class DefaultProxyPipelineTests
         var context = new ProxyContext { Request = "TestRequest" };
         var expectedResponse = ProxyResponse<string>.Success("TestResponse");
 
-        var lowOrderInterceptor = new TestAttributeInterceptor(10, "Low", callOrder);
-        var highOrderInterceptor = new TestAttributeInterceptor(200, "High", callOrder);
+        var lowOrderInterceptor = new TestLowOrderAttributeInterceptor("Low", callOrder);
+        var highOrderInterceptor = new TestHighOrderAttributeInterceptor("High", callOrder);
 
         var mockTransport = new Mock<IProxyTransport>();
         mockTransport.Setup(t => t.SendCoreAsync<string>(context, It.IsAny<CancellationToken>()))
@@ -475,11 +475,33 @@ public class DefaultProxyPipelineTests
     }
 
     // Test helper class with attribute-based ordering
-    [ProxyInterceptorOrderAttribute(10)]
+    [ProxyInterceptorOrder(10)]
     private class TestAttributeInterceptor(int order, string name, List<string> callOrder) : IProxyInterceptor
     {
         public int Order { get; } = order;
 
+        public Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
+        {
+            callOrder.Add(name);
+            return next(context, cancellationToken);
+        }
+    }
+
+    // Test helper class with low order attribute
+    [ProxyInterceptorOrder(10)]
+    private class TestLowOrderAttributeInterceptor(string name, List<string> callOrder) : IProxyInterceptor
+    {
+        public Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
+        {
+            callOrder.Add(name);
+            return next(context, cancellationToken);
+        }
+    }
+
+    // Test helper class with high order attribute
+    [ProxyInterceptorOrder(200)]
+    private class TestHighOrderAttributeInterceptor(string name, List<string> callOrder) : IProxyInterceptor
+    {
         public Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
         {
             callOrder.Add(name);

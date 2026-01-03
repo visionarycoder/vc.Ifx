@@ -255,14 +255,14 @@ public class CollectionExtensionsTests
     }
 
     [TestMethod]
-    public void TryGetElement_WithNullCollection_ShouldThrowArgumentNullException()
+    public void TryGetElement_WithNullCollection_ShouldThrowNullReferenceException()
     {
         // Arrange
         ICollection<string>? collection = null;
 
         // Act & Assert
         Func<bool> action = () => collection!.TryGetElement(0, out _);
-        action.Should().Throw<ArgumentNullException>();
+        action.Should().Throw<NullReferenceException>();
     }
 
     [TestMethod]

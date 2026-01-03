@@ -1,5 +1,3 @@
-using VisionaryCoder.Framework.Filtering.Abstractions;
-
 namespace VisionaryCoder.Framework.Filtering;
 
 public static class Filter

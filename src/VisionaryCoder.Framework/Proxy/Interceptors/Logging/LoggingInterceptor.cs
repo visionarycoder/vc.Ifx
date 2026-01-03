@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Proxy.Exceptions;
+
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Logging;
 /// <summary>
 /// Interceptor that logs proxy operations for monitoring and debugging purposes.

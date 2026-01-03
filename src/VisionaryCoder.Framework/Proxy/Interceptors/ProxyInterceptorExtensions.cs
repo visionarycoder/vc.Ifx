@@ -1,14 +1,13 @@
 // Copyright (c) 2025 VisionaryCoder. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using VisionaryCoder.Framework.Proxy.Interceptors.Auditing;
 using VisionaryCoder.Framework.Proxy.Interceptors.Caching;
 using VisionaryCoder.Framework.Proxy.Interceptors.Correlation;
-using VisionaryCoder.Framework.Proxy.Interceptors.Logging;
 using VisionaryCoder.Framework.Proxy.Interceptors.Resilience;
 using VisionaryCoder.Framework.Proxy.Interceptors.Retries;
 using VisionaryCoder.Framework.Proxy.Interceptors.Security;

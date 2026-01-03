@@ -127,7 +127,11 @@ public sealed class ServiceResult<T> : ServiceResultBase
     public ServiceResult<TNew> Map<TNew>(Func<T, TNew> mapper)
     {
         if (!IsSuccess || Value is null)
-            return ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null");
+        {
+            return Exception is not null
+                ? ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null", Exception)
+                : ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null");
+        }
 
         try
         {
@@ -149,7 +153,11 @@ public sealed class ServiceResult<T> : ServiceResultBase
     public async Task<ServiceResult<TNew>> MapAsync<TNew>(Func<T, Task<TNew>> mapper)
     {
         if (!IsSuccess || Value is null)
-            return ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null");
+        {
+            return Exception is not null
+                ? ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null", Exception)
+                : ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null");
+        }
 
         try
         {

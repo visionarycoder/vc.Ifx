@@ -59,18 +59,22 @@ public sealed class RetryInterceptor : IOrderedProxyInterceptor
             catch (BusinessException ex)
             {
                 logger.LogDebug("Business exception encountered, not retrying: {Message}", ex.Message);
+                throw;
             }
             catch (NonRetryableTransportException ex)
             {
                 logger.LogDebug("Non-retryable transport exception encountered, not retrying: {Message}", ex.Message);
+                throw;
             }
             catch (ProxyCanceledException ex)
             {
                 logger.LogDebug("Operation was cancelled, not retrying: {Message}", ex.Message);
+                throw;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unexpected exception encountered, not retrying");
+                throw;
             }
         }
     }

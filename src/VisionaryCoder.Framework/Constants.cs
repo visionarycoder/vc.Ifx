@@ -8,11 +8,12 @@ namespace VisionaryCoder.Framework;
 /// </summary>
 public static class Constants
 {
-    
+
     /// <summary>
     /// The version of the VisionaryCoder Framework.
+    /// Updated to 2.0.0 for .NET 10 LTS release.
     /// </summary>
-    public const string Version = "1.0.0";
+    public const string Version = "2.0.0";
 
     /// <summary>
     /// The configuration section name for framework settings.
@@ -22,7 +23,7 @@ public static class Constants
     /// <summary>
     /// Timeout-related constants.
     /// </summary>
-    public static class Timeouts
+    public static class DefaultTimeouts
     {
         /// <summary>
         /// Default HTTP request timeout in seconds.

@@ -1,7 +1,6 @@
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using VisionaryCoder.Framework.Proxy.Interceptors.Configuration;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration;
 

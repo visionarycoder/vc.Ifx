@@ -1,5 +1,3 @@
-using System;
-
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration;
 
 /// <summary>

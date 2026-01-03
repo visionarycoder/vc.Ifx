@@ -1,6 +1,6 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration;
 

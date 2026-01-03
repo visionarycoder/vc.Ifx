@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VisionaryCoder.Framework.Proxy;
-
 using VisionaryCoder.Framework.Proxy.Exceptions;
 using VisionaryCoder.Framework.Proxy.Interceptors.Retries;
 
@@ -119,6 +118,7 @@ public class RetryInterceptorTests
     }
 
     [TestMethod]
+    [Timeout(500)]
     public async Task InvokeAsync_WithBusinessException_ShouldNotRetry()
     {
         // Arrange
@@ -131,27 +131,16 @@ public class RetryInterceptorTests
             throw new BusinessException("Business rule violation");
         }
 
-        // Act
-        // BusinessException is caught and operation completes
-        // Note: The retry interceptor infinite loops on non-retryable exceptions
-        // This is a design issue in the original code - adding timeout
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<BusinessException>(
+            async () => await interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when cancellation happens
-        }
-
-        // Assert - should have been called only once (not retried)
+        // Should have been called only once (not retried)
         callCount.Should().Be(1);
     }
 
     [TestMethod]
+    [Timeout(500)]
     public async Task InvokeAsync_WithNonRetryableException_ShouldNotRetry()
     {
         // Arrange
@@ -164,24 +153,16 @@ public class RetryInterceptorTests
             throw new NonRetryableTransportException("Permanent failure");
         }
 
-        // Act - similar to business exception, this will loop
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<NonRetryableTransportException>(
+            async () => await interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
-
-        // Assert
+        // Should have been called only once
         callCount.Should().Be(1);
     }
 
     [TestMethod]
+    [Timeout(500)]
     public async Task InvokeAsync_WithProxyCanceledException_ShouldNotRetry()
     {
         // Arrange
@@ -194,24 +175,16 @@ public class RetryInterceptorTests
             throw new ProxyCanceledException("Operation cancelled");
         }
 
-        // Act
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<ProxyCanceledException>(
+            async () => await interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
-
-        // Assert
+        // Should have been called only once
         callCount.Should().Be(1);
     }
 
     [TestMethod]
+    [Timeout(500)]
     public async Task InvokeAsync_WithUnexpectedException_ShouldNotRetry()
     {
         // Arrange
@@ -224,20 +197,11 @@ public class RetryInterceptorTests
             throw new InvalidOperationException("Unexpected error");
         }
 
-        // Act
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () => await interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
-
-        // Assert
+        // Should have been called only once
         callCount.Should().Be(1);
     }
 

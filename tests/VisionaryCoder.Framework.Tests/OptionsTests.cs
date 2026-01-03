@@ -18,8 +18,8 @@ public class OptionsTests
         options.EnableCorrelationId.Should().BeTrue();
         options.EnableRequestId.Should().BeTrue();
         options.EnableStructuredLogging.Should().BeTrue();
-        options.DefaultHttpTimeoutSeconds.Should().Be(Constants.Timeouts.DefaultHttpTimeoutSeconds);
-        options.DefaultCacheExpirationMinutes.Should().Be(Constants.Timeouts.DefaultCacheExpirationMinutes);
+        options.DefaultHttpTimeoutSeconds.Should().Be(Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds);
+        options.DefaultCacheExpirationMinutes.Should().Be(Constants.DefaultTimeouts.DefaultCacheExpirationMinutes);
     }
 
     [TestMethod]

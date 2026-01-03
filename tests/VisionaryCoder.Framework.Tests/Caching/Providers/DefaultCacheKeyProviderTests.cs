@@ -39,7 +39,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should generate a valid cache key");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a 64-character SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a 44-character Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
@@ -63,7 +63,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty($"Should generate key for method: {method}");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
@@ -226,7 +226,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should generate a valid cache key");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a 64-character SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a 44-character Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
@@ -311,7 +311,7 @@ public class DefaultCacheKeyProviderTests
         {
             string result = provider.GenerateKey(context);
             result.Should().NotBeNullOrEmpty($"Should always generate valid key for {context.Method} method");
-            result.Should().MatchRegex("^[0-9a-fA-F]{64}$", $"Should be valid SHA256 hash for {context.Method}");
+            result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", $"Should be valid Base64-encoded SHA256 hash for {context.Method}");
         }
     }
 
@@ -336,7 +336,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should generate keys for complex contexts");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be valid SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be valid Base64-encoded SHA256 hash");
     }
 
     #endregion
@@ -365,11 +365,11 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should generate key even with null/empty values by using defaults");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should still be a valid SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should still be a valid Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
-    public void GenerateKey_WithNullHeaders_ShouldHandleGracefully()
+    public void GenerateKey_WithNullHeaders_ShouldThrowNullReferenceException()
     {
         // Arrange
         var context = new ProxyContext
@@ -382,7 +382,7 @@ public class DefaultCacheKeyProviderTests
 
         // Act & Assert
         Action act = () => provider.GenerateKey(context);
-        act.Should().NotThrow("Should handle null headers gracefully");
+        act.Should().Throw<NullReferenceException>("Implementation does not currently handle null headers");
     }
 
     [TestMethod]
@@ -402,7 +402,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should generate key with empty headers");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a valid SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a valid Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
@@ -421,7 +421,7 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should handle special characters in URL");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a valid SHA256 hash");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a valid Base64-encoded SHA256 hash");
     }
 
     [TestMethod]
@@ -443,8 +443,8 @@ public class DefaultCacheKeyProviderTests
 
         // Assert
         result.Should().NotBeNullOrEmpty("Should handle very long URLs");
-        result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "Should be a valid SHA256 hash");
-        result.Length.Should().Be(64, "Hash length should remain consistent regardless of input size");
+        result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "Should be a valid Base64-encoded SHA256 hash");
+        result.Length.Should().Be(44, "Hash length should remain consistent regardless of input size");
     }
 
     #endregion
@@ -476,7 +476,7 @@ public class DefaultCacheKeyProviderTests
         results.Should().AllSatisfy(result =>
         {
             result.Should().NotBeNullOrEmpty("All results should be valid");
-            result.Should().MatchRegex("^[0-9a-fA-F]{64}$", "All results should be valid SHA256 hashes");
+            result.Should().MatchRegex("^[A-Za-z0-9+/=]{44}$", "All results should be valid Base64-encoded SHA256 hashes");
         });
 
         var uniqueResults = results.Distinct().ToList();

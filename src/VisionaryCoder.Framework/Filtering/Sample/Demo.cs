@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+
+using VisionaryCoder.Framework.Filtering.Abstractions;
 using VisionaryCoder.Framework.Filtering.EFCore;
 using VisionaryCoder.Framework.Filtering.Poco;
-using VisionaryCoder.Framework.Filtering.Abstractions;
 
 namespace VisionaryCoder.Framework.Filtering.Sample;
 
@@ -28,7 +29,7 @@ public static class Demo
         var pocoService = new UserService(pocoStrategy);
         IEnumerable<User> matchedPoco = pocoService.Query(users, filter);
         Console.WriteLine("POCO matches:");
-        foreach (var u in matchedPoco)
+        foreach (User u in matchedPoco)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
 
         // 3) Use with EF Core via EfFilterExecutionStrategy
@@ -48,26 +49,26 @@ public static class Demo
         List<User> matchedEf = await efQuery.ToListAsync();
 
         Console.WriteLine("EF Core matches:");
-        foreach (var u in matchedEf)
+        foreach (User u in matchedEf)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
 
         // --- NEW: Examples showing IN support ---
 
         // Example A: constant collection variable used as left-side .Contains -> translated to IN
-        var allowedNames = new[] { "John Smith", "Bob Brown" };
+        string[] allowedNames = new[] { "John Smith", "Bob Brown" };
         FilterNode inFilterVariable = Filter.For<User>()
             .Where(u => allowedNames.Contains(u.Name))
             .Build();
 
-        var pocoMatchesInVar = pocoService.Query(users, inFilterVariable);
+        IEnumerable<User> pocoMatchesInVar = pocoService.Query(users, inFilterVariable);
         Console.WriteLine("POCO IN (variable) matches:");
-        foreach (var u in pocoMatchesInVar)
+        foreach (User u in pocoMatchesInVar)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
 
         IQueryable<User> efInQueryVar = efService.Query(db.Users.AsQueryable(), inFilterVariable);
-        var efInVarMatches = await efInQueryVar.ToListAsync();
+        List<User> efInVarMatches = await efInQueryVar.ToListAsync();
         Console.WriteLine("EF IN (variable) matches:");
-        foreach (var u in efInVarMatches)
+        foreach (User u in efInVarMatches)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
 
         // Example B: array literal left-side .Contains -> also translated to IN
@@ -75,15 +76,15 @@ public static class Demo
             .Where(u => new[] { "Ann Smith", "Bob Brown" }.Contains(u.Name))
             .Build();
 
-        var pocoMatchesInLit = pocoService.Query(users, inFilterLiteral);
+        IEnumerable<User> pocoMatchesInLit = pocoService.Query(users, inFilterLiteral);
         Console.WriteLine("POCO IN (literal) matches:");
-        foreach (var u in pocoMatchesInLit)
+        foreach (User u in pocoMatchesInLit)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
 
         IQueryable<User> efInQueryLit = efService.Query(db.Users.AsQueryable(), inFilterLiteral);
-        var efInLitMatches = await efInQueryLit.ToListAsync();
+        List<User> efInLitMatches = await efInQueryLit.ToListAsync();
         Console.WriteLine("EF IN (literal) matches:");
-        foreach (var u in efInLitMatches)
+        foreach (User u in efInLitMatches)
             Console.WriteLine($" - {u.Name} (Id={u.Id})");
     }
 }

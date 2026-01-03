@@ -326,7 +326,6 @@ public class EnumerableExtensionsTests
     }
 
     [TestMethod]
-    [Ignore("Batch implementation appears to have a bug - returning wrong values")]
     public void Batch_WithValidSize_ShouldReturnBatches()
     {
         // Arrange
@@ -393,7 +392,7 @@ public class EnumerableExtensionsTests
         var random = new Random(42);
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => source!.Shuffle(random).ToList());
+        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => source!.ShuffleWith(random).ToList());
         exception.ParamName.Should().Be("source");
     }
 
@@ -405,7 +404,7 @@ public class EnumerableExtensionsTests
         Random? random = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => source.Shuffle(random!).ToList());
+        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => source.ShuffleWith(random!).ToList());
         exception.ParamName.Should().Be("random");
     }
 
@@ -418,8 +417,8 @@ public class EnumerableExtensionsTests
         var random2 = new Random(42);
 
         // Act
-        var result1 = source.Shuffle(random1).ToList();
-        var result2 = source.Shuffle(random2).ToList();
+        var result1 = source.ShuffleWith(random1).ToList();
+        var result2 = source.ShuffleWith(random2).ToList();
 
         // Assert
         result1.Should().ContainInOrder(result2);
@@ -557,7 +556,7 @@ public class EnumerableExtensionsTests
 
         // Act & Assert
         ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => source!.ToDelimitedString());
-        exception.ParamName.Should().Be("source");
+        exception.ParamName.Should().Be("values"); // string.Join parameter is named "values"
     }
 
     [TestMethod]

@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Language Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Build Output -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Source Link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Package Identity -->
+    <PackageId>VisionaryCoder.Framework.Patterns</PackageId>
+    <Version>3.0.0</Version>
+    <Authors>VisionaryCoder</Authors>
+    <Company>VisionaryCoder</Company>
+    <Product>VisionaryCoder Framework Patterns</Product>
+
+    <!-- Package Metadata -->
+    <Title>VisionaryCoder.Framework.Patterns</Title>
+    <Description>Enterprise design patterns package with zero infrastructure dependencies. Includes Result pattern, Specification pattern, CQRS, and Domain Events. 100% tested and production-ready. Built on .NET 10 LTS.</Description>
+    <PackageTags>framework;patterns;result;specification;cqrs;domain-events;ddd;clean-architecture;net10;lts</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v3.0.0: Initial release with core patterns extracted from VisionaryCoder.Framework. Includes Result pattern, Specification pattern, CQRS mediator, and Domain Events with 100% test coverage.</PackageReleaseNotes>
+
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/visionarycoder/Framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <!-- Development Tools -->
+  <ItemGroup Label="Development">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

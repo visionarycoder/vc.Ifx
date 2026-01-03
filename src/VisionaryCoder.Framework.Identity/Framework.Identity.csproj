@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageId>VisionaryCoder.Framework.Identity</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>VisionaryCoder</Authors>
+    <Company>VisionaryCoder</Company>
+    <Product>VisionaryCoder Framework Identity</Product>
+    <Title>VisionaryCoder.Framework.Identity</Title>
+    <Description>Identity domain abstractions and implementations for VisionaryCoder Framework. Includes authentication (JWT, OAuth, password hashing), authorization (RBAC, ABAC, policies), and auditing. Technology-agnostic identity patterns. Built on .NET 10 LTS.</Description>
+    <PackageTags>framework;identity;authentication;authorization;jwt;oauth;security;rbac;domain;net10;lts</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v1.0.0: Renamed from Framework.Security with domain-first organization</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/visionarycoder/Framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\VisionaryCoder.Framework.Abstractions\Framework.Abstractions.csproj" />
+    <ProjectReference Include="..\VisionaryCoder.Framework.Core\Framework.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Security">
+    <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" />
+  </ItemGroup>
+
+  <ItemGroup Label="Development">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

@@ -12,8 +12,8 @@ public class ConstantsTests
     [TestMethod]
     public void Version_ShouldHaveExpectedValue()
     {
-        // Assert
-        Constants.Version.Should().Be("1.0.0");
+        // Assert - Updated for .NET 10 LTS release
+        Constants.Version.Should().Be("2.0.0");
     }
 
     [TestMethod]
@@ -45,37 +45,37 @@ public class ConstantsTests
     public void Timeouts_DefaultHttpTimeoutSeconds_ShouldBe30()
     {
         // Assert
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().Be(30);
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().Be(30);
     }
 
     [TestMethod]
     public void Timeouts_DefaultDatabaseTimeoutSeconds_ShouldBe30()
     {
         // Assert
-        Constants.Timeouts.DefaultDatabaseTimeoutSeconds.Should().Be(30);
+        Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds.Should().Be(30);
     }
 
     [TestMethod]
     public void Timeouts_DefaultCacheExpirationMinutes_ShouldBe15()
     {
         // Assert
-        Constants.Timeouts.DefaultCacheExpirationMinutes.Should().Be(15);
+        Constants.DefaultTimeouts.DefaultCacheExpirationMinutes.Should().Be(15);
     }
 
     [TestMethod]
     public void Timeouts_AllValues_ShouldBePositive()
     {
         // Assert
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().BePositive();
-        Constants.Timeouts.DefaultDatabaseTimeoutSeconds.Should().BePositive();
-        Constants.Timeouts.DefaultCacheExpirationMinutes.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultCacheExpirationMinutes.Should().BePositive();
     }
 
     [TestMethod]
     public void Timeouts_HttpAndDatabaseTimeouts_ShouldBeEqual()
     {
         // Assert - Both are set to 30 seconds
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().Be(Constants.Timeouts.DefaultDatabaseTimeoutSeconds);
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().Be(Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds);
     }
 
     #endregion
@@ -332,7 +332,7 @@ public class ConstantsTests
     public void Constants_Timeouts_ShouldBeStaticClass()
     {
         // Arrange & Act
-        Type type = typeof(Constants.Timeouts);
+        Type type = typeof(Constants.DefaultTimeouts);
 
         // Assert
         type.IsAbstract.Should().BeTrue("static classes are abstract");
@@ -375,7 +375,7 @@ public class ConstantsTests
     public void Constants_NestedClasses_ShouldBePublic()
     {
         // Arrange & Act
-        Type timeoutsType = typeof(Constants.Timeouts);
+        Type timeoutsType = typeof(Constants.DefaultTimeouts);
         Type headersType = typeof(Constants.Headers);
         Type loggingType = typeof(Constants.Logging);
 
@@ -393,21 +393,21 @@ public class ConstantsTests
     public void Timeouts_DefaultHttpTimeoutSeconds_ShouldBeReasonable()
     {
         // Assert - 30 seconds is reasonable for HTTP requests
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().BeInRange(1, 300);
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().BeInRange(1, 300);
     }
 
     [TestMethod]
     public void Timeouts_DefaultDatabaseTimeoutSeconds_ShouldBeReasonable()
     {
         // Assert - 30 seconds is reasonable for database operations
-        Constants.Timeouts.DefaultDatabaseTimeoutSeconds.Should().BeInRange(1, 300);
+        Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds.Should().BeInRange(1, 300);
     }
 
     [TestMethod]
     public void Timeouts_DefaultCacheExpirationMinutes_ShouldBeReasonable()
     {
         // Assert - 15 minutes is reasonable for cache expiration
-        Constants.Timeouts.DefaultCacheExpirationMinutes.Should().BeInRange(1, 1440); // 1 min to 24 hours
+        Constants.DefaultTimeouts.DefaultCacheExpirationMinutes.Should().BeInRange(1, 1440); // 1 min to 24 hours
     }
 
     [TestMethod]

@@ -26,6 +26,10 @@ public class AuthorizationServiceCollectionExtensionsTests
     [TestMethod]
     public void AddRoleBasedAuthorizationPolicy_ShouldRegisterCorrectly()
     {
+        // Arrange
+        var requiredRoles = new List<string> { "Admin", "User" };
+        services.AddSingleton<ICollection<string>>(requiredRoles);
+
         // Act
         services.AddScoped<IAuthorizationPolicy, RoleBasedAuthorizationPolicy>();
 
@@ -52,6 +56,10 @@ public class AuthorizationServiceCollectionExtensionsTests
     [TestMethod]
     public void AddMultipleAuthorizationPolicies_ShouldRegisterAll()
     {
+        // Arrange
+        var requiredRoles = new List<string> { "Admin" };
+        services.AddSingleton<ICollection<string>>(requiredRoles);
+
         // Act
         services.AddScoped<IAuthorizationPolicy, RoleBasedAuthorizationPolicy>();
         services.AddScoped<IAuthorizationPolicy, NullAuthorizationPolicy>();
@@ -67,6 +75,10 @@ public class AuthorizationServiceCollectionExtensionsTests
     [TestMethod]
     public void RegisterAuthorizationPolicies_ShouldUseCorrectServiceLifetime()
     {
+        // Arrange
+        var requiredRoles = new List<string> { "Admin" };
+        services.AddSingleton<ICollection<string>>(requiredRoles);
+
         // Act
         services.AddScoped<IAuthorizationPolicy, RoleBasedAuthorizationPolicy>();
 

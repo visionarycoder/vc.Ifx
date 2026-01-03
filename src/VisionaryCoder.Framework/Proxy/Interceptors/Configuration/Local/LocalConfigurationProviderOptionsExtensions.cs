@@ -1,5 +1,3 @@
-using VisionaryCoder.Framework.Proxy.Interceptors.Configuration;
-
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration.Local;
 
 /// <summary>

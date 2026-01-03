@@ -11,8 +11,8 @@ public class FrameworkConstantsTests
     [TestMethod]
     public void Version_ShouldHaveCorrectValue()
     {
-        // Assert
-        Constants.Version.Should().Be("1.0.0");
+        // Assert - Updated for .NET 10 LTS release
+        Constants.Version.Should().Be("2.0.0");
     }
 
     [TestMethod]
@@ -30,18 +30,18 @@ public class FrameworkConstantsTests
     public void TimeoutsDefaults_ShouldHaveCorrectValues()
     {
         // Assert
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().Be(30);
-        Constants.Timeouts.DefaultDatabaseTimeoutSeconds.Should().Be(30);
-        Constants.Timeouts.DefaultCacheExpirationMinutes.Should().Be(15);
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().Be(30);
+        Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds.Should().Be(30);
+        Constants.DefaultTimeouts.DefaultCacheExpirationMinutes.Should().Be(15);
     }
 
     [TestMethod]
     public void TimeoutsConstants_ShouldBePositiveValues()
     {
         // Assert
-        Constants.Timeouts.DefaultHttpTimeoutSeconds.Should().BePositive();
-        Constants.Timeouts.DefaultDatabaseTimeoutSeconds.Should().BePositive();
-        Constants.Timeouts.DefaultCacheExpirationMinutes.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds.Should().BePositive();
+        Constants.DefaultTimeouts.DefaultCacheExpirationMinutes.Should().BePositive();
     }
 
     #endregion
@@ -140,9 +140,9 @@ public class FrameworkConstantsTests
         string configSection = Constants.ConfigurationSection;
 
         // Timeout constants
-        int httpTimeout = Constants.Timeouts.DefaultHttpTimeoutSeconds;
-        int dbTimeout = Constants.Timeouts.DefaultDatabaseTimeoutSeconds;
-        int cacheTimeout = Constants.Timeouts.DefaultCacheExpirationMinutes;
+        int httpTimeout = Constants.DefaultTimeouts.DefaultHttpTimeoutSeconds;
+        int dbTimeout = Constants.DefaultTimeouts.DefaultDatabaseTimeoutSeconds;
+        int cacheTimeout = Constants.DefaultTimeouts.DefaultCacheExpirationMinutes;
 
         // Header constants
         string correlationHeader = Constants.Headers.CorrelationId;

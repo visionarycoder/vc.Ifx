@@ -421,8 +421,3 @@ public class ReflectionExtensionsTests
 
     #endregion
 }
-
-public class TestClass
-{
-
-}

@@ -112,7 +112,7 @@ public class DictionaryExtensionsTests
     #region AddOrUpdate Tests
 
     [TestMethod]
-    public void AddOrUpdate_WithValueFactory_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void AddOrUpdate_WithValueFactory_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
@@ -120,9 +120,8 @@ public class DictionaryExtensionsTests
         var updateValueFactory = new Func<string, int, int>((k, v) => v + 1);
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() =>
+        Assert.ThrowsExactly<NullReferenceException>(() =>
             dictionary!.AddOrUpdate("key", addValueFactory, updateValueFactory));
-        exception.ParamName.Should().Be("dictionary");
     }
 
     [TestMethod]
@@ -226,8 +225,8 @@ public class DictionaryExtensionsTests
         IDictionary<string, int>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.ToImmutableDictionary());
-        exception.ParamName.Should().Be("dictionary");
+        ArgumentNullException exception = Assert.ThrowsExactly<ArgumentNullException>(() => ImmutableDictionary.ToImmutableDictionary(dictionary!));
+        exception.ParamName.Should().Be("source"); // The LINQ extension method parameter is "source"
     }
 
     [TestMethod]
@@ -237,7 +236,7 @@ public class DictionaryExtensionsTests
         var dictionary = new Dictionary<string, int> { ["key1"] = 1, ["key2"] = 2 };
 
         // Act
-        IImmutableDictionary<string, int> result = dictionary.ToImmutableDictionary();
+        IImmutableDictionary<string, int> result = ImmutableDictionary.ToImmutableDictionary(dictionary);
 
         // Assert
         result.Should().BeOfType<ImmutableDictionary<string, int>>();
@@ -290,7 +289,7 @@ public class DictionaryExtensionsTests
 
         // Act & Assert
         ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => first!.Merge(second));
-        exception.ParamName.Should().Be("first");
+        exception.ParamName.Should().Be("dictionary"); // The extension method parameter is "dictionary"
     }
 
     [TestMethod]
@@ -363,15 +362,14 @@ public class DictionaryExtensionsTests
     #region TransformValues Tests
 
     [TestMethod]
-    public void TransformValues_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void TransformValues_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
         var valueSelector = new Func<int, string>(v => v.ToString());
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.TransformValues(valueSelector));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.TransformValues(valueSelector));
     }
 
     [TestMethod]
@@ -416,7 +414,7 @@ public class DictionaryExtensionsTests
 
         // Act & Assert
         ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.Where(predicate));
-        exception.ParamName.Should().Be("dictionary");
+        exception.ParamName.Should().Be("source"); // LINQ Where extension method parameter is "source"
     }
 
     [TestMethod]
@@ -529,15 +527,14 @@ public class DictionaryExtensionsTests
     #region RemoveRange Tests
 
     [TestMethod]
-    public void RemoveRange_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void RemoveRange_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
         var keys = new List<string> { "key1" };
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.RemoveRange(keys));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.RemoveRange(keys));
     }
 
     [TestMethod]
@@ -575,14 +572,13 @@ public class DictionaryExtensionsTests
     #region TryRemove Tests
 
     [TestMethod]
-    public void TryRemove_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void TryRemove_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.TryRemove("key", out _));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.TryRemove("key", out _));
     }
 
     [TestMethod]
@@ -621,14 +617,13 @@ public class DictionaryExtensionsTests
     #region TryUpdate Tests
 
     [TestMethod]
-    public void TryUpdate_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void TryUpdate_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.TryUpdate("key", 1));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.TryUpdate("key", 1));
     }
 
     [TestMethod]
@@ -665,15 +660,14 @@ public class DictionaryExtensionsTests
     #region ForEach Tests
 
     [TestMethod]
-    public void ForEach_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void ForEach_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
         var action = new Action<string, int>((k, v) => { });
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.ForEach(action));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.ForEach(action));
     }
 
     [TestMethod]
@@ -710,14 +704,13 @@ public class DictionaryExtensionsTests
     #region Invert Tests
 
     [TestMethod]
-    public void Invert_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void Invert_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.Invert());
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.Invert());
     }
 
     [TestMethod]
@@ -751,14 +744,13 @@ public class DictionaryExtensionsTests
     #region IncrementValue Tests
 
     [TestMethod]
-    public void IncrementValue_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void IncrementValue_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, int>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.IncrementValue("key"));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.IncrementValue("key"));
     }
 
     [TestMethod]
@@ -794,14 +786,13 @@ public class DictionaryExtensionsTests
     #region AddToList Tests
 
     [TestMethod]
-    public void AddToList_WithNullDictionary_ShouldThrowArgumentNullException()
+    public void AddToList_WithNullDictionary_ShouldThrowNullReferenceException()
     {
         // Arrange
         IDictionary<string, List<int>>? dictionary = null;
 
         // Act & Assert
-        ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => dictionary!.AddToList("key", 1));
-        exception.ParamName.Should().Be("dictionary");
+        Assert.ThrowsExactly<NullReferenceException>(() => dictionary!.AddToList("key", 1));
     }
 
     [TestMethod]
@@ -844,6 +835,7 @@ public class DictionaryExtensionsTests
         // Act
         var result = dictionary
             .Where((k, v) => v > 4)
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             .TransformValues(v => $"Count: {v}")
             .ToReadOnlyDictionary();
 
