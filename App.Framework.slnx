@@ -125,27 +125,39 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/VisionaryCoder.Framework.Abstractions/Framework.Abstractions.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Core/Framework.Core.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.DataAccess/Framework.DataAccess.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.EntityFrameworkCore/Framework.EntityFrameworkCore.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Identity/Framework.Identity.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Messaging/Framework.Messaging.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Observability/Framework.Observability.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Patterns/Framework.Patterns.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Resilience/Framework.Resilience.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Security/Framework.Security.csproj" />
-    <Project Path="src/VisionaryCoder.Framework.Storage/Framework.Storage.csproj" />
+    <Project Path="src/Framework.Abstractions/Framework.Abstractions.csproj" />
+    <Project Path="src/Framework.Core/Framework.Core.csproj" />
+    <Project Path="src/Framework.Data.Azure.Table/Framework.Data.Azure.Table.csproj" Id="ba09dfb2-eb50-4198-b184-44d8cd5df8ad" />
+    <Project Path="src/Framework.Data.EntityFramework/Framework.Data.EntityFramework.csproj" />
+    <Project Path="src/Framework.Filtering.EntityFramework/Framework.Filtering.EntityFramework.csproj" />
+    <Project Path="src/Framework.Filtering/Framework.Filtering.csproj" />
+    <Project Path="src/Framework.Logging.Serilog/Framework.Logging.Serilog.csproj" />
+    <Project Path="src/Framework.Logging/Framework.Logging.csproj" />
+    <Project Path="src/Framework.Messaging.Abstractions/Framework.Messaging.Abstractions.csproj" />
+    <Project Path="src/Framework.Messaging.Azure.Queue/Framework.Messaging.Azure.Queue.csproj" />
+    <Project Path="src/Framework.Messaging.Azure.ServiceBus/Framework.Messaging.Azure.ServiceBus.csproj" />
+    <Project Path="src/Framework.Patterns/Framework.Patterns.csproj" />
+    <Project Path="src/Framework.Pipeline.Telemetry.Abstractions/Framework.Pipeline.Telemetry.Abstractions.csproj" />
+    <Project Path="src/Framework.Pipeline.Telemetry/Framework.Pipeline.Telemetry.csproj" />
+    <Project Path="src/Framework.Pipeline/Framework.Pipeline.csproj" />
+    <Project Path="src/Framework.Proxy.Abstractions/Framework.Proxy.Abstractions.csproj" />
+    <Project Path="src/Framework.Proxy.Interceptor/Framework.Proxy.Interceptor.csproj" />
+    <Project Path="src/Framework.Proxy/Framework.Proxy.csproj" />
+    <Project Path="src/Framework.Querying.EntityFramework/Framework.Querying.EntityFramework.csproj" />
+    <Project Path="src/Framework.Querying/Framework.Querying.csproj" />
+    <Project Path="src/Framework.Security/Framework.Security.csproj" />
+    <Project Path="src/Framework.Storage.Abstractions/Framework.Storage.Abstractions.csproj" />
+    <Project Path="src/Framework.Storage.Azure.Blob/Framework.Storage.Azure.Blob.csproj" Id="b48f91f8-c4cc-4609-8182-2481a513b720" />
+    <Project Path="src/framework.Storage.Azure.Table/framework.Storage.Azure.Table.csproj" Id="c9d9b49a-8eec-4c52-914c-7ad24f1780dd" DisplayName="Framework.Storage.Azure.Table" />
+    <Project Path="src/Framework.Storage/Framework.Storage.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/VisionaryCoder.Framework.Abstractions.Tests/Framework.Abstractions.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Core.Tests/Framework.Core.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.DataAccess.Tests/Framework.DataAccess.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.EntityFrameworkCore.Tests/Framework.EntityFrameworkCore.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Messaging.Tests/Framework.Messaging.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Observability.Tests/Framework.Observability.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Patterns.Tests/Framework.Patterns.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Resilience.Tests/Framework.Resilience.Tests.csproj" />
-    <Project Path="tests/VisionaryCoder.Framework.Security.Tests/Framework.Security.Tests.csproj" />
+    <Project Path="tests/Framework.Abstractions.Tests/Framework.Abstractions.Tests.csproj" />
+    <Project Path="tests/Framework.Core.Tests/Framework.Core.Tests.csproj" />
+    <Project Path="tests/Framework.DataAccess.Tests/Framework.DataAccess.Tests.csproj" />
+    <Project Path="tests/Framework.Messaging.Tests/Framework.Messaging.Tests.csproj" />
+    <Project Path="tests/Framework.Patterns.Tests/Framework.Patterns.Tests.csproj" />
+    <Project Path="tests/Framework.Security.Tests/Framework.Security.Tests.csproj" />
+    <Project Path="tests/Framework.Tests/Framework.Tests.csproj" />
   </Folder>
 </Solution>
