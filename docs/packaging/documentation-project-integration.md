@@ -1,3 +1,9 @@
+---
+title: Documentation project integration
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
 # Documentation project integration
 
 Local implementation and CLI verification completed 2026-09-10. Actual Visual

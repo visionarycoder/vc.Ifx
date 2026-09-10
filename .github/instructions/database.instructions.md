@@ -7,6 +7,10 @@ owner: Platform/IDL
 stability: stable
 domain: database
 # version semantics: MAJOR / MINOR / PATCH
+title: Database Project Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 # Database Project Instructions
 

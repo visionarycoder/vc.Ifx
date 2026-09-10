@@ -1,3 +1,10 @@
+---
+title: Multi-source selection local milestone
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Multi-source selection local milestone
 
 Gate 1 bounded infrastructure handoff, 2026-09-10. Global acceptance remains with

@@ -1,3 +1,9 @@
+---
+title: Code fix support matrix
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Code fix support matrix
 
 Owner: CodeFixes contract; Gate 3 reconciliation: Nash; Updated: 2026-09-10

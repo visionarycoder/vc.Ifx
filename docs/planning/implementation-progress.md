@@ -1,3 +1,10 @@
+---
+title: Implementation Progress
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Implementation Progress
 
 Snapshot: 2026-09-10. The [parallel plan](framework-upgrade-parallel-plan.md)

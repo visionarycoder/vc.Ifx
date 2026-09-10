@@ -1,3 +1,10 @@
+---
+title: Implementation Acceptance Audit
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Implementation Acceptance Audit
 
 Owner: Orchestrator; Updated: 2026-09-10; Status: local integration accepted; external hosted/IDE verification remains open.

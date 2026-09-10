@@ -1,6 +1,10 @@
 ---
 description: JavaScript/TypeScript coding standards and best practices
 applyTo: '**/*.{js,ts,jsx,tsx,mjs,cjs}'
+title: JavaScript / TypeScript Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # JavaScript / TypeScript Instructions

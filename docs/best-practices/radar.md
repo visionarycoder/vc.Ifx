@@ -1,3 +1,9 @@
+---
+title: Solution Architect Radar (2025 Q4)
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
 # Solution Architect Radar (2025 Q4)
 
 This radar provides a maturity view of industry best practices across specialties.  

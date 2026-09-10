@@ -1,3 +1,9 @@
+---
+title: Package validation
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Package validation
 
 Each source project declares its package identity, description, tags, repository,

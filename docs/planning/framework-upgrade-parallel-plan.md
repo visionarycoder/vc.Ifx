@@ -1,3 +1,10 @@
+---
+title: vc.Ifx Parallel Upgrade Plan
+doc_type: plan
+status: active
+last_updated: 2026-09-10
+---
+
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
@@ -9,8 +16,11 @@ This plan is optimized for multiple agents working in parallel. Agents should cl
 ## Current Acceptance
 
 As of 2026-09-10, all 28 libraries and local Gates 1, 2, 3 and 5 are accepted:
-31 of 32 workstream statuses are Complete. Gate 4 remains In-flight for external
-hosted execution, artifact transfer, required checks and authorized publication.
+31 of 32 workstream statuses are Complete. Gate 4 is Blocked on authorized review/
+merge, required checks, feed access/publication, and the development IDE environment.
+Hosted Linux execution and exact artifact transfer verification passed for draft
+PR #9; see [external acceptance](external-acceptance-20260910.md) for the tested
+revision, commands, results, and remaining access requirements.
 Hands-on documentation/compiler IDE acceptance remains explicitly unverified.
 No implementation subagent remains active. Do not reclaim completed packages from
 historical worker notes; the current Status/Owner line supersedes those handoffs.
@@ -167,8 +177,8 @@ Prior owner record: Owner: Nash (bounded Gate 3 documentation reconciliation); U
 
 ### Gate 4: CI/CD Wiring
 
-Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
-Owner: Orchestrator (external acceptance); Updated: 2026-09-10; Notes: Local CI implementation accepted: 31 artifact and 12 wrapper regressions passed; exact culture paths and BuildProjectReferences=false verified in actual final pack. Remains In-flight only for hosted Linux execution/artifact transfer, required-check configuration, feed permissions and authorized publication; no active implementation agent. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
+Status: [ ] Ready [ ] In-flight [x] Blocked [ ] Complete
+Owner: Orchestrator (external acceptance); Updated: 2026-09-10; Notes: Hosted Linux quality run 34501314692 passed for draft PR #9 head 623257381f3c95d3e35a48b7cab0fae6e35e97dc, test-merge revision 7586ccfaa2bbe96a9e7fcd76aed182afb461f381: warning-free full build, 3617 unit + 15 integration tests, no skips, exact 9408 lines/5332 branches across 28 libraries, report passed/issues0, 28 validated 1.0.0 package/symbol pairs. Downloaded both artifacts, verified GitHub ZIP digests, exact 58-file package manifest and build/coverage hash bindings. Fixed two hidden-file provenance defects and five test portability/locking fixtures without runtime API changes or weaker gates. Local provenance34, wrapper12 and targeted371 passed. Exact evidence: docs/planning/external-acceptance-20260910.md. Blocked on authorized PR review/merge, required-check enforcement and feed permissions/credentials, authorized publication, and development Visual Studio installation/interactive acceptance. Main is unprotected and its sole ruleset disabled; integration administration read returns403. No settings changed, merge, or publication; no running job remains. Preserve concurrent local changes.
 Prior owner record: Owner: Orchestrator; Updated: 2026-09-10; Notes: Accept frozen CI worker handoff and claim only Gate 4 for real no-build packaging reference-resolution correction. Gate 1 implementation is frozen and handed to final acceptance. Actual first pack b9e8e1bc02b0445388f82933ca6bd4c3 failed safely with NETSDK1085 in Roslyn because compiler package ResolveReferences attempted a reference build. Set BuildProjectReferences=false alongside NoBuild/NoRestore, verify wrapper regression and actual 28-package path; no project/source/build-identity edits. Direct dependency is installed SDK ResolveProjectReferences; required artifact tests/infrastructure/packaging/README.md. No package contract is blocked.
 
 Prior CI worker handoff (preserved):

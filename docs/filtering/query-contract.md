@@ -1,3 +1,9 @@
+---
+title: Query Contract
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Query Contract
 
 QuerySpec<T> is an immutable database-query description. Where composes FilterSpec

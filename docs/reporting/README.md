@@ -1,3 +1,9 @@
+---
+title: Framework Reporting
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Framework Reporting
 
 The [v1 contract](report-contract.md) is authoritative. The package is

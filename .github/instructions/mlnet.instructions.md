@@ -1,6 +1,10 @@
 ---
 description: ML.NET machine learning development best practices
 applyTo: '**/mlnet/**,**/*.mlnet.*,**/*machinelearning*,**/*ml*'
+title: ML.NET Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # ML.NET Instructions

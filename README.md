@@ -83,8 +83,11 @@ acceptance remains a separate check.
 The [2026-09-10 local checkpoint](docs/planning/local-verification-20260910.md)
 records a warning-free Release build, 3,632 passing tests, exact 100% coverage for
 all 28 libraries, and 28 validated package/symbol pairs. These are dated results,
-not a fresh verification of subsequent edits. Hosted execution, publishing
-permissions, repository-required checks, and hands-on IDE acceptance remain open.
+not a fresh verification of subsequent edits. The
+[hosted follow-up](docs/planning/external-acceptance-20260910.md) passed Linux quality
+and transferred-package verification for draft PR #9. Authorized review/merge,
+publishing permissions, repository-required checks, and hands-on IDE acceptance
+remain open; nothing was published by that verification run.
 
 The configured workflow validates pull requests, merge queues, manual runs, pushes
 to main, and version tags. Successful main pushes publish to GitHub Packages;

@@ -1,4 +1,11 @@
-﻿# 🧠 Copilot-Guided Development
+﻿---
+title: 🧠 Copilot-Guided Development
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
+
+# 🧠 Copilot-Guided Development
 
 This repository uses GitHub Copilot with custom instructions to ensure consistent, secure, and idiomatic code across multiple technologies. Copilot is configured to follow project-specific standards for C#, Angular, database projects, and Playwright testing.
 

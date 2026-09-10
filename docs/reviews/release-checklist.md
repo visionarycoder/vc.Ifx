@@ -1,3 +1,10 @@
+---
+title: Release Checklist
+doc_type: runbook
+status: active
+last_updated: 2026-09-10
+---
+
 # Release Checklist
 
 Use this checklist with the [branching playbook](branching-strategy.md) and

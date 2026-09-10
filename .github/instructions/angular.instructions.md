@@ -7,6 +7,10 @@ owner: Platform/IDL
 stability: stable
 domain: angular
 # version semantics: MAJOR / MINOR / PATCH
+title: Angular + TypeScript Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Angular + TypeScript Instructions

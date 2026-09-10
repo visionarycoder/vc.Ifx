@@ -1,3 +1,9 @@
+---
+title: Packaging local milestone
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
 # Packaging local milestone
 
 Date: 2026-09-09. Branch: 2020-09-09. Gate 2 remains In-flight for the final

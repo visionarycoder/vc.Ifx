@@ -1,3 +1,9 @@
+---
+title: Collection Operations in ExpressionToFilterNode
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Collection Operations in ExpressionToFilterNode
 
 ## Overview

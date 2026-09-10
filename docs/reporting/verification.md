@@ -1,3 +1,9 @@
+---
+title: Reporting Verification: 2026-09-09
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
 # Reporting Verification: 2026-09-09
 
 ## Current Status

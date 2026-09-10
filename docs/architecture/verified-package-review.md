@@ -1,3 +1,9 @@
+---
+title: Verified Package Correctness Review
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Verified Package Correctness Review
 
 Date: 2026-09-09. Reviewer: independent Gate 3 correctness reviewer.

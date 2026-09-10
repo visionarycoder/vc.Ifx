@@ -1,6 +1,10 @@
 ---
 description: CMD/Windows Batch scripting standards and best practices
 applyTo: '**/*.{cmd,bat}'
+title: CMD / Windows Batch Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # CMD / Windows Batch Instructions

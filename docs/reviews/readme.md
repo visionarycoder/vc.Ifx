@@ -1,3 +1,10 @@
+---
+title: Architecture Governance Reviews
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
+
 # Architecture Governance Reviews
 
 This folder contains the **governance playbooks and review guides** that keep our architecture consistent, traceable, and future‑proof.

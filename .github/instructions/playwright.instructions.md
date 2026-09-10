@@ -7,6 +7,10 @@ owner: Platform/IDL
 stability: stable
 domain: playwright
 # version semantics: MAJOR / MINOR / PATCH
+title: Playwright Test Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Playwright Test Instructions

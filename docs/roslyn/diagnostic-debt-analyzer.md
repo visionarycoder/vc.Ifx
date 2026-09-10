@@ -1,3 +1,9 @@
+---
+title: Diagnostic Debt Analyzer
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
 # Diagnostic Debt Analyzer
 
 The vc.Ifx Roslyn analyzer package tracks compiler and code-analysis diagnostic debt in source code.

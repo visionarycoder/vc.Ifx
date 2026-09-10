@@ -4,6 +4,9 @@ about: Suggest moving a practice between quadrants in the Solution Architect Rad
 title: "[Radar] Proposal: Move <Practice> to <Quadrant>"
 labels: ["radar", "proposal"]
 assignees: []
+doc_type: reference
+status: active
+last_updated: 2026-09-10
 ---
 
 ## Summary

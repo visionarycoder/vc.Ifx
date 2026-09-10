@@ -1,6 +1,10 @@
 ---
 description: .NET Aspire cloud-native application development best practices
 applyTo: '**/aspire/**,**/*.aspire.*,**/AppHost/**,**/ServiceDefaults/**'
+title: Aspire Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Aspire Instructions

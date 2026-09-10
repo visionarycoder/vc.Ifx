@@ -1,3 +1,9 @@
+---
+title: VisionaryCoder Framework - License Information
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # VisionaryCoder Framework - License Information
 
 ## MIT License
@@ -33,4 +39,3 @@ When creating new source files, include this header at the top:
 ---
 
 For the complete license terms, see the [LICENSE](LICENSE) file in the root of this repository.
-

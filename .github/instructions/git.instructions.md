@@ -1,6 +1,10 @@
 ---
 description: Git version control best practices and workflow standards
 applyTo: '**/.git*'
+title: Git Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Git Instructions

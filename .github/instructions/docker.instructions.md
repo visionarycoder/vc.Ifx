@@ -1,6 +1,10 @@
 ---
 description: Docker containerization best practices and standards
 applyTo: '**/Dockerfile*,**/*.dockerfile,**/docker-compose*.yml'
+title: Docker Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Docker Instructions

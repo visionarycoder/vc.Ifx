@@ -1,3 +1,9 @@
+---
+title: Software Architecture Best Practices
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Software Architecture Best Practices
 
 ## 1. Purpose

@@ -1,6 +1,10 @@
 ---
 description: Bash shell scripting standards and best practices
 applyTo: '**/*.{sh,bash}'
+title: Bash Shell Scripting Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Bash Shell Scripting Instructions

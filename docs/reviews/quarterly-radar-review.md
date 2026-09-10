@@ -1,3 +1,10 @@
+---
+title: Quarterly Radar & Capsules Review
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Quarterly Radar & Capsules Review
 
 ## Purpose

@@ -7,6 +7,10 @@ owner: Platform/IDL
 stability: stable
 domain: testing
 # version semantics: MAJOR / MINOR / PATCH
+title: Data-Driven Unit & Integration Test Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Data-Driven Unit & Integration Test Instructions

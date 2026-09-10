@@ -1,3 +1,9 @@
+---
+title: "[Specialty Name] Best Practices"
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
 # [Specialty Name] Best Practices
 
 ## 1. Purpose

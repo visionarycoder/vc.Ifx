@@ -1,3 +1,9 @@
+---
+title: Packaging coordination
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
 # Packaging coordination
 
 Gate 2 owns package metadata only. Public contracts, target frameworks, shared props,

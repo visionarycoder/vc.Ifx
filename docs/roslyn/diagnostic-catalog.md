@@ -1,3 +1,9 @@
+---
+title: Diagnostic Catalog
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Diagnostic Catalog
 
 Owner: vc.Ifx.Roslyn; Updated: 2026-09-10 (bounded Gate 3 documentation reconciliation)

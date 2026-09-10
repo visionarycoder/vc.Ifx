@@ -1,6 +1,10 @@
 ---
 description: Utility functions and helper library development best practices
 applyTo: '**/*util*,**/*helper*,**/common/**,**/shared/**,**/extensions/**'
+title: Utilities Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Utilities Instructions
