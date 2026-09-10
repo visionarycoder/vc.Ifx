@@ -112,13 +112,13 @@ jobs:
             echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Ensure validation package exists
+      - name: Ensure root package.json is valid
         if: steps.detect-node-validation.outputs.has_invalid_package_json == 'true'
         run: |
           echo "The repository root package.json is invalid JSON and must be fixed before VBD validation can run."
           exit 1
 
-      - name: Ensure validation package exists
+      - name: Ensure root package.json defines validation scripts
         if: steps.detect-node-validation.outputs.has_package_json == 'true' && steps.detect-node-validation.outputs.has_validation_package != 'true' && steps.detect-node-validation.outputs.has_invalid_package_json != 'true'
         run: |
           echo "The repository root package.json is missing one or more required VBD/frontmatter/solution validation scripts."
