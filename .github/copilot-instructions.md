@@ -1,562 +1,410 @@
 ---
-applyTo: '**/*'
+title: Copilot Instructions
+doc_type: policy
+status: active
+last_updated: 2026-08-29
+version: 1.6.0
 ---
 
-# GitHub Copilot Instructions for VisionaryCoder
+# GitHub Copilot Instructions
 
-**Version:** 3.0.0  
-**Last Updated:** October 4, 2025  
-**Compatibility:** C`#`, 12, .NET 8+, forward-compatible with .NET 10 LTS
+> These instructions govern all Copilot suggestions, completions, and chat responses in this repository.
+> They are non-negotiable. Copilot follows them exactly without prompting for clarification on covered topics.
 
-## Changelog
-### Version 3.0.0 (2025-10-04)
-- **MAJOR RELEASE**: Comprehensive enterprise architecture guidelines added
-- **DevOps & Bicep:** 4-tier deployment environments, Bicep-exclusive IaC, GitFlow pipelines
-- **Integration & APIs:** Complete REST, gRPC, GraphQL, and messaging pattern guidance
-- **Network & Security:** Zero Trust architecture, OpenID Connect, comprehensive application security
-- **Resilience & Reliability:** Chaos engineering, load testing, circuit breakers, health checks
-- **Observability:** Full-stack monitoring with structured logging, metrics, tracing, and AIOps
-- **VBD Integration:** All patterns mapped to Volatility-Based Decomposition layers
-- **Configuration Management:** Environment-specific AppSettings structure (Dev/Test/Stage/Prod)
-- **Performance:** Benchmarking, profiling, and capacity planning guidelines
-
-### Version 2.3.0 (2025-10-04)
-- **MAJOR**: Added comprehensive **Security & Inter-Component Communication** section
-- Enforced **NEVER use underscore prefixes** rule throughout naming conventions
-- Added industry-standard security practices for authentication, authorization, and secret management
-- Implemented contract-based architecture with mandatory `*.Contracts` projects
-- Added performance-optimized communication protocols (in-process → gRPC → HTTP/2 → queues)
-- Enhanced proxy pattern implementation with circuit breakers and monitoring
-- Added strict layering rules and component isolation guidelines
-- Integrated distributed caching, connection pooling, and resilience patterns
-
-### Version 2.2.0 (2025-10-04)
-- Added comprehensive **Microsoft Best Practices for Naming and Placement** section
-- Enhanced C# guidelines with emphasis on following Microsoft's official conventions
-- Included detailed naming standards for classes, records, methods, and libraries
-- Added file organization and project structure recommendations
-- Expanded documentation standards and method design principles
-
-### Version 2.1.0 (2025-10-04)
-- Added **Moq** as the preferred mocking framework for unit tests
-- Included comprehensive Moq best practices and example patterns
-- Enhanced unit testing guidelines with mocking strategies
-
-### Version 2.0.0 (2025-10-04)
-- **MAJOR**: Consolidated all domain-specific instructions into single file
-- Added file pattern matching with `applyTo` directives
-- Integrated architecture, Azure, C#, database, design patterns, Playwright, and UI guidelines
-- Enhanced versioning and organization for better Copilot consumption
-
-### Version 1.0.0 (2025-10-03)
-- Initial version with C#, testing, and OpenTelemetry guidelines
-- Basic technology preferences and framework selections
-
-## Technology Preferences
-
-- **Language:** Use `C#` for all code (client and server). Prefer the latest C# features.
-- **Frameworks:**
-  - **Web:** Use Blazor for web applications.
-  - **Desktop:** Use Maui, WPF, or WinUI for Windows desktop apps.
-  - **Backend:** Use ASP.NET Core for APIs.
-  - **ORM:** Use Entity Framework Core.
-- **Target Framework:** .NET 8 or latest stable.
-
-## C# Development Guidelines
-*Applies to: `**/*.cs`*
-
-### Language & Framework Best Practices
-- **Use the Latest Language Features:** Leverage `C#` 12+ features (records, pattern matching, file-scoped types, required members, primary constructors) for improved clarity and maintainability
-- **Target Modern .NET:** Use .NET 8+ for all projects to benefit from performance, security, and language improvements
-- **Follow Microsoft Best Practices:** Always prefer Microsoft's official naming conventions and placement guidelines when creating new records, classes, methods, and libraries
-- **Naming Conventions:** Use PascalCase for public members, camelCase for local variables. **NEVER use underscore prefixes**
-- **Code Quality:** Enable nullable reference types, implicit usings, analyzers, and code style enforcement
-- **Immutability:** Prefer immutable types and readonly members where possible
-- **Async/Await:** Use async/await for all I/O-bound and long-running operations
-- **Error Handling:** Use exception filters and custom exception types for robust error management
-
-## Microsoft Best Practices for Naming and Placement
-*Applies to: `**/*.cs`, `**/src/**`*
-
-### Naming Conventions
-- **Classes:** Use PascalCase (e.g., `CustomerService`, `OrderProcessor`)
-- **Records:** Use PascalCase (e.g., `CustomerData`, `OrderSummary`)
-- **Interfaces:** Use PascalCase with 'I' prefix (e.g., `ICustomerService`, `IRepository<T>`)
-- **Methods:** Use PascalCase with verb phrases (e.g., `GetCustomerById`, `ProcessOrderAsync`)
-- **Properties:** Use PascalCase (e.g., `FirstName`, `IsActive`, `CreatedDate`)
-- **Fields:** Use camelCase for private fields (e.g., `customerRepository`, `logger`). **NEVER use underscore prefixes**
-- **Parameters:** Use camelCase (e.g., `customerId`, `orderData`)
-- **Local Variables:** Use camelCase (e.g., `customerName`, `orderTotal`)
-- **Constants:** Use PascalCase (e.g., `MaxRetryAttempts`, `DefaultTimeout`)
-- **Enums:** Use PascalCase for enum and values (e.g., `OrderStatus.Pending`, `PaymentMethod.CreditCard`)
-
-### File and Folder Organization
-- **One Class Per File:** Each class should be in its own file with matching name
-- **Namespace Alignment:** Folder structure should mirror namespace hierarchy
-- **Project Structure:**
-  - `Controllers/` - Web API controllers
-  - `Services/` - Business logic services
-  - `Models/` - Data transfer objects and view models
-  - `Data/` - Entity Framework contexts and entities
-  - `Repositories/` - Data access layer
-  - `Extensions/` - Extension methods
-  - `Helpers/` - Utility classes
-  - `Constants/` - Application constants
-
-### Library and Assembly Naming
-- **Assembly Names:** Use company.product.component pattern (e.g., `VisionaryCoder.Core`, `VisionaryCoder.Data`)
-- **Namespace Hierarchy:** Follow assembly name structure (e.g., `VisionaryCoder.Core.Services`)
-- **Avoid Generic Names:** Use descriptive, domain-specific names over generic terms
-
-### Method Design Principles
-- **Single Responsibility:** Each method should have one clear purpose
-- **Async Naming:** Append `Async` suffix to async methods (e.g., `GetDataAsync`)
-- **Boolean Methods:** Use `Is`, `Has`, `Can`, or `Should` prefixes (e.g., `IsValid`, `HasPermission`)
-- **Collection Methods:** Use clear action verbs (e.g., `AddItem`, `RemoveAll`, `FindByName`)
-
-### Documentation Standards
-- **XML Documentation:** Use `<summary>`, `<param>`, `<returns>` tags for public APIs
-- **README Files:** Include clear documentation for each project/library
-- **Code Comments:** Explain 'why' not 'what' - the code should be self-documenting
-
-## Security & Inter-Component Communication
-*Applies to: `**/*.cs`, `**/src/**`, `**/Contracts/**`*
-
-### Security Best Practices
-- **Authentication & Authorization:**
-  - Use industry-standard protocols: OAuth 2.0, OpenID Connect, JWT
-  - Implement role-based access control (RBAC) and attribute-based access control (ABAC)
-  - Use Azure Active Directory, Auth0, or similar identity providers
-  - Never store credentials in code or configuration files
-
-- **Secret Management:**
-  - Use Azure Key Vault, HashiCorp Vault, or AWS Secrets Manager for production
-  - Use .NET Secret Manager (`dotnet user-secrets`) for local development only
-  - Rotate secrets regularly with automated processes
-  - Use managed identities when available (Azure, AWS IAM roles)
-  - Encrypt secrets at rest and in transit
-
-- **Communication Security:**
-  - Always use TLS 1.2+ for external communication
-  - Use mutual TLS (mTLS) for service-to-service communication
-  - Implement certificate pinning for critical connections
-  - Use API keys, bearer tokens, or client certificates for service authentication
-
-### Inter-Component Communication Architecture
-- **Contract-Based Design:**
-  - Each component must expose a public `*.Contracts` project
-  - Components can ONLY reference other components through their Contract projects
-  - Contracts define interfaces, DTOs, and communication protocols only
-  - Never reference implementation projects directly
-
-- **Communication Protocols (Performance Priority):**
-  1. **In-Process:** Direct method calls via dependency injection (fastest)
-  2. **gRPC:** For high-performance service-to-service communication
-  3. **HTTP/2:** For RESTful APIs with multiplexing support
-  4. **Message Queues:** For asynchronous, decoupled communication
-  5. **HTTP/1.1:** Only when legacy compatibility required
-
-- **Proxy Pattern Implementation:**
-  - Use proxy classes to decouple direct component dependencies
-  - Implement circuit breakers and retry policies in proxies
-  - Add telemetry, logging, and monitoring at proxy level
-  - Support multiple communication protocols through proxy abstraction
-
-### Layering Rules & Enforcement
-- **Dependency Direction:** Dependencies must flow toward more stable layers
-  - UI → Services → Business Logic → Data Access → Infrastructure
-  - Higher layers can depend on lower layers, never the reverse
-  - Use dependency inversion principle with interfaces
-
-- **Layer Isolation:**
-  - Each layer communicates only with adjacent layers
-  - Cross-layer communication must go through defined contracts
-  - Use mediator pattern for complex cross-layer operations
-  - Implement architectural tests to enforce layering rules
-
-- **Contract Project Structure:**
-  ```
-  Component.Contracts/
-  ├── IComponentService.cs      // Service interfaces
-  ├── Models/                   // Data transfer objects
-  ├── Events/                   // Domain events
-  └── Exceptions/               // Component-specific exceptions
-  ```
-
-- **Component Isolation:**
-  - Components are self-contained with their own data stores
-  - No direct database sharing between components
-  - Use event-driven architecture for component coordination
-  - Implement saga pattern for distributed transactions
-
-### Performance & Resilience Patterns
-- **Connection Management:**
-  - Use connection pooling for all external services
-  - Implement connection health checks and failover
-  - Configure appropriate timeouts and retry policies
-
-- **Caching Strategy:**
-  - Use Redis for distributed caching between components
-  - Implement cache-aside pattern for data consistency
-  - Use in-memory caching for frequently accessed reference data
-
-- **Monitoring & Observability:**
-  - Implement distributed tracing across component boundaries
-  - Use correlation IDs for request tracking
-  - Monitor communication latency and error rates
-  - Set up alerts for communication failures
-
-## Integration & API Best Practices
-*Applies to: `**/Controllers/**`, `**/APIs/**`, `**/Services/**`*
-
-### API Architecture & VBD Integration
-- **REST APIs:** Implement in Manager layer for workflow orchestration
-- **gRPC Services:** Use for high-performance Engine-to-Engine communication
-- **GraphQL:** Implement in Manager layer for complex data aggregation scenarios
-- **Messaging:** Use for asynchronous Accessor-to-Manager communication
-
-### REST API Standards
-- **Resource Design:** Follow RESTful principles with clear resource hierarchies
-- **HTTP Methods:** Use appropriate verbs (GET, POST, PUT, DELETE, PATCH)
-- **Status Codes:** Implement comprehensive HTTP status code responses
-- **Versioning:** Use header-based versioning (`Api-Version: 1.0`)
-- **Documentation:** Use OpenAPI/Swagger with comprehensive examples
-- **VBD Mapping:** Map REST endpoints to Manager layer operations
-
-### gRPC Implementation
-- **Service Definitions:** Define clear .proto contracts for inter-service communication
-- **Performance:** Use gRPC for Engine-to-Engine high-throughput operations
-- **Streaming:** Implement server/client streaming for real-time data flows
-- **Error Handling:** Use gRPC status codes and detailed error messages
-- **Load Balancing:** Implement client-side load balancing for Engine services
-
-### GraphQL Architecture
-- **Schema Design:** Create type-safe schemas with clear resolver patterns
-- **Query Optimization:** Implement DataLoader patterns to prevent N+1 queries
-- **Subscription:** Use for real-time updates in Manager layer workflows
-- **Security:** Implement query complexity analysis and rate limiting
-- **VBD Integration:** Map GraphQL resolvers to appropriate VBD layer operations
-
-### Messaging Patterns
-- **Event Sourcing:** Implement for Accessor layer data consistency
-- **CQRS:** Separate command/query responsibilities across VBD layers
-- **Pub/Sub:** Use for decoupled Manager-to-Manager communication
-- **Message Queues:** Implement for reliable Accessor operations
-- **Dead Letter Queues:** Handle failed message processing with retry policies
-
-## Network & Security Architecture
-*Applies to: `**/Infrastructure/**`, `**/Security/**`*
-
-### Networking Best Practices
-- **Zero Trust Architecture:** Verify every connection regardless of location
-- **Network Segmentation:** Isolate VBD components in separate network segments
-- **Private Endpoints:** Use for all Azure service connections
-- **API Gateways:** Implement as entry points to Manager layer services
-- **Load Balancers:** Distribute traffic across VBD component instances
-- **CDN:** Use for static content delivery and edge caching
-
-### Identity & Access Management
-- **OpenID Connect:** Implement for federated identity across all environments
-- **OAuth 2.0:** Use for API authorization with appropriate scopes
-- **JWT Tokens:** Implement with proper validation and refresh mechanisms
-- **Role-Based Access:** Map roles to VBD component access patterns
-- **Attribute-Based Access:** Implement fine-grained permissions per operation
-- **Multi-Factor Authentication:** Enforce for all administrative access
-
-### Application Security
-- **Input Validation:** Implement comprehensive validation in Manager layer
-- **Output Encoding:** Sanitize all responses to prevent injection attacks
-- **SQL Injection Prevention:** Use parameterized queries in Accessor layer
-- **XSS Protection:** Implement Content Security Policy and input sanitization
-- **CSRF Protection:** Use anti-forgery tokens for state-changing operations
-- **Secrets Management:** Never store secrets in code; use Key Vault integration
-
-## Resilience & Reliability
-*Applies to: `**/*.cs`, `**/Services/**`*
-
-### Resilience Patterns
-- **Circuit Breakers:** Implement in proxy classes between VBD components
-- **Retry Policies:** Use exponential backoff for Accessor layer operations
-- **Bulkheads:** Isolate critical Manager operations from non-critical ones
-- **Timeouts:** Set appropriate timeouts for each VBD layer interaction
-- **Fallback Mechanisms:** Provide degraded functionality when services fail
-- **Health Checks:** Implement comprehensive health monitoring per component
-
-### Chaos Engineering
-- **Failure Injection:** Test component failures in non-production environments
-- **Service Degradation:** Validate fallback mechanisms across VBD layers
-- **Network Partitioning:** Test Manager-Engine-Accessor communication failures
-- **Load Testing:** Validate performance under stress for each component type
-- **Disaster Recovery:** Test complete system recovery procedures
-- **Game Days:** Regular chaos engineering exercises with team participation
-
-### Performance & Benchmarking
-- **Load Testing:** Use tools like NBomber, K6, or Artillery for comprehensive testing
-- **Stress Testing:** Validate system behavior under extreme load conditions
-- **Benchmarking:** Establish performance baselines for each VBD component
-- **Profiling:** Regular performance profiling of critical code paths
-- **Capacity Planning:** Monitor and predict scaling requirements per layer
-- **Performance Budgets:** Set and enforce performance thresholds
-
-## Observability & Monitoring
-*Applies to: `**/*.cs`, `**/Logging/**`*
-
-### Comprehensive Logging
-- **Structured Logging:** Use consistent JSON format across all VBD components
-- **Correlation IDs:** Track requests across Manager → Engine → Accessor flows
-- **Log Levels:** Implement appropriate levels (Trace, Debug, Info, Warn, Error, Fatal)
-- **Sensitive Data:** Never log passwords, tokens, or personal information
-- **Log Aggregation:** Centralize logs from all environments and components
-- **VBD Context:** Include component type (Manager/Engine/Accessor) in all logs
-
-### Metrics & Monitoring
-- **Business Metrics:** Track KPIs relevant to each Manager workflow
-- **Technical Metrics:** Monitor performance, errors, and resource usage per layer
-- **Custom Metrics:** Implement domain-specific metrics for Engine operations
-- **Real-time Dashboards:** Create role-specific monitoring dashboards
-- **Alerting:** Set up proactive alerts based on metric thresholds
-- **SLA Monitoring:** Track service level objectives across component boundaries
-
-### Distributed Tracing
-- **OpenTelemetry:** Implement comprehensive tracing across all components
-- **Trace Context:** Propagate trace context through VBD layer boundaries
-- **Span Annotations:** Add meaningful annotations for business operations
-- **Performance Analysis:** Use traces to identify bottlenecks in workflows
-- **Error Correlation:** Link errors across distributed component calls
-- **Dependency Mapping:** Visualize component relationships and dependencies
-
-### APM & Anomaly Detection
-- **Application Performance Monitoring:** Implement full-stack APM solutions
-- **Baseline Establishment:** Create performance baselines for normal operations
-- **Anomaly Detection:** Use machine learning for automated issue detection
-- **Root Cause Analysis:** Implement tools for rapid issue diagnosis
-- **Predictive Analytics:** Use historical data for capacity and failure prediction
-- **AIOps Integration:** Leverage AI for operational insights and automation
-
-## Database Guidelines
-*Applies to: `**/*.cs`, `**/migrations/**`, `**/Data/**`*
-
-### Development Environment
-- **Local Development:** Use SQLite or SQL Server LocalDB for lightweight, local development
-- **Containerized Development:** Use Docker for SQL Server, PostgreSQL instances
-- **Configuration:** Store connection strings in `AppSettings.Development.json` or environment variables
-- **Secrets Management:** Use .NET Secret Manager (`dotnet user-secrets`) to keep credentials secure
-- **Schema Management:** Use EF Core migrations to sync local and production schemas
-
-### Production Environment
-- **Production Database:** Use SQL Server for production deployments
-- **Cloud Deployments:** Prefer Azure SQL Database, Azure Cosmos DB for managed services
-- **Security:** Store connection strings in Azure Key Vault, use managed identities
-- **Performance:** Enable geo-redundancy, automated backups, monitor with Azure Monitor
-
-## Testing Guidelines
-*Applies to: `**/tests/**`, `**/*.test.cs`, `**/*.spec.cs`*
-
-### Unit Testing
-- **Framework:** Use **MSTest**, **xUnit**, or **VSTest** for unit tests
-- **Assertions:** Use **FluentAssertions** for expressive, readable assertions
-- **Mocking:** Use **Moq** for creating test doubles and mocks
-- **Structure:** Place unit tests in `tests/UnitTests/{projectName}.UnitTests`
-- **Isolation:** Write unit tests that are fast, reliable, and independent
-
-#### Moq Best Practices
-- **Mock Creation:** Use `Mock<T>` for interfaces and virtual methods
-- **Setup Behavior:** Use `Setup()` for method calls, `SetupProperty()` for properties
-- **Verification:** Use `Verify()` to assert method calls, `VerifyAll()` for comprehensive verification
-- **Returns:** Use `Returns()` for simple values, `ReturnsAsync()` for async methods
-- **Callbacks:** Use `Callback()` for complex setup or to capture parameters
-- **Mock Behavior:** Use `MockBehavior.Strict` for strict mocks, `MockBehavior.Loose` for lenient mocks
-- **Example Pattern:**
-  ```csharp
-  var mockRepository = new Mock<IRepository>();
-  mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
-              .ReturnsAsync(new Entity { Id = 1 });
-  
-  var service = new EntityService(mockRepository.Object);
-  var result = await service.ProcessAsync(1);
-  
-  mockRepository.Verify(r => r.GetByIdAsync(1), Times.Once);
-  ```
-
-### Integration Testing
-- **Framework:** Use **xUnit**, **VSTest**, or **Playwright** for integration tests
-- **ASP.NET Core:** Use `Microsoft.AspNetCore.Mvc.Testing` for web API testing
-- **Entity Framework:** Use `Microsoft.EntityFrameworkCore.InMemory` for database testing
-- **Structure:** Place integration tests in `tests/IntegrationTests/{projectName|Solution}.IntegrationTests`
-
-### UI & End-to-End Testing
-*Applies to: `**/*.spec.ts`, `**/e2e/**`, `**/playwright/**`*
-
-#### Playwright Best Practices
-- **Test Structure:** Organize by feature/workflow, use descriptive names and `describe` blocks
-- **Performance:** Run tests in parallel, use built-in tracing and reporting
-- **Selectors:** Prefer data-test attributes, avoid brittle CSS/XPath selectors
-- **Assertions:** Verify UI state, network responses, and accessibility compliance
-- **Environment:** Use clean, isolated environments with environment variables
-- **Cross-Browser:** Test across Chromium, Firefox, and WebKit
-- **CI Integration:** Include in CI pipelines, fail builds on test failures
-- **Accessibility:** Use Playwright's accessibility snapshots and assertions
-
-## Validation
-- Use **FluentValidation** for model and business rule validation.
-- Prefer FluentValidation over DataAnnotations for complex validation scenarios.
-
-## Observability
-- Use **OpenTelemetry** for distributed tracing, metrics, and logging.
-- Integrate OpenTelemetry with ASP.NET Core and other services for end-to-end observability.
-
-## Architecture Guidelines
-*Applies to: `**/*.cs`, `**/src/**`*
-
-### Volatility-Based Decomposition
-- **Organize components by volatility:** Separate workflows (Managers), business logic (Engines), and data access (Accessors)
-- **Component Relationships:**
-  - **Clients → 1..* Managers:** Each client interacts with managers via Contract interfaces only
-  - **Managers → 0..* Engines | Accessors:** Managers coordinate workflows through proxy components
-  - **Engines → 0..* Accessors:** Engines perform business logic using accessor contract interfaces
-  - **Accessors → 1..* Resources:** Accessors interact directly with data resources (databases, external services)
-- **Communication Rules:** 
-  - All communication must go through Contract interfaces and proxy implementations
-  - Use fastest appropriate protocol: in-process DI → gRPC → HTTP/2 → message queues
-  - Prevent direct sibling communication; Use parent component; If manager use message bus;
-  - Implement circuit breakers and retry policies in all communications
-- **Composition over Inheritance:** Compose behaviors to keep components focused and testable
-
-### Cross-Cutting Concerns
-- **Logging:** Use ApplicationInsights
-- **Security:** Use ASP.NET Core Identity/OAuth
-- **Error Handling:** Use middleware for global exception handling
-- **Configuration:** Use `AppSettings.json` and environment variables
-- **Caching:** Use Redis or `IMemoryCache`
-- **Validation:** Use FluentValidation (prefer over DataAnnotations)
-- **Localization:** Use resource files and localization middleware
-- **Concurrency:** Use optimistic concurrency in EF Core
-- **Auditing:** Implement audit logs
-- **Transactions:** Use EF Core transactions
-- **Observability:** Use OpenTelemetry for tracing and metrics
-
-## Azure Development Guidelines
-*Applies to: `**/azure/**`, `**/*.bicep`, `**/ARM/**`*
-
-### Resource Management
-- Use Azure Resource Manager (ARM) templates or **Bicep** for infrastructure as code
-- Group related resources in resource groups for logical management
-
-### Security Best Practices
-- Use **managed identities** for secure service-to-service authentication
-- Store secrets in **Azure Key Vault**; never hard-code credentials
-- Enforce **role-based access control (RBAC)** for all resources
-- Enable Azure Security Center and Defender for threat protection
-
-### Networking & Scalability
-- Use private endpoints and virtual networks to isolate resources
-- Use Azure App Service, Azure Functions, or AKS for scalable compute
-- Enable autoscaling and geo-redundancy for critical workloads
-
-### DevOps & CI/CD Best Practices
-- **Infrastructure as Code:** Use **Bicep** exclusively for all Azure deployments
-- **Deployment Environments:** Implement 4-tier deployment structure:
-  - **Development:** Local/sandbox environment for feature development
-  - **Testing:** Automated testing and QA validation environment
-  - **Staging:** Production-like environment for final validation
-  - **Production:** Live production environment
-- **Configuration Management:** Use environment-specific `AppSettings.json` files:
-  - `AppSettings.json` (base configuration)
-  - `AppSettings.Local.json` (local environment)
-  - `AppSettings.Development.json` (development environment)
-  - `AppSettings.Testing.json` (testing environment)
-  - `AppSettings.Staging.json` (staging environment)
-  - `AppSettings.Production.json` (production environment)
-- **Pipeline Strategy:** Implement GitFlow with automated deployments
-- **Deployment Patterns:** Use blue-green or canary deployments for zero-downtime releases
-- **VBD Pipeline Organization:** Structure pipelines by volatility (Manager → Engine → Accessor deployment order)
-
-### Bicep Deployment Standards
-- **Modular Design:** Create reusable Bicep modules for common resources
-- **Parameter Files:** Use environment-specific parameter files for each deployment tier
-- **Resource Naming:** Follow consistent naming conventions across all environments
-- **Security:** Use Key Vault references for secrets in Bicep templates
-- **Validation:** Implement Bicep linting and What-If deployments in pipelines
-- **Version Control:** Tag and version Bicep templates with semantic versioning
-
-### Monitoring & Observability
-- **Logging:** Implement structured logging with correlation IDs across VBD layers
-- **Metrics:** Collect performance metrics for Managers, Engines, and Accessors separately
-- **Tracing:** Use distributed tracing to track requests across component boundaries
-- **APM:** Implement Application Performance Monitoring with anomaly detection
-- **Dashboards:** Create layer-specific monitoring dashboards (Manager/Engine/Accessor views)
-- Integrate with **Azure Monitor**, **Application Insights**, and **Log Analytics**
-
-### Cost & Compliance
-- Use Azure Cost Management to monitor and optimize spending
-- Use Azure Policy to enforce compliance and governance
-- Implement cost allocation tags aligned with VBD component structure
-
-## UI Development Guidelines
-*Applies to: `**/*.razor`, `**/*.html`, `**/*.css`, `**/*.scss`*
-
-### Design System
-- Use **IBM Carbon Design System** for all UI components and styling
-- Maintain consistent spacing, typography, and iconography with Carbon standards
-
-### Performance & Optimization
-- Minimize DOM nodes and component nesting
-- Lazy load heavy resources and components
-- Optimize images and assets for web delivery
-- Use memoization and virtualization to avoid unnecessary re-renders
-
-### Accessibility & Standards
-- Follow **WCAG guidelines** and Carbon accessibility standards
-- Ensure keyboard navigation and screen reader support
-- Use semantic HTML and ARIA attributes
-
-### Responsive Design
-- Design **mobile-first**, then scale up for larger screens
-- Use Carbon grid and layout utilities for adaptive layouts
-
-### User Experience
-- Prioritize essential content and actions (minimalism)
-- Provide immediate feedback for user actions
-- Use Carbon skeletons and loading indicators for async operations
-- Avoid blocking UI; use non-blocking notifications and dialogs
-
-## Design Patterns Guidelines
-*Applies to: `**/*.cs`*
-
-### Pattern Implementation Standards
-- Generate **modern C# 12/.NET 8+** syntax, forward-compatible with .NET 10 LTS
-- Create **reproducible and isolated** examples with minimal boilerplate
-- Provide **educational format** with clear separation of pattern intent, structure, and usage
-- Follow **Gang of Four (GoF) design pattern principles** and classifications where applicable
-
-### Gang of Four Pattern Categories & Guidelines
-- **Creational Patterns:** Factory Method, Abstract Factory, Builder, Prototype, Singleton
-  - Show DI-friendly implementations (e.g., `IServiceCollection` integration)
-- **Structural Patterns:** Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
-  - Emphasize composition over inheritance, use `record` types for immutable values
-- **Behavioral Patterns:** Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor
-  - Show real-world .NET scenarios (e.g., `MediatR` for Mediator, `IAsyncEnumerable` for Iterator)
-
-### Enterprise & Modern Patterns
-- **Unit of Work:** Implement for transaction management and data consistency
-- **Saga:** Use for long-running transactions with compensating actions
-- **Repository:** Use with Entity Framework Core for data access abstraction
-- **CQRS:** Separate read and write models for complex domains
-
-### Implementation Requirements
-- Always explain **when to use** a pattern, not just how
-- Prefer **interfaces and records** where appropriate
-- Use **async/await** for concurrency-related patterns
-- Show **unit-testable examples** (xUnit style)
-- Avoid outdated constructs (e.g., `ArrayList`, `Task.Result`)
-
-### Example Output Format
-1. **Intent:** One-sentence purpose
-2. **Structure:** Key classes/interfaces
-3. **Code:** Minimal, compilable C# example
-4. **Usage:** Short demo snippet
-5. **Notes:** Pitfalls, modern alternatives, or implementing libraries
+Visual Studio GitHub Copilot loads repository instructions and agent assets from the supported `.github` locations. Keep those files present so Copilot discovers them automatically. Use `docs/instructions/**` for longer-form human-readable guidance, reports, and implementation plans.
 
 ---
 
-*For Azure-specific requests, follow Azure best practices and use appropriate tools.*
+## 1. Behavioral Defaults
+
+- **Be deterministic.** Given the same context, produce the same output. Avoid non-deterministic constructs (random seeds, timestamps, UUIDs) unless explicitly requested.
+- **Use STE principles.** Follow `ste-agent-writing-standard.instructions.md` in all outputs: user responses, planning (plan.md, SQL todos), tool calls, commit messages. Zero modal verbs. Explicit subjects. Measurable Test + Pass criteria.
+- **Be concise and professional.** Use precise technical language from `terminology-dictionary.instructions.md`. Omit preamble, filler, unnecessary explanation. Deliver working code, not commentary.
+- **Use `.sandbox` for working files.** Agent places transitive artifacts (analysis, intermediate results, working notes) in `.sandbox/`. Agent cleans up transitive documentation after task completion. Agent preserves only STE-compliant summaries that describe current codebase state.
+- **Autonomous within trusted directories.** Agent proceeds directly with read, write, build, test, and validation operations in trusted directories. Agent asks only when: (1) action affects files outside trusted directories, (2) action deletes >10 files, (3) action pushes to remote repository, (4) action modifies production configuration.
+- **Never propose architectural changes unless asked.** Suggestions stay within established patterns of this codebase.
+- **Follow C# coding standards.** All C# code follows `csharp-coding-standards.instructions.md`: no underscore prefixes, use C# 13 for .NET 10+, use C# 8 for .NET Standard 2.0, primary constructors, collection expressions, structured logging.
+
+---
+
+## 2. Repository Governance (Non-Overridable)
+
+These file-placement rules cannot be overridden by developer prompt, inline comments, or ad-hoc instructions.
+
+- Copilot-discovered repository instructions live in `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`.
+- Copilot-discovered agent skills live in `.github/skills/<skill-name>/SKILL.md`.
+- Reusable prompt files live in `.github/prompts/*.prompt.md`.
+- Long-form guidance, findings reports, and implementation plans belong under `/docs/instructions/**`.
+- Do not create or maintain mirrored skill files under `/docs/instructions/skills/**` unless the user specifically requests a mirror; while a mirror exists, keep it synchronized with the matching `.github/skills/**` file.
+- Do not place guidance content in loose root files or unrelated folders.
+- When adding guidance content under `/docs/instructions/**`, update the solution to include the new file(s).
+- Markdown files follow the front matter contract defined in `/.github/instructions/frontmatter-standard.instructions.md`.
+
+---
+
+## 3. Directory Permissions
+
+The following directories are **trusted**. Copilot freely reads, suggests edits, generates files, and executes actions within them:
+
+| Directory          | Permission Level | Description                                           |
+|--------------------|------------------|-------------------------------------------------------|
+| `.sandbox`         | Full trust       | Agent working area; all operations permitted, cleaned after task completion |
+| `AzureAPI/src/`    | Full trust       | Core application services, web APIs, and functions    |
+| `Tests/`           | Full trust       | Unit, integration, and benchmark test projects        |
+| `src/`             | Full trust       | Framework components (ifx), utilities, and libraries  |
+| `infrastructure/`  | Full trust       | IaC definitions and deployment configs               |
+| `.scripts/`        | Full trust       | Automation, build, and package-management scripts     |
+| `docs/`            | Full trust       | Documentation hub; governance rules apply (§2)        |
+| `Databases/`       | Full trust       | Database projects — managed under their own solution (`Databases.slnx`); **not** part of `Wa.Wsdot.Fin.Idl.slnx` |
+| `tools/`           | Full trust       | Independent utility applications — each tool is its own standalone solution; **not** part of `Wa.Wsdot.Fin.Idl.slnx` |
+
+### Solution Membership
+
+Not all trusted directories belong to the same solution. Always use the correct solution file when running build or test commands:
+
+| Directory    | Solution File                    | Notes                                      |
+|--------------|----------------------------------|--------------------------------------------|
+| `AzureAPI/`, `Tests/`, `src/` | `Wa.Wsdot.Fin.Idl.slnx` | Primary application solution              |
+| `Databases/` | `Databases/Databases.slnx`       | All database projects in one solution      |
+| `tools/`     | `tools/<ToolName>/<ToolName>.slnx` | Each tool is an independent solution     |
+
+- **Do not** add projects from `Databases/` or `tools/` to `Wa.Wsdot.Fin.Idl.slnx`.
+- When generating build or test commands for `Databases/` or `tools/`, reference the correct solution — never default to `Wa.Wsdot.Fin.Idl.slnx`.
+
+### Restricted Directories
+
+- **Do not** read, modify, suggest changes to, or generate files in any directory not listed above without explicit per-session instruction from the user.
+- **Do not** traverse upward (`../`) from a trusted directory to access restricted paths.
+- **Do not** create new top-level directories. Propose a path within an existing trusted directory instead.
+- If a suggestion affects a file outside trusted directories, **stop and surface a warning** before proceeding.
+
+---
+
+## 4. Command Policies
+
+### Pre-Approved Command Patterns
+
+Agent suggests and generates the following command patterns without additional confirmation:
+
+```powershell
+# ── .NET: Restore & Build ──────────────────────────────────────────────────
+dotnet restore Wa.Wsdot.Fin.Idl.slnx
+dotnet build Wa.Wsdot.Fin.Idl.slnx
+dotnet build <project>.csproj
+dotnet format analyzers <project>.csproj
+
+# ── .NET: Testing ─────────────────────────────────────────────────────────
+dotnet test Wa.Wsdot.Fin.Idl.slnx
+dotnet test <project>.csproj
+dotnet test Wa.Wsdot.Fin.Idl.slnx --collect:"XPlat Code Coverage"
+
+# ── Package Management ────────────────────────────────────────────────────
+.\.scripts\Update-CentralPackageVersions.ps1          # dry run
+.\.scripts\Update-CentralPackageVersions.ps1 -Apply   # apply
+
+# ── STE Validation & Transformation ───────────────────────────────────────
+# Agent proceeds directly with these operations in .github/ folder
+Get-ChildItem .github -Recurse -Filter *.md | Select-String -Pattern $steModalPattern
+npm run frontmatter:validate
+
+# ── Front Matter Validation ───────────────────────────────────────────────
+npm run frontmatter:validate
+npm run frontmatter:fix
+
+# ── Front-End Linting & Formatting ────────────────────────────────────────
+npm run lint
+npm run format
+eslint src/
+prettier --write src/
+
+# ── Infrastructure ────────────────────────────────────────────────────────
+terraform init
+terraform plan
+terraform apply -auto-approve   # only within infrastructure/
+pulumi up --yes                 # only within infrastructure/
+
+# ── Script Execution (.scripts/ only) ─────────────────────────────────────
+powershell .\.scripts\<script-name>.ps1
+bash .scripts/<script-name>.sh
+```
+
+### Prohibited Command Actions
+
+- **Do not** propose new command classes (e.g., new `deploy:*`, `migrate:*`, or `release:*` script families) unless the user has explicitly defined that class in this session.
+- **Do not** suggest commands that write outside trusted directories.
+- **Do not** suggest global package installs (`npm install -g`, `pip install` without a virtualenv, `brew install`) without explicit instruction.
+- **Do not** chain destructive commands (`rm -rf`, `git push --force`, `DROP TABLE`) in a single suggestion. Surface them individually with inline comments explaining the effect.
+- **Do not** generate `curl | bash` or equivalent remote-execution patterns.
+
+---
+
+## 4a. STE Transformation Permissions (Active)
+
+During STE compliance transformation work, agent proceeds directly without confirmation:
+
+| Action | Scope | Notes |
+|---|---|---|
+| Rewrite skills | `.github/skills/**/*.md` | Apply STE principles, maintain skill name/ID |
+| Rewrite instructions | `.github/instructions/**/*.md` | Apply STE principles, maintain instruction name |
+| Rewrite prompts | `.github/prompts/**/*.md` | Apply STE principles, maintain prompt name |
+| Create references | `.github/skills/*/references/*.md` | Move verbose examples from main skill file |
+| Update copilot-instructions.md | `.github/copilot-instructions.md` | STE-related sections only |
+| Run validation scripts | PowerShell STE checks | Modal verb detection, token counting |
+| Commit changes | Per-skill commits | One commit per skill/instruction/prompt |
+
+Agent does NOT proceed without confirmation:
+- Deleting >10 files
+- Pushing to remote repository
+- Modifying files outside `.github/` folder
+- Changing production configuration
+
+---
+
+## 5. Naming Conventions
+
+Copilot infers and consistently applies naming conventions from existing code. No hard-coded prefix or style is mandated — the following rules define **how** conventions are detected, applied, and enforced.
+
+### 5.1 Convention Discovery
+
+Before generating any new identifier, file, or module name, Copilot performs:
+
+1. **Scan the immediate context** — inspect surrounding files, imports, and symbols in the active directory.
+2. **Identify the dominant pattern** — detect the casing style, delimiter, and any structural prefix/suffix already in use for that artifact type.
+3. **Apply it exactly** — new names match the detected pattern without deviation.
+
+If no existing pattern is detectable, fall back to the language-standard defaults in §5.3.
+
+### 5.2 Per-Artifact Convention Rules
+
+| Artifact Type        | Rule                                                                                                                           |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| Classes / Interfaces | Match casing of the nearest sibling class in the same namespace or module                                                      |
+| File names           | Match the casing and delimiter of sibling files in the same directory                                                          |
+| Methods / Functions  | Match the casing of existing public members in the same file                                                                   |
+| Constants            | Match the casing of existing public/exported constants in the same scope                                                       |
+| Environment Vars     | Match the casing and prefix pattern of vars in `.env.example` or existing usages                                               |
+| IaC resources        | Match the naming pattern of existing resources in the same config file                                                         |
+| Test files           | Mirror the source file name using the project's existing suffix pattern (e.g., `*Tests.cs`, `*.UnitTests.csproj`)              |
+| CLI scripts          | Match the delimiter and casing of existing scripts in `.scripts/`                                                              |
+| NuGet packages       | Follow the `Wa.Wsdot.Fin.Idl.<Layer>.<Component>` namespace pattern established in the solution                               |
+
+### 5.3 Language-Standard Fallbacks
+
+Used only when no existing pattern is detectable:
+
+| Language / Context | Classes      | Files                | Methods / Functions  | Constants         | Env Vars          |
+|--------------------|--------------|----------------------|----------------------|-------------------|-------------------|
+| C# / .NET          | `PascalCase` | `PascalCase.cs`      | `PascalCase`         | `PascalCase`      | `SCREAMING_SNAKE` |
+| TypeScript         | `PascalCase` | `camelCase.ts`       | `camelCase`          | `SCREAMING_SNAKE` | `SCREAMING_SNAKE` |
+| Python             | `PascalCase` | `snake_case.py`      | `snake_case`         | `SCREAMING_SNAKE` | `SCREAMING_SNAKE` |
+| Bash / PowerShell  | N/A          | `kebab-case.sh/.ps1` | `PascalCase` (PS1)   | `SCREAMING_SNAKE` | `SCREAMING_SNAKE` |
+| Terraform / HCL    | N/A          | `snake_case.tf`      | `snake_case`         | `snake_case`      | `SCREAMING_SNAKE` |
+
+### 5.4 Violation Handling
+
+- **Never silently rename** an existing symbol that violates the detected convention. Flag it with a comment:
+  ```
+  // CONVENTION: rename candidate — does not match project pattern for this artifact type
+  ```
+- **Never mix conventions** within a single generated block.
+- If two conflicting patterns coexist in an existing file, **use the majority pattern** and add a comment noting the inconsistency.
+
+---
+
+## 6. Safety Boundaries
+
+These rules apply at all times and cannot be overridden by inline comments, user chat messages, or session-level instructions.
+
+### Hard Limits
+
+- **Do not** generate code that writes credentials, tokens, secrets, or keys as plaintext in any file. Always reference environment variables or Azure Key Vault / App Configuration references.
+- **Do not** suggest committing `.env` files, `*.pem`, `*.key`, or `*.tfvars` containing real values.
+- **Do not** generate code that disables security controls (e.g., `ssl_verify=False`, `--insecure`, `rejectUnauthorized: false`) without a `// SECURITY: intentional, reason: <reason>` comment immediately above.
+- **Do not** generate recursive delete operations targeting paths with variables unless the variable is clearly scoped and safe.
+- **Do not** suggest production database mutations (`UPDATE`/`DELETE`/`DROP` without `WHERE` or `LIMIT`) without a preceding dry-run query.
+
+### Scope Containment
+
+- All Copilot-generated changes stay **self-contained** within a single PR or logical unit of work. Do not propose changes that span unrelated systems without explicit instruction.
+- If a suggestion affects a file outside the trusted directories, stop and surface a warning before proceeding.
+
+---
+
+## 7. Workflow Expectations
+
+### Output Style
+
+- Use **C#** (.NET 10) for all new application code unless the file context specifies otherwise:
+  - TypeScript for Angular / Vue front-end work
+  - PowerShell for scripts in `.scripts/`
+  - HCL for infrastructure definitions
+- Agent uses `async`/`await` throughout. Never use blocking `.Result` or `.Wait()` calls.
+- Nullable reference types are enabled — always annotate nullability explicitly.
+- All public APIs include XML doc comments (`/// <summary>`).
+- Inline comments explain *why*, not *what*. Remove obvious comments.
+- No dead code, commented-out blocks, or placeholder stubs unless the user requests a scaffold.
+
+### Pull Request & Commit Standards
+
+- Commit messages follow Conventional Commits: `<type>(scope): <description>`.
+- Valid types: `feat`, `fix`, `chore`, `refactor`, `test`, `docs`, `ci`, `perf`.
+- Scope references a trusted directory or logical module name (e.g., `AzureAPI`, `Tests`, `src/ifx`, `infra`).
+
+### Testing
+
+- Every new public class or method generated in `AzureAPI/src/` includes a corresponding test using MSTest v4.
+- Tests cover: happy path, at least one edge case, and one failure/error case.
+- Test projects follow the `*.UnitTests.csproj` / `*.IntegrationTests.csproj` naming pattern — match it exactly.
+- Use integration-style unit tests unless isolation is architecturally necessary. Do not mock internal modules otherwise.
+- Use `InternalsVisibleTo` for testing internals, consistent with the existing `Directory.Build.props` configuration.
+- **Code coverage policy: 100% required.** `Directory.Build.props` enforces `Threshold=100` (`line,branch,method`, `total`) via coverlet for every test project. New code ships with tests that keep coverage at 100% — do not lower the threshold to work around a gap; add the missing test instead.
+- **Cyclomatic complexity policy: follow best practices.** `GlobalAnalyzerConfig.globalconfig` enforces `CA1502` (`dotnet_code_quality.CA1502.threshold = 10`, the McCabe-recommended ceiling) as a warning. Refactor a method that exceeds the threshold (extract methods, replace nested conditionals with guard clauses or pattern matching, use polymorphism over branching) instead of suppressing the warning.
+
+### Code Review Assistance
+
+When asked to review code, Copilot performs:
+
+1. Check for naming convention consistency against the detected project pattern (§5.1).
+2. Flag any hardcoded credentials or insecure patterns.
+3. Verify command patterns match the pre-approved list (§4).
+4. Assess test coverage presence and MSTest v4 compliance.
+5. Summarize findings as a **numbered list of actionable items** — no prose paragraphs.
+
+---
+
+## 8. Architecture Overview
+
+**Repository structure:**
+- `AzureAPI/src/` — Core application services, web APIs, web apps, and Azure Functions
+  - `Access.*` — Data access layers (contracts, ORMs, services) for external systems (Advantage, Storage, CostAccounting)
+  - `Client.*` — Client-facing applications (Portal WebApi, Scheduler WebApp, Azure Functions)
+  - `Manager.*` — Management services (Transport, etc.)
+  - `Engine.*` — Domain engines and business logic
+- `Databases/` — Database projects, all under `Databases/Databases.slnx` (independent from the main solution)
+- `Tests/` — All test projects (unit, integration, benchmarks)
+- `tools/` — Independent utility applications (Payroll.Cleaner, Crosswalk.Loader, etc.), each with its own standalone solution
+- `src/ifx/` — Internal framework components (Analyzers, CodeFixes, Generators) — **Roslyn projects; see §9.1**
+- `src/component/` — Reusable components
+- `src/util/` — Utility libraries
+- `docs/` — Documentation hub (architecture, guides, runbooks)
+
+**Technology stack:**
+- .NET 10 with C# preview features
+- Entity Framework Core 10 for data access
+- MSTest v4 for testing
+- Quartz.NET for scheduling
+- Azure services (Key Vault, App Configuration, Storage, Communication)
+- OpenTelemetry for observability
+
+**MSBuild conventions:**
+- Projects automatically detect if they are test projects (suffix: `Test`, `Tests`, `UnitTests`, `IntegrationTests`)
+- Root namespace: `Wa.Wsdot.Fin.Idl.{ProjectName}` (non-test projects)
+- Nullable reference types enabled for all .NET 10 projects
+- Custom analyzers/code fixes/generators in `src/ifx/` are automatically applied to all non-test projects
+- Test projects expose internals via `InternalsVisibleTo` (see `Directory.Build.props`)
+- Roslyn projects in `src/ifx/` target `netstandard2.0` and are bound to **C# 8 only** — see §9.1 for the full constraint list
+
+---
+
+## 9. Project-Specific Rules
+
+### 9.1 Roslyn Projects — `netstandard2.0` / C# 8 Constraints
+
+Projects in `src/ifx/` (Analyzers, CodeFixes, Source Generators) target `netstandard2.0` and are compiled at **C# 8**. This is a hard Roslyn SDK requirement. Refactoring and code-generation tools frequently introduce features from newer language versions, silently breaking these projects.
+
+**Before generating or modifying any code in `src/ifx/`:**
+
+1. Confirm the project's `<TargetFramework>` in its `.csproj`.
+2. If `netstandard2.0` is present, enforce the C# 8 feature ceiling unconditionally — regardless of what the ambient IDE or `LangVersion` setting elsewhere in the solution allows.
+
+**Prohibited language features in `netstandard2.0` / C# 8 projects:**
+
+| Feature | Introduced | Why prohibited |
+|---|---|---|
+| Primary constructors (`class Foo(int x)`) | C# 12 | Not available in C# 8 |
+| Required members (`required`) | C# 11 | Not available in C# 8 |
+| Raw string literals (`"""..."""}`) | C# 11 | Not available in C# 8 |
+| Generic math / static abstract interface members | C# 11 | Not available in C# 8 |
+| Record structs (`record struct`) | C# 10 | Not available in C# 8 |
+| File-scoped namespaces (`namespace Foo;`) | C# 10 | Not available in C# 8 |
+| Global usings (`global using`) | C# 10 | Not available in C# 8 |
+| Extended property patterns | C# 10 | Not available in C# 8 |
+| Record types (`record class`) | C# 9 | Not available in C# 8 |
+| Init-only setters (`init`) | C# 9 | Not available in C# 8 |
+| Top-level statements | C# 9 | Not available in C# 8 |
+| Target-typed `new()` without context | C# 9 | Not available in C# 8 |
+| Default interface members | C# 8 (partial) | Requires runtime support absent in `netstandard2.0` |
+
+**Permitted C# 8 features (safe in `netstandard2.0`):**
+- Nullable reference type annotations (`string?`, `#nullable enable`)
+- Switch expressions
+- Pattern matching enhancements (positional, property patterns)
+- Using declarations (`using var`)
+- Readonly struct members
+- Null-coalescing assignment (`??=`)
+- Async streams (`IAsyncEnumerable<T>`) — requires `Microsoft.Bcl.AsyncInterfaces` NuGet package
+
+**Enforcement rules:**
+- **Do not** apply any refactoring, rename, or code generation to `src/ifx/` files that introduces a feature from the prohibited list above.
+- **Do not** change `<LangVersion>` in any `src/ifx/` project file. If it is absent, the effective version is determined by the SDK and `netstandard2.0` target — do not override it.
+- If a suggestion uses a prohibited feature, **stop**, surface a warning, and offer a C# 8-compatible alternative inline.
+- When generating new Roslyn diagnostic classes, code fix providers, or source generators, use only C# 8 idioms — even if the surrounding codebase uses newer syntax.
+
+---
+
+### 9.2 Scheduling Domain
+
+- Scheduling domain supports both fixed cron schedules and calendar-based events (e.g., payroll dates that shift for holidays).
+- Use the explicit term **"Schedule"** for all scheduling constructs and documentation.
+- Design data models and patterns to accommodate a future calendar pattern (calendar-based recurrence, holiday adjustments, and shifting dates).
+- When adding scheduling guidance under `/docs/instructions`, include examples for both cron-style expressions and calendar-event patterns, and update implementation artifacts (schema, tests, and docs) accordingly.
+
+---
+
+## 10. Current `.github` Structure Summary
+
+Agent treats the filesystem as the live inventory and this section as the compact verification summary.
+
+| Area | Count | Verification Command |
+|---|---:|---|
+| Instructions | 4 | `Get-ChildItem .github\instructions -Filter *.instructions.md` |
+| Prompts | 36 | `Get-ChildItem .github\prompts -Filter *.prompt.md` |
+| Skills | 345 | `Get-ChildItem .github\skills -Recurse -Filter SKILL.md` |
+| Workflows | 1 | `Get-ChildItem .github\workflows` |
+
+| Discovery Path | Purpose |
+|---|---|
+| `.github\instructions\*.instructions.md` | Repository instruction files |
+| `.github\prompts\*.prompt.md` | Reusable workflow prompts |
+| `.github\skills\<skill-name>\SKILL.md` | Skill entry files |
+| `.github\skills\<skill-name>\references\*.md` | Deep reference material for optimized skills |
+| `.github\workflows\*.yml` | Stored workflows |
+
+| Skill Path | Purpose |
+|---|---|
+| `.github\skills\cdc-batch-import-patterns\SKILL.md` | CDC batch import guidance |
+| `.github\skills\cdc-file-validation\SKILL.md` | CDC package validation guidance |
+| `.github\skills\cdc-uniqueness-enforcement\SKILL.md` | CDC idempotent uniqueness guidance |
+
+| Validation Step | Pass |
+|---|---|
+| Inventory recount | Counts match the filesystem. |
+| Skill lookup | Each skill folder contains one `SKILL.md`. |
+| Prompt lookup | Prompt filenames stay unique. |
+| Instruction lookup | Instruction filenames stay unique. |
+| Reference placement | Reference files stay under the owning skill folder. |
+
+
+## 11. Conflict Resolution
+
+If a user instruction in chat conflicts with a rule in this file:
+
+1. **Apply this file.** This file takes precedence over ad-hoc instructions.
+2. **Inform the user** of the conflict in one sentence.
+3. **Offer the closest compliant alternative** immediately after.
+
+> Example: *"That command pattern isn't pre-approved. The closest approved equivalent is `.\.scripts\Deploy.ps1`."*
+
+---
+
+*Last updated: 2026-08-30 | Owner: Ivan | Scope: Wa.Wsdot.Fin.Idl repository*

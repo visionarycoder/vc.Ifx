@@ -1,0 +1,354 @@
+# ================================================================
+# SAAM Core Ontology — Turtle (TTL)
+# IRI: http://ontology.saam.wa.gov/  |  Version: 1.0.0  |  2026-08-29
+# Covers: SAAM spine · AFRS mainframe · CGI Advantage · Error Model · DOT/NTD
+# Based solely on publicly available specifications.
+# ================================================================
+@prefix saam:    <http://ontology.saam.wa.gov/saam#> .
+@prefix afrs:    <http://ontology.saam.wa.gov/afrs#> .
+@prefix cgi:     <http://ontology.saam.wa.gov/cgi#> .
+@prefix dot:     <http://ontology.saam.wa.gov/dot#> .
+@prefix err:     <http://ontology.saam.wa.gov/error#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<http://ontology.saam.wa.gov/>
+    a owl:Ontology ;
+    owl:versionIRI <http://ontology.saam.wa.gov/1.0.0/> ;
+    owl:versionInfo "1.0.0" ;
+    dcterms:title "SAAM Financial Accounting Ontology with DOT Compliance Extensions" ;
+    dcterms:created "2026-08-29"^^xsd:date ;
+    dcterms:rights "Public domain — based solely on publicly available SAAM, AFRS, and NTD specifications." ;
+    rdfs:seeAlso <https://ofm.wa.gov/accounting/saam> , <https://www.transit.dot.gov/ntd> .
+
+# ── SAAM SPINE ──────────────────────────────────────────────────
+saam:GovernmentalEntity a owl:Class ; rdfs:label "Governmental Entity"@en ;
+    skos:definition "Root class for WA State administrative bodies subject to SAAM policies." .
+saam:Agency a owl:Class ; rdfs:subClassOf saam:GovernmentalEntity ; rdfs:label "Agency"@en ;
+    skos:definition "State agency submitting transactions through AFRS, subject to SAAM accountability." .
+saam:SubAgency a owl:Class ; rdfs:subClassOf saam:Agency ; rdfs:label "Sub-Agency"@en ;
+    skos:definition "Subordinate unit within an Agency; 4-char AFRS agency/sub-agency code." .
+saam:Fund a owl:Class ; rdfs:label "Fund"@en ;
+    skos:definition "Self-balancing accounts segregated for specific purposes (SAAM Ch. 75)." .
+saam:GovernmentalFund a owl:Class ; rdfs:subClassOf saam:Fund ; rdfs:label "Governmental Fund"@en ;
+    skos:definition "General, Special Revenue, Debt Service, Capital Projects, Permanent." .
+saam:ProprietaryFund a owl:Class ; rdfs:subClassOf saam:Fund ; rdfs:label "Proprietary Fund"@en ;
+    skos:definition "Enterprise or Internal Service fund." .
+saam:FiduciaryFund a owl:Class ; rdfs:subClassOf saam:Fund ; rdfs:label "Fiduciary Fund"@en ;
+    skos:definition "Pension, Investment, Private-Purpose, or Custodial fund." .
+saam:Appropriation a owl:Class ; rdfs:label "Appropriation"@en ;
+    skos:definition "Legislative authorization to expend from a fund for a designated purpose during a biennium." .
+saam:AppropriationIndex a owl:Class ; rdfs:label "Appropriation Index (AI)"@en ;
+    skos:definition "3-char AFRS AI table key expanding to fund and appropriation coding." .
+saam:Biennium a owl:Class ; rdfs:label "Biennium"@en ;
+    skos:definition "WA 2-year budget cycle; 2-digit code in AFRS." .
+saam:Budget a owl:Class ; rdfs:label "Budget"@en ;
+    skos:definition "Planned resource allocation across programs, orgs, and accounts for a biennium." .
+saam:Organization a owl:Class ; rdfs:label "Organization"@en ;
+    skos:definition "Functional unit within an Agency keyed via AFRS OI table." .
+saam:OrganizationIndex a owl:Class ; rdfs:label "Organization Index (OI)"@en ;
+    skos:definition "AFRS OI lookup providing organizational coding reduction." .
+saam:Program a owl:Class ; rdfs:label "Program"@en ;
+    skos:definition "Major service delivery category linked to AFRS PI table." .
+saam:ProgramIndex a owl:Class ; rdfs:label "Program Index (PI)"@en ;
+    skos:definition "5-char AFRS PI table (pos 54-58) providing program coding reduction." .
+saam:Project a owl:Class ; rdfs:label "Project"@en ;
+    skos:definition "Capital/federal project: 4-char code (pos 63-66) + 2-char phase (pos 69-70)." .
+saam:ObjectCode a owl:Class ; rdfs:label "Object Code"@en ;
+    skos:definition "SAAM classification of expenditure or revenue nature." .
+saam:SubObject a owl:Class ; rdfs:subClassOf saam:ObjectCode ; rdfs:label "Subobject"@en .
+saam:SubSubObject a owl:Class ; rdfs:subClassOf saam:SubObject ; rdfs:label "Sub-Subobject"@en .
+saam:WorkClass a owl:Class ; rdfs:label "Work Class"@en ;
+    skos:definition "3-char activity grouping code (AFRS pos 107-109)." .
+saam:Account a owl:Class ; rdfs:label "Account"@en ;
+    skos:definition "Object of expenditure or revenue per SAAM Ch. 75 chart of accounts." .
+saam:FinancialTransaction a owl:Class ; rdfs:label "Financial Transaction"@en ;
+    skos:definition "Atomic event recorded in AFRS modifying account balances within a Fund." .
+saam:Expenditure a owl:Class ; rdfs:subClassOf saam:FinancialTransaction ; rdfs:label "Expenditure"@en ;
+    skos:definition "Outflow of financial resources representing a payment or obligation." .
+saam:Revenue a owl:Class ; rdfs:subClassOf saam:FinancialTransaction ; rdfs:label "Revenue"@en ;
+    skos:definition "Inflow of resources from taxes, grants, fees, or other sources." .
+saam:ProgramRevenue a owl:Class ; rdfs:subClassOf saam:Revenue ; rdfs:label "Program Revenue"@en ;
+    skos:definition "Revenue restricted to specific programs including operating/capital grants (SAAM 80.30.67)." .
+saam:GeneralRevenue a owl:Class ; rdfs:subClassOf saam:Revenue ; rdfs:label "General Revenue"@en ;
+    skos:definition "Unrestricted revenue: taxes, unrestricted interest, unrestricted grants." .
+saam:Transfer a owl:Class ; rdfs:subClassOf saam:FinancialTransaction ; rdfs:label "Transfer"@en ;
+    skos:definition "Movement of resources between funds or agencies." .
+saam:InterAgencyPayment a owl:Class ; rdfs:subClassOf saam:Transfer ; rdfs:label "Inter-Agency Payment"@en ;
+    skos:definition "Payment between WA State agencies via AFRS IAP system." .
+saam:Payment a owl:Class ; rdfs:label "Payment"@en ;
+    skos:definition "Disbursement instrument (warrant, EFT) issued through AFRS." .
+saam:Warrant a owl:Class ; rdfs:subClassOf saam:Payment ; rdfs:label "Warrant"@en ;
+    skos:definition "State-issued check for vendor or employee." .
+saam:EFTPayment a owl:Class ; rdfs:subClassOf saam:Payment ; rdfs:label "EFT Payment"@en ;
+    skos:definition "Electronic Funds Transfer to vendor or employee." .
+saam:CapitalAsset a owl:Class ; rdfs:label "Capital Asset"@en ;
+    skos:definition "Asset meeting SAAM thresholds: equipment >= $5K, buildings >= $100K, software >= $1M." .
+saam:Infrastructure a owl:Class ; rdfs:subClassOf saam:CapitalAsset ; rdfs:label "Infrastructure"@en ;
+    skos:definition "Long-lived public assets (roads >= $100K). Modified Approach allowed for highway systems." .
+saam:IntangibleAsset a owl:Class ; rdfs:subClassOf saam:CapitalAsset ; rdfs:label "Intangible Asset"@en ;
+    skos:definition "Non-physical capital asset (software, patents, leases) >= $1M." .
+saam:LeaseAsset a owl:Class ; rdfs:subClassOf saam:IntangibleAsset ; rdfs:label "Lease Asset"@en ;
+    skos:definition "Right-of-use asset from a lease per SAAM lease accounting policy." .
+saam:Vendor a owl:Class ; rdfs:label "Vendor"@en ;
+    skos:definition "External entity in AFRS Statewide Vendor File with UBI (pos 260-269)." .
+saam:Employee a owl:Class ; rdfs:label "Employee"@en ;
+    skos:definition "State employee in AFRS Statewide Employee Maintenance and HRMS." .
+saam:InternalControl a owl:Class ; rdfs:label "Internal Control"@en ;
+    skos:definition "Process for reasonable assurance over operations, reporting, compliance (SAAM Ch. 20)." .
+saam:ControlEnvironment a owl:Class ; rdfs:subClassOf saam:InternalControl ; rdfs:label "Control Environment"@en ;
+    skos:definition "Standards and structures forming the foundation of internal control (SAAM 20.20)." .
+saam:RiskAssessment a owl:Class ; rdfs:subClassOf saam:InternalControl ; rdfs:label "Risk Assessment"@en ;
+    skos:definition "Identification and analysis of risks to financial reporting objectives (SAAM 20.22)." .
+saam:FinancialStatement a owl:Class ; rdfs:label "Financial Statement"@en ;
+    skos:definition "Formal presentation of financial position per GAAP and SAAM Ch. 80." .
+saam:StatementOfNetAssets a owl:Class ; rdfs:subClassOf saam:FinancialStatement ;
+    rdfs:label "Statement of Net Assets"@en ;
+    skos:definition "Government-wide statement of assets, liabilities, and net position (SAAM 80.30.45)." .
+saam:StatementOfActivities a owl:Class ; rdfs:subClassOf saam:FinancialStatement ;
+    rdfs:label "Statement of Activities"@en ;
+    skos:definition "Government-wide statement of revenues, expenses, and changes in net position." .
+saam:FiscalPeriod a owl:Class ; rdfs:label "Fiscal Period"@en ;
+    skos:definition "Defined accounting period (month, quarter, biennium) for reporting and appropriation control." .
+
+# ── AFRS MAINFRAME LAYER ────────────────────────────────────────
+afrs:AFRSEntity a owl:Class ; rdfs:label "AFRS Entity"@en ;
+    skos:definition "Root class for constructs native to the Agency Financial Reporting System mainframe." .
+afrs:Batch a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Batch"@en ;
+    skos:definition "Grouped set of AFRS transactions with a common header submitted for overnight processing." .
+afrs:BatchHeader a owl:Class ; rdfs:subClassOf afrs:Batch ; rdfs:label "Batch Header"@en ;
+    skos:definition "Fixed-width header: Agency pos 1-4, Date YYMMDD pos 5-10, Type pos 11-12, Number pos 20-22, Dup pos 22." .
+afrs:BatchType a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Batch Type"@en ;
+    skos:definition "2-char code for category of transactions in the batch." .
+afrs:InputRecord a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Input Record (IN 950)"@en ;
+    skos:definition "Fixed-width mainframe record submitted to AFRS for financial posting." .
+afrs:SystemGeneratedRecord a owl:Class ; rdfs:subClassOf afrs:InputRecord ;
+    rdfs:label "System-Generated Record"@en ;
+    skos:definition "AFRS-generated transaction with system-supplied order numbers per IN 950 layout." .
+afrs:TransactionCode a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Transaction Code"@en ;
+    skos:definition "3-digit AFRS code for transaction type and posting logic (e.g., 210=warrant, 955=EFT)." .
+afrs:DocumentNumber a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Document Number"@en ;
+    skos:definition "8-char left-justified blank-filled current document identifier (pos 155-162)." .
+afrs:ReferenceDocumentNumber a owl:Class ; rdfs:subClassOf afrs:DocumentNumber ;
+    rdfs:label "Reference Document Number"@en ;
+    skos:definition "8-char reference doc (pos 163-170) + 2-char suffix (pos 171-172) for additions and liquidations." .
+afrs:ErrorRecord a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Error Record"@en ;
+    skos:definition "Transaction moved to AFRS error file due to validation failure or duplicate detection." .
+afrs:ErrorCode a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Error Code"@en ;
+    skos:definition "Coded identifier per AFRS Error Code Manual describing the nature of a transaction failure." .
+afrs:DuplicateRecord a owl:Class ; rdfs:subClassOf afrs:ErrorRecord ; rdfs:label "Duplicate Record"@en ;
+    skos:definition "Batch record sharing agency+date+type+number with another overnight transaction; auto-flagged at pos 22." .
+afrs:ErrorCorrectionProcess a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ;
+    rdfs:label "Error Correction Process"@en ;
+    skos:definition "Documented AFRS workflow for resolving error records." .
+afrs:AITable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "AI Table"@en ;
+    skos:definition "3-char AFRS Appropriation Index table expanding to fund and appropriation codes." .
+afrs:PITable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "PI Table"@en ;
+    skos:definition "5-char AFRS Program Index table (pos 54-58) expanding to program codes." .
+afrs:OITable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "OI Table"@en ;
+    skos:definition "AFRS Organization Index table expanding to organizational codes." .
+afrs:PCTable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "PC Table"@en ;
+    skos:definition "AFRS Project Control table: 4-char project (pos 63-66) + 2-char phase (pos 69-70)." .
+afrs:MITable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "MI Table"@en ;
+    skos:definition "AFRS Master Index composite coding table." .
+afrs:TMTable a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "TM Table Maintenance"@en ;
+    skos:definition "AFRS system for managing descriptor, transaction code, and control tables." .
+afrs:PostingAgency a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Posting Agency"@en ;
+    skos:definition "4-char agency/sub-agency code (pos 34-37) to which AFRS posts financial data." .
+afrs:BatchInterface a owl:Class ; rdfs:subClassOf afrs:AFRSEntity ; rdfs:label "Batch Interface"@en ;
+    skos:definition "Automated mechanism submitting batches from external systems (CGI, HRMS) to AFRS." .
+
+# ── CGI ADVANTAGE LAYER ─────────────────────────────────────────
+cgi:CGIEntity a owl:Class ; rdfs:label "CGI Entity"@en ;
+    skos:definition "Root class for constructs native to the CGI Advantage ERP integration platform." .
+cgi:IntegrationEvent a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Integration Event"@en ;
+    skos:definition "Discrete event generated by CGI Advantage during inter-system communication." .
+cgi:FinancialEvent a owl:Class ; rdfs:subClassOf cgi:IntegrationEvent ; rdfs:label "Financial Event"@en ;
+    skos:definition "CGI event related to financial transactions (invoices, payments, budget entries)." .
+cgi:HRMEvent a owl:Class ; rdfs:subClassOf cgi:IntegrationEvent ; rdfs:label "HRM Event"@en ;
+    skos:definition "CGI event related to human resources management data." .
+cgi:IntegrationServiceStatus a owl:Class ; rdfs:subClassOf cgi:CGIEntity ;
+    rdfs:label "Integration Service Status"@en ;
+    skos:definition "Operational state of a CGI integration service in the Integration Service Status Log." .
+cgi:CommonEventLog a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Common Event Log"@en ;
+    skos:definition "Centralized CGI log recording all integration events across connected systems." .
+cgi:FlowLevelLog a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Flow Level Log"@en ;
+    skos:definition "Detailed CGI log capturing processing steps within an Advantage Flow." .
+cgi:JournalLog a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Journal Log (JRNL_LOG)"@en ;
+    skos:definition "AFRS JRNL_LOG table receiving CGI system assurance inserts during SA01/SA02 runs." .
+cgi:LogEntry a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Log Entry"@en ;
+    skos:definition "Single record in a CGI log capturing event metadata, timestamp, and status." .
+cgi:AdvantageFlow a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Advantage Flow"@en ;
+    skos:definition "CGI workflow orchestration construct defining routing, approval, and processing sequences." .
+cgi:OrchestrationRoute a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Orchestration Route"@en ;
+    skos:definition "Defined path within CGI Advantage Flow routing documents between services." .
+cgi:FlowWorklist a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Flow Worklist"@en ;
+    skos:definition "Queue of pending workflow items awaiting action within an Advantage Flow." .
+cgi:BatchJob a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Batch Job"@en ;
+    skos:definition "Scheduled or on-demand CGI Advantage batch process." .
+cgi:BatchJobReturnCode a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Batch Job Return Code"@en ;
+    skos:definition "Outcome: Successful=0, Warning=4, Terminated=user-initiated, SystemFailure=20." .
+cgi:SystemAssuranceJob a owl:Class ; rdfs:subClassOf cgi:BatchJob ;
+    rdfs:label "System Assurance Job (SA01/SA02)"@en ;
+    skos:definition "Validates budget actuals against ledgers (SA01) and workload tables (SA02). Must not run in parallel with conflicting JIC scripts." .
+cgi:RepostJob a owl:Class ; rdfs:subClassOf cgi:BatchJob ; rdfs:label "Repost Job"@en ;
+    skos:definition "Restarts failed processing from batch catalog. Chain jobs and SA01/SA02 must be halted during execution." .
+cgi:ShadowTable a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Shadow Table"@en ;
+    skos:definition "Internal CGI staging tables (SA_BUD, SA1_WRKLD) vulnerable to corruption if parallel job constraints are violated." .
+cgi:LedgerEntry a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Ledger Entry"@en ;
+    skos:definition "Posting in CGI Advantage ledger (e.g., LDGR_SA_BUD) summarized by budget table rule elements." .
+cgi:LedgerName a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Ledger Name"@en ;
+    skos:definition "All-caps data object name of a CGI Advantage ledger table; required System Assurance parameter." .
+cgi:IntegrationServer a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Integration Server"@en ;
+    skos:definition "CGI Advantage server managing connections and message routing." .
+cgi:WebServiceOperation a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Web Service Operation"@en ;
+    skos:definition "SOAP or REST operation exposed or consumed by CGI Advantage." .
+cgi:NotificationRecipient a owl:Class ; rdfs:subClassOf cgi:CGIEntity ; rdfs:label "Notification Recipient"@en ;
+    skos:definition "Address or subscriber registered to receive CGI event notifications." .
+
+# ── ERROR LOG MODEL ─────────────────────────────────────────────
+err:ErrorLog a owl:Class ; rdfs:label "Error Log"@en ;
+    skos:definition "Structured record of system errors or exceptions from AFRS, CGI, or legacy mainframe." .
+err:MainframeErrorLog a owl:Class ; rdfs:subClassOf err:ErrorLog ; rdfs:label "Mainframe Error Log"@en ;
+    skos:definition "Error log from AFRS/legacy mainframe batch; typically fixed-width or EBCDIC format." .
+err:CGIErrorLog a owl:Class ; rdfs:subClassOf err:ErrorLog ; rdfs:label "CGI Error Log"@en ;
+    skos:definition "Error log from CGI Advantage events and batch jobs; queryable from Common Event Log." .
+err:ErrorLogEntry a owl:Class ; rdfs:label "Error Log Entry"@en ;
+    skos:definition "Single failure record: source system, timestamp, code, description." .
+err:InterfaceFailure a owl:Class ; rdfs:label "Interface Failure"@en ;
+    skos:definition "Breakdown in data exchange between two systems." .
+err:ErrorSeverity a owl:Class ; rdfs:label "Error Severity"@en ;
+    skos:definition "Critical, Warning, or Informational." .
+err:ErrorCategory a owl:Class ; rdfs:label "Error Category"@en ;
+    skos:definition "Duplicate, ValidationFailure, AuthorizationFailure, SystemFailure, DataIntegrityFailure." .
+err:ErrorResolutionStatus a owl:Class ; rdfs:label "Error Resolution Status"@en ;
+    skos:definition "Open, InProgress, Resolved, Escalated, or Closed." .
+
+# ── DOT / NTD FEDERAL COMPLIANCE LAYER ─────────────────────────
+dot:FederalComplianceEntity a owl:Class ; rdfs:label "Federal Compliance Entity"@en ;
+    skos:definition "Root class for entities in federal DOT/FTA compliance reporting under 49 U.S.C. §5335." .
+dot:TransitAgency a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:subClassOf saam:Agency ; rdfs:label "Transit Agency"@en ;
+    skos:definition "Public transportation provider subject to NTD reporting under 49 U.S.C. §5307 or §5311." .
+dot:FederalGrant a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ; rdfs:label "Federal Grant"@en ;
+    skos:definition "FTA transportation funding award under 49 U.S.C. Chapter 53." .
+dot:UrbanizedAreaGrant a owl:Class ; rdfs:subClassOf dot:FederalGrant ;
+    rdfs:label "Urbanized Area Grant (§5307)"@en ;
+    skos:definition "FTA Section 5307 Urbanized Area Formula Program grant." .
+dot:RuralAreaGrant a owl:Class ; rdfs:subClassOf dot:FederalGrant ;
+    rdfs:label "Rural Area Grant (§5311)"@en ;
+    skos:definition "FTA Section 5311 Formula Grants for Rural Areas." .
+dot:NTDReport a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ; rdfs:label "NTD Report"@en ;
+    skos:definition "Report submitted to National Transit Database per 49 U.S.C. §5335." .
+dot:AnnualNTDReport a owl:Class ; rdfs:subClassOf dot:NTDReport ; rdfs:label "Annual NTD Report"@en ;
+    skos:definition "Full annual NTD submission: financial, operating, geographic, and asset condition data." .
+dot:MonthlyNTDReport a owl:Class ; rdfs:subClassOf dot:NTDReport ; rdfs:label "Monthly/Weekly NTD Report"@en ;
+    skos:definition "Monthly and weekly reference service supply data per FTA NTD Reporting Manual." .
+dot:NTDReportingPeriod a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "NTD Reporting Period"@en ;
+    skos:definition "12-month period over which NTD data is collected and reported." .
+dot:ServiceData a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ; rdfs:label "Service Data"@en ;
+    skos:definition "NTD metrics: vehicle revenue miles, vehicle revenue hours, unlinked passenger trips, passenger miles." .
+dot:TransitMode a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ; rdfs:label "Transit Mode"@en ;
+    skos:definition "Transit service type (bus, rail, ferry, paratransit, commuter bus) per NTD mode definitions." .
+dot:ADAParatransitService a owl:Class ; rdfs:subClassOf dot:ServiceData ;
+    rdfs:label "ADA Paratransit Service"@en ;
+    skos:definition "ADA-required complementary paratransit reported to NTD as shared-ride public transportation." .
+dot:NTDFinancialReport a owl:Class ; rdfs:subClassOf dot:NTDReport ;
+    rdfs:subClassOf saam:FinancialStatement ; rdfs:label "NTD Financial Report"@en ;
+    skos:definition "Financial data submitted to NTD per FTA Uniform System of Accounts (49 CFR Part 630), nearest dollar." .
+dot:UniformSystemOfAccounts a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "Uniform System of Accounts (49 CFR §630)"@en ;
+    skos:definition "FTA standardized chart of accounts required for NTD financial reporting." .
+dot:TransitAssetInventory a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "Transit Asset Inventory"@en ;
+    skos:definition "Transit capital asset inventory reportable to NTD per 49 U.S.C. §5335(c)." .
+dot:TransitAssetCondition a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "Transit Asset Condition Assessment"@en ;
+    skos:definition "Condition state per FTA TAM rules (49 CFR Part 625)." .
+dot:TAMPlan a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "Transit Asset Management Plan (TAMP)"@en ;
+    skos:definition "Strategic lifecycle plan per 49 CFR Part 625." .
+dot:ComplianceSubmission a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "Compliance Submission"@en ;
+    skos:definition "Formal package submitted to FTA/DOT demonstrating compliance." .
+dot:NTDSubmissionStatus a owl:Class ; rdfs:subClassOf dot:FederalComplianceEntity ;
+    rdfs:label "NTD Submission Status"@en ;
+    skos:definition "Draft, Submitted, Accepted, Rejected, or Revised." .
+dot:WorkerSafetyReport a owl:Class ; rdfs:subClassOf dot:NTDReport ;
+    rdfs:label "Worker Safety Report"@en ;
+    skos:definition "NTD report on transit worker assaults per 49 U.S.C. §5335(c)." .
+dot:FatalityReport a owl:Class ; rdfs:subClassOf dot:NTDReport ; rdfs:label "Fatality Report"@en ;
+    skos:definition "NTD report on fatalities from bus impacts per 49 U.S.C. §5335(c)." .
+
+# ── OBJECT PROPERTIES ────────────────────────────────────────────
+saam:hasAgency          a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Agency ; rdfs:label "has agency" .
+saam:hasFund            a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Fund ; rdfs:label "has fund" .
+saam:hasAppropriation   a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Appropriation ; rdfs:label "has appropriation" .
+saam:hasProgram         a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Program ; rdfs:label "has program" .
+saam:hasOrganization    a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Organization ; rdfs:label "has organization" .
+saam:hasProject         a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:Project ; rdfs:label "has project" .
+saam:hasObjectCode      a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:ObjectCode ; rdfs:label "has object code" .
+saam:hasFiscalPeriod    a owl:ObjectProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range saam:FiscalPeriod ; rdfs:label "has fiscal period" .
+saam:hasBiennium        a owl:ObjectProperty ; rdfs:domain saam:Appropriation ; rdfs:range saam:Biennium ; rdfs:label "has biennium" .
+saam:belongsToFund      a owl:ObjectProperty ; rdfs:domain saam:Appropriation ; rdfs:range saam:Fund ; rdfs:label "belongs to fund" .
+saam:hasVendor          a owl:ObjectProperty ; rdfs:domain saam:Payment ; rdfs:range saam:Vendor ; rdfs:label "has vendor" .
+saam:hasEmployee        a owl:ObjectProperty ; rdfs:domain saam:Payment ; rdfs:range saam:Employee ; rdfs:label "has employee" .
+afrs:hasBatchHeader     a owl:ObjectProperty ; rdfs:domain afrs:Batch ; rdfs:range afrs:BatchHeader ; rdfs:label "has batch header" .
+afrs:containsRecord     a owl:ObjectProperty ; rdfs:domain afrs:Batch ; rdfs:range afrs:InputRecord ; rdfs:label "contains record" .
+afrs:hasTransactionCode a owl:ObjectProperty ; rdfs:domain afrs:InputRecord ; rdfs:range afrs:TransactionCode ; rdfs:label "has transaction code" .
+afrs:producesError      a owl:ObjectProperty ; rdfs:domain afrs:InputRecord ; rdfs:range afrs:ErrorRecord ; rdfs:label "produces error" .
+afrs:hasErrorCode       a owl:ObjectProperty ; rdfs:domain afrs:ErrorRecord ; rdfs:range afrs:ErrorCode ; rdfs:label "has error code" .
+afrs:resolvedBy         a owl:ObjectProperty ; rdfs:domain afrs:ErrorRecord ; rdfs:range afrs:ErrorCorrectionProcess ; rdfs:label "resolved by" .
+cgi:triggersEvent       a owl:ObjectProperty ; rdfs:domain cgi:BatchJob ; rdfs:range cgi:IntegrationEvent ; rdfs:label "triggers event" .
+cgi:writesToLog         a owl:ObjectProperty ; rdfs:domain cgi:IntegrationEvent ; rdfs:range cgi:CommonEventLog ; rdfs:label "writes to log" .
+cgi:hasReturnCode       a owl:ObjectProperty ; rdfs:domain cgi:BatchJob ; rdfs:range cgi:BatchJobReturnCode ; rdfs:label "has return code" .
+cgi:writesJournal       a owl:ObjectProperty ; rdfs:domain cgi:SystemAssuranceJob ; rdfs:range cgi:JournalLog ; rdfs:label "writes journal" .
+cgi:affectsShadowTable  a owl:ObjectProperty ; rdfs:domain cgi:BatchJob ; rdfs:range cgi:ShadowTable ; rdfs:label "affects shadow table" .
+err:capturedIn          a owl:ObjectProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range err:ErrorLog ; rdfs:label "captured in" .
+err:hasSeverity         a owl:ObjectProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range err:ErrorSeverity ; rdfs:label "has severity" .
+err:hasCategory         a owl:ObjectProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range err:ErrorCategory ; rdfs:label "has category" .
+err:hasResolutionStatus a owl:ObjectProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range err:ErrorResolutionStatus ; rdfs:label "has resolution status" .
+dot:submits             a owl:ObjectProperty ; rdfs:domain dot:TransitAgency ; rdfs:range dot:NTDReport ; rdfs:label "submits" .
+dot:coveredBy           a owl:ObjectProperty ; rdfs:domain dot:NTDReport ; rdfs:range dot:NTDReportingPeriod ; rdfs:label "covered by" .
+dot:hasSubmissionStatus a owl:ObjectProperty ; rdfs:domain dot:NTDReport ; rdfs:range dot:NTDSubmissionStatus ; rdfs:label "has submission status" .
+dot:usesUSoA            a owl:ObjectProperty ; rdfs:domain dot:NTDFinancialReport ; rdfs:range dot:UniformSystemOfAccounts ; rdfs:label "uses USoA" .
+dot:fundedBy            a owl:ObjectProperty ; rdfs:domain dot:TransitAgency ; rdfs:range dot:FederalGrant ; rdfs:label "funded by" .
+dot:includesServiceData a owl:ObjectProperty ; rdfs:domain dot:AnnualNTDReport ; rdfs:range dot:ServiceData ; rdfs:label "includes service data" .
+dot:includesAssetInventory a owl:ObjectProperty ; rdfs:domain dot:AnnualNTDReport ; rdfs:range dot:TransitAssetInventory ; rdfs:label "includes asset inventory" .
+dot:hasTAMPlan          a owl:ObjectProperty ; rdfs:domain dot:TransitAgency ; rdfs:range dot:TAMPlan ; rdfs:label "has TAM Plan" .
+dot:generatesSubmission a owl:ObjectProperty ; rdfs:domain dot:NTDReport ; rdfs:range dot:ComplianceSubmission ; rdfs:label "generates submission" .
+
+# ── DATATYPE PROPERTIES ──────────────────────────────────────────
+saam:agencyCode         a owl:DatatypeProperty ; rdfs:domain saam:Agency ; rdfs:range xsd:string ; rdfs:label "agency code" ; skos:definition "4-character AFRS agency/sub-agency code." .
+saam:fundCode           a owl:DatatypeProperty ; rdfs:domain saam:Fund ; rdfs:range xsd:string ; rdfs:label "fund code" .
+saam:appropriationCode  a owl:DatatypeProperty ; rdfs:domain saam:Appropriation ; rdfs:range xsd:string ; rdfs:label "appropriation code" .
+saam:bienniumCode       a owl:DatatypeProperty ; rdfs:domain saam:Biennium ; rdfs:range xsd:string ; rdfs:label "biennium code" ; skos:definition "2-digit biennium code (e.g., '25' for 2023-25 biennium)." .
+saam:transactionAmount  a owl:DatatypeProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range xsd:decimal ; rdfs:label "transaction amount" .
+saam:transactionDate    a owl:DatatypeProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range xsd:date ; rdfs:label "transaction date" .
+saam:documentReference  a owl:DatatypeProperty ; rdfs:domain saam:FinancialTransaction ; rdfs:range xsd:string ; rdfs:label "document reference" .
+afrs:batchNumber        a owl:DatatypeProperty ; rdfs:domain afrs:Batch ; rdfs:range xsd:string ; rdfs:label "batch number" ; skos:definition "3-char batch number (pos 20-22)." .
+afrs:batchDate          a owl:DatatypeProperty ; rdfs:domain afrs:Batch ; rdfs:range xsd:string ; rdfs:label "batch date" ; skos:definition "YYMMDD batch date (pos 5-10)." .
+afrs:isDuplicate        a owl:DatatypeProperty ; rdfs:domain afrs:Batch ; rdfs:range xsd:boolean ; rdfs:label "is duplicate" .
+afrs:errorCodeValue     a owl:DatatypeProperty ; rdfs:domain afrs:ErrorCode ; rdfs:range xsd:string ; rdfs:label "error code value" .
+afrs:errorDescription   a owl:DatatypeProperty ; rdfs:domain afrs:ErrorRecord ; rdfs:range xsd:string ; rdfs:label "error description" .
+cgi:eventTimestamp      a owl:DatatypeProperty ; rdfs:domain cgi:IntegrationEvent ; rdfs:range xsd:dateTime ; rdfs:label "event timestamp" .
+cgi:returnCodeValue     a owl:DatatypeProperty ; rdfs:domain cgi:BatchJobReturnCode ; rdfs:range xsd:integer ; rdfs:label "return code value" .
+cgi:processId           a owl:DatatypeProperty ; rdfs:domain cgi:BatchJob ; rdfs:range xsd:string ; rdfs:label "process ID" .
+cgi:ledgerTableName     a owl:DatatypeProperty ; rdfs:domain cgi:LedgerName ; rdfs:range xsd:string ; rdfs:label "ledger table name" .
+err:entryTimestamp      a owl:DatatypeProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range xsd:dateTime ; rdfs:label "entry timestamp" .
+err:sourceSystem        a owl:DatatypeProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range xsd:string ; rdfs:label "source system" .
+err:errorMessage        a owl:DatatypeProperty ; rdfs:domain err:ErrorLogEntry ; rdfs:range xsd:string ; rdfs:label "error message" .
+dot:ntdId               a owl:DatatypeProperty ; rdfs:domain dot:TransitAgency ; rdfs:range xsd:string ; rdfs:label "NTD ID" ; skos:definition "Unique NTD reporter identifier assigned by FTA." .
+dot:reportingYear       a owl:DatatypeProperty ; rdfs:domain dot:NTDReport ; rdfs:range xsd:gYear ; rdfs:label "reporting year" .
+dot:vehicleRevenueMiles a owl:DatatypeProperty ; rdfs:domain dot:ServiceData ; rdfs:range xsd:decimal ; rdfs:label "vehicle revenue miles" .
+dot:vehicleRevenueHours a owl:DatatypeProperty ; rdfs:domain dot:ServiceData ; rdfs:range xsd:decimal ; rdfs:label "vehicle revenue hours" .
+dot:unlinkedPassengerTrips a owl:DatatypeProperty ; rdfs:domain dot:ServiceData ; rdfs:range xsd:integer ; rdfs:label "unlinked passenger trips" .
+dot:passengerMiles      a owl:DatatypeProperty ; rdfs:domain dot:ServiceData ; rdfs:range xsd:decimal ; rdfs:label "passenger miles" .
+dot:grantNumber         a owl:DatatypeProperty ; rdfs:domain dot:FederalGrant ; rdfs:range xsd:string ; rdfs:label "grant number" .
+dot:grantAmount         a owl:DatatypeProperty ; rdfs:domain dot:FederalGrant ; rdfs:range xsd:decimal ; rdfs:label "grant amount" .
+dot:submissionDate      a owl:DatatypeProperty ; rdfs:domain dot:ComplianceSubmission ; rdfs:range xsd:date ; rdfs:label "submission date" .

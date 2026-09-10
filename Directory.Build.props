@@ -1,8 +1,23 @@
 <Project>
+    <!-- Scoped test builds must select intermediate paths before SDK/NuGet imports. -->
+    <PropertyGroup Condition="'$(IfxTestSourceScope)' != '' AND ('$(MSBuildProjectName)' == 'vc.Ifx.UnitTests' OR '$(MSBuildProjectName)' == 'vc.Ifx.IntegrationTests')">
+        <IfxEffectiveTestOutputKey>$(IfxTestSourceScope)</IfxEffectiveTestOutputKey>
+        <IfxEffectiveTestOutputKey Condition="'$(IfxTestOutputKey)' != ''">$(IfxTestOutputKey)</IfxEffectiveTestOutputKey>
+        <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/scoped/$(IfxEffectiveTestOutputKey)/</BaseIntermediateOutputPath>
+        <BaseOutputPath>$(MSBuildProjectDirectory)/bin/scoped/$(IfxEffectiveTestOutputKey)/</BaseOutputPath>
+        <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[/\\]performance[/\\]'))">
+        <IsBenchmarkProject>true</IsBenchmarkProject>
+    </PropertyGroup>
+
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <OutputType>Library</OutputType>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>14.0</LangVersion>
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' AND ('$(TF_BUILD)' == 'True' OR '$(GITHUB_ACTIONS)' == 'true')">true</ContinuousIntegrationBuild>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
@@ -19,7 +34,6 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <RepositoryType>git</RepositoryType>
-        <RepositoryBranch>main</RepositoryBranch>
 
         <!-- Source linking and debugging -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -36,25 +50,20 @@
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName)UnitTests</_Parameter1>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).UnitTests</_Parameter1>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).IntegrationTests</_Parameter1>
-            <_Parameter1>$(MSBuildProjectName).UnitTests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
 
-    <!-- Code Coverage Configuration -->
-    <PropertyGroup Condition="'$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true'">
-        <CollectCoverage>true</CollectCoverage>
-        <CoverletOutputFormat>opencover</CoverletOutputFormat>
-        <CoverletOutput>$(OutputPath)coverage.opencover.xml</CoverletOutput>
-        <Exclude>[*]*.Tests.*,[*]*.UnitTests.*,[*]*.IntegrationTests.*,[*]*.Benchmarks.*</Exclude>
-        <ExcludeByFile>**/obj/**/*.*,**/bin/**/*.*</ExcludeByFile>
-        <IncludeTestAssembly>false</IncludeTestAssembly>
-    </PropertyGroup>
-
-    <!-- Test Project Configuration -->
-    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <!-- Benchmark Project Configuration -->
+    <PropertyGroup Condition="'$(IsBenchmarkProject)' == 'true'">
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <IsPackable>false</IsPackable>

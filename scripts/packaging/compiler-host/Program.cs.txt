@@ -1,0 +1,118 @@
+using System.Collections.Immutable;
+using System.Composition.Hosting;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.Text.Json;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+
+var directory = Path.GetFullPath(args[0]);
+var reportPath = Path.GetFullPath(args[1]);
+var generatorDirectory = Path.GetFullPath(args[2]);
+var analyzerDirectory = Path.GetFullPath(args[3]);
+var checks = new List<string>();
+void Require(bool condition, string message)
+{
+    if (!condition) throw new InvalidOperationException(message);
+    checks.Add(message);
+}
+
+Require(!Directory.EnumerateFiles(AppContext.BaseDirectory, "vc.Ifx*.dll").Any(), "Host output has no repository/package binaries");
+var loader = new PackageLoadContext(directory);
+var codeFixAssembly = loader.LoadFromAssemblyPath(Path.Combine(directory, "vc.Ifx.CodeFixes.dll"));
+Require(!codeFixAssembly.GetReferencedAssemblies().Any(reference => reference.Name == "vc.Ifx.Analyzers"), "CodeFixes has no binary analyzer dependency");
+Require(!File.Exists(Path.Combine(directory, "vc.Ifx.Analyzers.dll")), "CodeFixes-only package does not bundle an analyzer");
+using var container = new ContainerConfiguration().WithAssembly(codeFixAssembly).CreateContainer();
+var providers = container.GetExports<CodeFixProvider>().OrderBy(provider => provider.GetType().Name).ToArray();
+Require(providers.Select(provider => provider.GetType().Name).SequenceEqual(new[] {
+    "Ca1062CodeFixProvider", "DiagnosticDebtCodeFixProvider", "Ifx005ControllerAttributeOrderCodeFixProvider" }), "MEF composes exactly the three supported CodeFixes exports");
+Require(providers.SelectMany(provider => provider.FixableDiagnosticIds).Order().SequenceEqual(new[] { "CA1062", "IFX005", "IFX1000", "IFX1001" }), "Exported diagnostic IDs match the frozen support matrix");
+var retiredNames = new[] { "Ca1051", "Ca1303", "Ca1413", "Ca1704", "Ca1707", "Ca1801", "Ca1806", "Ca1812", "Ca1819", "Ca1822", "Ca1823", "Ca1824", "Ca1825", "Ca2207", "MSTest0017" };
+foreach (var name in retiredNames)
+{
+    var type = codeFixAssembly.GetType("vc.Ifx.CodeFixes.Providers." + name + "CodeFixProvider", throwOnError: true)!;
+    var retired = (CodeFixProvider)Activator.CreateInstance(type)!;
+    Require(!type.GetCustomAttributes<ExportCodeFixProviderAttribute>().Any() && retired.FixableDiagnosticIds.IsEmpty && retired.GetFixAllProvider() == null,
+        name + " remains constructible, unexported and unadvertised");
+}
+
+var analyzerLoader = new PackageLoadContext(analyzerDirectory);
+var analyzerAssembly = analyzerLoader.LoadFromAssemblyPath(Path.Combine(analyzerDirectory, "vc.Ifx.Analyzers.dll"));
+var analyzerTypes = analyzerAssembly.GetTypes().Where(type => type.GetCustomAttributes<DiagnosticAnalyzerAttribute>().Any()).OrderBy(type => type.Name).ToArray();
+Require(analyzerTypes.Select(type => type.Name).SequenceEqual(new[] { "DiagnosticDebtAnalyzer", "Ifx001Signature", "MethodNestingAnalyzer" }), "Separate analyzer package discovery matches its three declared exports");
+var analyzers = analyzerTypes.Select(type => (DiagnosticAnalyzer)Activator.CreateInstance(type)!).ToImmutableArray();
+var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
+    .Select(path => MetadataReference.CreateFromFile(path)).ToImmutableArray<MetadataReference>();
+var debt = providers.Single(provider => provider.GetType().Name == "DiagnosticDebtCodeFixProvider");
+var cases = new[] {
+    "// CA1825\npublic class C { }",
+    "/* CA1825 */ public class C { }",
+    "#pragma warning disable CA1825\npublic class C { }",
+    "[System.Diagnostics.CodeAnalysis.SuppressMessage(\"Usage\", \"CA1825\")] public class C { }"
+};
+foreach (var source in cases)
+{
+    using var workspace = new AdhocWorkspace();
+    var project = workspace.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Consumer", "Consumer", LanguageNames.CSharp,
+        parseOptions: new CSharpParseOptions(LanguageVersion.CSharp14), compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary), metadataReferences: references));
+    var document = workspace.AddDocument(project.Id, "Consumer.cs", SourceText.From(source));
+    var compilation = (await document.Project.GetCompilationAsync())!;
+    Require(!compilation.GetDiagnostics().Any(item => item.Severity == DiagnosticSeverity.Error), "Original workspace consumer compiles: " + source.Split('\n')[0]);
+    var diagnostic = (await compilation.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync()).Single(item => item.Id is "IFX1000" or "IFX1001");
+    var actions = new List<CodeAction>();
+    await debt.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (action, diagnostics) => actions.Add(action), default));
+    Require(actions.Count == 1, "Packaged debt provider offers one action: " + diagnostic.Id);
+    var solution = (await actions[0].GetOperationsAsync(default)).OfType<ApplyChangesOperation>().Single().ChangedSolution;
+    var changed = solution.GetDocument(document.Id)!;
+    var updated = (await changed.Project.GetCompilationAsync())!;
+    Require(!updated.GetDiagnostics().Any(item => item.Severity == DiagnosticSeverity.Error), "Applied packaged action preserves consumer compilation: " + diagnostic.Id);
+    Require((await updated.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync()).Count(item => item.Id == diagnostic.Id) == 1,
+        "TODO scaffold does not falsely resolve debt: " + diagnostic.Id);
+}
+
+var shared = loader.LoadFromAssemblyName(new AssemblyName("vc.Ifx.Roslyn"));
+Require(shared.GetType("vc.Ifx.Roslyn.DiagnosticIdentifiers", true)!.GetField("DiagnosticSuppressionRequiresJustification")!.GetRawConstantValue()!.Equals("IFX1001"),
+    "Extracted shared contract loads and matches IFX1001");
+foreach (var assembly in loader.Assemblies)
+    Require(Path.GetDirectoryName(assembly.Location) == directory, "Private dependency loaded only from extracted package: " + assembly.GetName().Name);
+Require(loader.Assemblies.Select(assembly => assembly.GetName().Name).Order().SequenceEqual(new[] { "vc.Ifx.CodeFixes", "vc.Ifx.Roslyn" }), "CodeFixes loads only its two private framework DLLs");
+foreach (var assembly in analyzerLoader.Assemblies)
+    Require(Path.GetDirectoryName(assembly.Location) == analyzerDirectory, "Analyzer dependency loads only from the separate extracted analyzer package: " + assembly.GetName().Name);
+var generatorLoader = new PackageLoadContext(generatorDirectory);
+var generatorAssembly = generatorLoader.LoadFromAssemblyPath(Path.Combine(generatorDirectory, "vc.Ifx.Generators.dll"));
+var generators = generatorAssembly.GetTypes().Where(type => type.GetCustomAttributes<GeneratorAttribute>().Any()).OrderBy(type => type.Name).ToArray();
+Require(generators.Select(type => type.Name).SequenceEqual(new[] { "EnumerationGenerator", "InterceptorsGenerator", "MapperGenerator", "MinimalEndpointGenerator" }),
+    "Packaged generator discovery matches all four declared exports");
+foreach (var type in generators)
+    Require(Activator.CreateInstance(type) is IIncrementalGenerator, "Packaged incremental generator is constructible: " + type.Name);
+await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new {
+    passed = true, checks,
+    runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+    hostRoslyn = typeof(Compilation).Assembly.FullName,
+    hostWorkspaces = typeof(Workspace).Assembly.FullName,
+    exports = providers.Select(provider => new { name = provider.GetType().FullName, ids = provider.FixableDiagnosticIds, fixAll = provider.GetFixAllProvider()?.GetSupportedFixAllScopes().Select(scope => scope.ToString()) }),
+    privateAssemblies = loader.Assemblies.Select(assembly => new { identity = assembly.FullName, path = assembly.Location }),
+    codeFixReferences = codeFixAssembly.GetReferencedAssemblies().Select(reference => reference.FullName),
+    analyzerAssemblies = analyzerLoader.Assemblies.Select(assembly => new { identity = assembly.FullName, path = assembly.Location }),
+    generators = generators.Select(type => type.FullName),
+    limitations = new[] { "Standalone .NET workspace + MEF composition, not a Visual Studio or VS Code installation", "No IDE menu, remote process, legacy .NET Framework or older Roslyn-host compatibility assertion" }
+}, new JsonSerializerOptions { WriteIndented = true }));
+Console.WriteLine($"Packaged CodeFixes host passed {checks.Count} checks: {reportPath}");
+
+sealed class PackageLoadContext(string directory) : AssemblyLoadContext(isCollectible: true)
+{
+    protected override Assembly? Load(AssemblyName name)
+    {
+        if (name.Name!.StartsWith("vc.Ifx", StringComparison.Ordinal))
+        {
+            var path = Path.Combine(directory, name.Name + ".dll");
+            if (!File.Exists(path)) throw new FileNotFoundException("Missing extracted private dependency", path);
+            return LoadFromAssemblyPath(path);
+        }
+        return null;
+    }
+}

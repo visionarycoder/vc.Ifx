@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace vc.Ifx.Generators;
+
+/// <summary>Generates explicit minimal API registration from passive endpoint declarations.</summary>
+[Generator(LanguageNames.CSharp)]
+public sealed class MinimalEndpointGenerator : IIncrementalGenerator
+{
+    internal const string AttributeName = "vc.Ifx.Generators.Abstractions.Attributes.GenerateEndpointAttribute";
+    internal const string RegistryName = "vc.Ifx.Generated.IfxEndpointRouteBuilderExtensions";
+    internal const string HintName = "IfxEndpointRouteBuilderExtensions.g.cs";
+
+    /// <inheritdoc/>
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        var declarations = context.SyntaxProvider.ForAttributeWithMetadataName(AttributeName,
+            static (node, token) => node is MethodDeclarationSyntax,
+            static (attribute, token) => EndpointValidation.Read(attribute, token))
+            .Where(static declaration => declaration != null).Select(static (declaration, token) => declaration!);
+        var hosting = context.CompilationProvider.Select(static (compilation, token) => HostingStatus(compilation, token));
+        var output = declarations.Collect().Combine(hosting).Select(static (input, token) => CreateOutput(input.Left, input.Right, token));
+        context.RegisterSourceOutput(output, static (production, result) =>
+        {
+            foreach (var diagnostic in result.Diagnostics) { production.ReportDiagnostic(diagnostic); }
+        });
+        var source = output.Select(static (result, token) => result.Source).WithComparer(StringComparer.Ordinal).WithTrackingName("EndpointSource");
+        context.RegisterSourceOutput(source, static (production, text) =>
+        {
+            if (text != null) { production.AddSource(HintName, SourceText.From(text, Encoding.UTF8)); }
+        });
+    }
+
+    private static int HostingStatus(Compilation compilation, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (compilation.GetTypeByMetadataName(RegistryName) != null) { return 2; }
+        var required = new Dictionary<string, string[]>
+        {
+            ["Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions"] = new[] { "MapMethods" },
+            ["Microsoft.AspNetCore.Builder.RoutingEndpointConventionBuilderExtensions"] = new[] { "WithName" },
+            ["Microsoft.AspNetCore.Builder.AuthorizationEndpointConventionBuilderExtensions"] = new[] { "RequireAuthorization", "AllowAnonymous" },
+            ["Microsoft.AspNetCore.Http.OpenApiRouteHandlerBuilderExtensions"] = new[] { "WithSummary", "WithDescription", "WithTags", "ExcludeFromDescription" },
+            ["Microsoft.AspNetCore.Routing.IEndpointRouteBuilder"] = Array.Empty<string>()
+        };
+        foreach (var pair in required)
+        {
+            var type = compilation.GetTypeByMetadataName(pair.Key);
+            if (type == null || pair.Value.Any(name => !type.GetMembers(name).OfType<IMethodSymbol>().Any(method => method.IsStatic && method.DeclaredAccessibility == Accessibility.Public))) { return 1; }
+        }
+        return 0;
+    }
+
+    private static EndpointOutput CreateOutput(ImmutableArray<EndpointDeclaration> declarations, int hosting, CancellationToken token)
+    {
+        var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+        var ordered = declarations.OrderBy(item => item.Method, StringComparer.Ordinal)
+            .ThenBy(item => item.Route, StringComparer.Ordinal).ThenBy(item => item.Handler, StringComparer.Ordinal).ToArray();
+        foreach (var item in ordered) { token.ThrowIfCancellationRequested(); diagnostics.AddRange(item.Diagnostics); }
+        if (hosting != 0)
+        {
+            foreach (var item in ordered)
+            {
+                diagnostics.Add(Diagnostic.Create(hosting == 2 ? EndpointDiagnostics.Collision : EndpointDiagnostics.Hosting,
+                    item.Location, hosting == 2 ? RegistryName : "ASP.NET Core 10 endpoint hosting APIs are required."));
+            }
+            return new EndpointOutput(null, diagnostics.ToImmutable());
+        }
+
+        var valid = ordered.Where(item => item.Diagnostics.IsEmpty).ToArray();
+        var conflicts = new HashSet<EndpointDeclaration>();
+        foreach (var group in valid.GroupBy(item => item.Method + " " + item.RouteKey, StringComparer.OrdinalIgnoreCase))
+        {
+            ReportDuplicates(group.ToArray(), EndpointDiagnostics.Route, false);
+        }
+        foreach (var group in valid.Where(item => item.Name != null).GroupBy(item => item.Name, StringComparer.Ordinal))
+        {
+            ReportDuplicates(group.ToArray(), EndpointDiagnostics.Name, true);
+        }
+
+        var source = new StringBuilder("// <auto-generated />\n#nullable enable\nnamespace vc.Ifx.Generated;\n\ninternal static class IfxEndpointRouteBuilderExtensions\n{\n    public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapGeneratedIfxEndpoints(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)\n    {\n        global::System.ArgumentNullException.ThrowIfNull(endpoints);\n");
+        foreach (var item in valid)
+        {
+            token.ThrowIfCancellationRequested();
+            if (!conflicts.Contains(item)) { source.Append(item.Registration); }
+        }
+        source.Append("        return endpoints;\n    }\n}\n");
+        return new EndpointOutput(source.ToString(), diagnostics.ToImmutable());
+
+        void ReportDuplicates(EndpointDeclaration[] group, DiagnosticDescriptor descriptor, bool names)
+        {
+            if (group.Length < 2) { return; }
+            foreach (var item in group)
+            {
+                token.ThrowIfCancellationRequested();
+                conflicts.Add(item);
+                var location = names ? item.NameLocation : item.Location;
+                var others = group.Where(other => !ReferenceEquals(other, item)).Select(other => names ? other.NameLocation : other.Location);
+                diagnostics.Add(Diagnostic.Create(descriptor, location, others, null, names ? item.Name : item.Method + " " + item.Route));
+            }
+        }
+    }
+
+    private sealed class EndpointOutput(string? source, ImmutableArray<Diagnostic> diagnostics)
+    {
+        internal string? Source { get; } = source;
+        internal ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
+    }
+}

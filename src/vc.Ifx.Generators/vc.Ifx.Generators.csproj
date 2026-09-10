@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>vc.Ifx.Generators</PackageId>
+    <Description>Compile-time C# source generation for vc.Ifx framework integration.</Description>
+    <PackageTags>roslyn;generators;source-generation;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackCompilerExtension</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\vc.Ifx.Roslyn\vc.Ifx.Roslyn.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- Compiler-only compatibility parser; version is managed centrally. -->
+    <PackageReference Include="Microsoft.AspNetCore.Routing" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+  <!-- Roslyn loads private tooling dependencies beside the compiler extension. -->
+  <Target Name="PackCompilerExtension" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath);$(TargetDir)$(AssemblyName).pdb;$(TargetDir)$(AssemblyName).xml">
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" Condition="!$([System.String]::Copy('%(ReferenceCopyLocalPaths.Filename)').StartsWith('Microsoft.CodeAnalysis')) And '%(ReferenceCopyLocalPaths.Filename)' != 'System.Collections.Immutable' And '%(ReferenceCopyLocalPaths.Filename)' != 'System.Reflection.Metadata'">
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,84 +1,81 @@
 # Branching Strategy Playbook
 
-## Purpose
+## Current Automation
 
-Define a clear, reproducible branching model aligned with Nerdbank.GitVersioning (NBGV) and our CI/CD pipelines.
+This guide describes [publish.yml](../../.github/workflows/publish.yml), not an
+unconfigured versioning proposal. There is no NBGV setup, nightly schedule, or
+automatic alpha/preview/RC version derived from a branch name.
 
----
+| Event | Quality gate | Publication after success |
+| --- | --- | --- |
+| Pull request | Complete quality job | None |
+| Merge queue | Complete quality job | None |
+| Manual dispatch | Complete quality job | None |
+| Push to main | Complete quality job | GitHub Packages |
+| Push of a matching stable vX.Y.Z tag | Complete quality job and version check | NuGet.org |
+| Push to another branch | No push trigger in this workflow | None |
 
-## Branch Types
+The tag trigger is broader than the release policy: the quality job rejects tags
+that are not stable `vX.Y.Z` or do not match every package's evaluated version.
+A stable tag does not also publish to GitHub Packages; that step is main-only.
 
-### `main`
+## Branch Policy
 
-- **Purpose:** Integration branch for stable development.
-- **Versioning:** `-preview.{height}` prereleases.
-- **Publishing:** Nightly/previews to GitHub Packages.
-- **Rules:**
-  - All PRs must pass CI.
-  - No direct commits; always via PR.
+Use main for integration. Develop changes on short-lived branches and merge through
+reviewed pull requests. Optional release branches can isolate stabilization, but
+their names do not change versions or enable publication. Open a pull request or
+use manual dispatch to run this quality workflow for another branch.
 
-### `feature/*`
+Passing checks and review are the intended merge policy. Administrators must
+configure required checks and branch protection separately; a workflow file does
+not prove those settings are enabled.
 
-- **Purpose:** Experimental or short-lived work.
-- **Versioning:** `-alpha.{height}` prereleases.
-- **Publishing:** GitHub Packages only (optional).
-- **Rules:**
-  - Branch from `main`.
-  - Merge back via PR with review.
+## Version And Release Preparation
 
-### `release/vX.Y`
+1. Choose the intended package version and set it in repository configuration.
+   Check every package's evaluated PackageVersion, including any overrides.
+2. Complete review and quality verification for the intended release commit.
+   Do not use historical build/coverage artifacts as proof for a new revision.
+3. After release approval, create a matching stable tag on that commit and push it.
+4. Verify the tag quality job, exact artifact manifest, and NuGet.org publication.
 
-- **Purpose:** Stabilization branch for upcoming release.
-- **Versioning:** `-rc.{height}` prereleases.
-- **Publishing:** GitHub Packages (release candidates).
-- **Rules:**
-  - Only bug fixes, docs, and release prep.
-  - No new features.
-  - Cut from `main` when feature set is frozen.
+Tags never assign or rewrite versions. Both feeds use `--skip-duplicate`, so
+reusing a version cannot overwrite an existing package. Choose a new version for
+changed package contents.
 
-### Tags `vX.Y.Z`
+Publication uses only validated archives from the same workflow run. The publishing
+job rechecks the exact manifest before publishing; it does not rebuild or execute
+repository scripts. GitHub Packages needs repository-token publishing permission;
+NuGet.org needs `NUGET_API_KEY`. Actual hosted execution, permissions, and required
+checks remain external acceptance items in the
+[local checkpoint](../planning/local-verification-20260910.md).
 
-- **Purpose:** Production-ready releases.
-- **Versioning:** Clean semantic version (no suffix).
-- **Publishing:** NuGet.org (stable) + GitHub Packages.
-- **Rules:**
-  - Tag only from `release/*` or `main` after sign-off.
-  - Tagging triggers CI/CD to publish stable package and changelog.
+## Changelog
 
----
+[update_changelog.yml](../../.github/workflows/update_changelog.yml) responds to a
+GitHub Release being published and opens a changelog pull request. Pushing a Git tag
+alone does not run that workflow. Review and merge the resulting PR after publishing
+the Release; prepare release notes before tagging.
 
-## Flow Summary
+## Flow
 
-```plaintext
-feature/*  →  main (preview)  →  release/vX.Y (rc)  →  tag vX.Y.Z (stable)
+```mermaid
+flowchart LR
+    Branch[Working branch] --> PR[Reviewed pull request]
+    PR --> Quality[Quality gate]
+    Quality --> Main[Merge to main]
+    Main --> MainQuality[Push quality gate]
+    MainQuality --> GitHub[GitHub Packages]
+    Main --> Approval[Release approval and matching stable tag]
+    Approval --> TagQuality[Tag quality gate]
+    TagQuality --> NuGet[NuGet.org]
+    NuGet --> Release[Publish GitHub Release]
+    Release --> Changelog[Changelog pull request]
 ```
 
-```Mermaid
-gitGraph
-   commit id: "Init"
-   branch feature/new-api
-   checkout feature/new-api
-   commit id: "Feature work"
-   commit id: "More feature work"
-   checkout main
-   merge feature/new-api id: "Merge feature → main"
-   commit id: "Preview build"
-   branch release/v1.1
-   checkout release/v1.1
-   commit id: "Stabilization"
-   commit id: "Bugfix"
-   checkout main
-   merge release/v1.1 id: "Merge release → main"
-   checkout release/v1.1
-   commit id: "Final RC"
-   tag: "v1.1.0"
-   checkout main
-   merge release/v1.1 id: "Release v1.1.0"
-```
+## Related Guides
 
----
-
-## Related Visuals
-
-- [Quarterly Review Timeline](quarterly-radar-review.md#quarterly-architecture-governance-cycle)
-- [Radar Quadrants](../../best-practices/radar.md#visual-radar-mermaid)
+- [Release checklist](release-checklist.md)
+- [CI quality and publishing](../../.infra/yaml/README.md)
+- [Quarterly review](quarterly-radar-review.md)
+- [Technology radar](../best-practices/radar.md)

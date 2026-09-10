@@ -1,0 +1,207 @@
+agent-instruction-governance|Agent Instruction Governance|2026-07-29|900|agent-instruction-governance
+analyzing-dotnet-performance|.NET Performance Patterns|2026-07-29|1730|analyzing-dotnet-performance
+angular-anti-patterns|Angular Anti-Patterns|2026-07-29|1180|angular-anti-patterns
+angular-modernization|Angular Modernization|2026-07-29|1190|angular-modernization
+angular-security-hardening|Angular Security Hardening|2026-07-29|1260|angular-security-hardening
+angular-to-vue3-migration|Angular to Vue 3 Migration|2026-07-29|1460|angular-to-vue3-migration
+angular-vue-migration-orchestrator|Angular to Vue Migration Orchestrator|2026-07-29|1360|angular-vue-migration-orchestrator
+application-insights-dotnet|Application Insights for .NET|2026-07-29|1290|application-insights-dotnet
+aspnetcore-identity-setup|ASP.NET Core Identity Setup|2026-07-29|1030|aspnetcore-identity-setup
+assertion-quality|Assertion Diversity Analysis|2026-07-29|980|assertion-quality
+azure-ad-authentication-dotnet|Azure AD Authentication for .NET|2026-07-29|1560|azure-ad-authentication-dotnet
+azure-app-configuration-dotnet|Azure App Configuration for .NET|2026-07-29|1460|azure-app-configuration-dotnet
+azure-functions-dotnet|Azure Functions for .NET|2026-07-29|1700|azure-functions-dotnet
+azure-keyvault-dotnet|Azure Key Vault for .NET|2026-07-29|920|azure-keyvault-dotnet
+azure-storage-dotnet|Azure Storage for .NET|2026-07-29|1490|azure-storage-dotnet
+binlog-failure-analysis|Analyzing MSBuild Failures with Binary Logs|2026-07-29|1140|binlog-failure-analysis
+binlog-generation|Generate Binary Logs|2026-07-29|820|binlog-generation
+breaking-primitive-obsession|Breaking Primitive Obsession|2026-07-29|1255|breaking-primitive-obsession
+build-parallelism|Build Parallelism|2026-07-29|1210|build-parallelism
+build-perf-baseline|Build Performance Baseline & Optimization|2026-07-29|1180|build-perf-baseline
+build-perf-diagnostics|Build Performance Diagnostics|2026-07-29|1460|build-perf-diagnostics
+ca-code-quality-fixes|CA Code Quality Fixes|2026-07-29|1850|ca-code-quality-fixes
+ca-design-quality-fixes|CA Design Quality Fixes|2026-07-29|1550|ca-design-quality-fixes
+ca-perf-reliability-fixes|CA Performance & Reliability Fixes|2026-07-29|1550|ca-perf-reliability-fixes
+caching-patterns-dotnet|Caching Patterns for .NET|2026-07-29|1166|caching-patterns-dotnet
+check-bin-obj-clash|Detecting OutputPath and IntermediateOutputPath Clashes|2026-07-29|1520|check-bin-obj-clash
+clr-activation-debugging|CLR Activation Debugging|2026-07-29|1470|clr-activation-debugging
+code-testing-agent|Code Testing Generation Skill|2026-07-29|1760|code-testing-agent
+code-testing-extensions|Code Testing Extensions|2026-07-29|820|code-testing-extensions
+configuration-options-pattern|Configuration Options Pattern|2026-07-29|1189|configuration-options-pattern
+configuring-opentelemetry-dotnet|Configuring OpenTelemetry in .NET|2026-07-29|1120|configuring-opentelemetry-dotnet
+convert-blazor-server-to-webapp|Convert Blazor Server App to Blazor Web App|2026-07-29|1220|convert-blazor-server-to-webapp
+convert-to-cpm|Convert to Central Package Management|2026-07-29|1200|convert-to-cpm
+coverage-analysis|Coverage Analysis|2026-07-29|894|coverage-analysis
+crap-score|CRAP Score Analysis|2026-07-29|888|crap-score
+create-skill|Create Skill|2026-07-29|1091|create-skill
+cs8794-fix|CS8794 Fix|2026-07-29|760|cs8794-fix
+csharp-scripts|File-Based C# Apps|2026-07-29|1450|csharp-scripts
+cwe-authentication-authz-fixes|CWE Authentication & Authorization Fixes|2026-07-29|1610|cwe-authentication-authz-fixes
+cwe-data-protection-fixes|CWE Data Protection Fixes|2026-07-29|1680|cwe-data-protection-fixes
+security-controller|Security Controller|2026-08-31|2800|security-controller
+cwe-format-external-fixes|CWE - Untrusted External Code Loading: Consolidated Fixes|2026-07-29|920|cwe-format-external-fixes
+cwe-injection-attack-fixes|CWE Injection & Code-Execution Attack Fixes|2026-07-29|1760|cwe-injection-attack-fixes
+cwe-input-validation-fixes|CWE Input Verification & Buffer Safety Fixes|2026-07-29|1580|cwe-input-validation-fixes
+cwe-miscellaneous-security-fixes|CWE Miscellaneous Security Fixes|2026-07-29|1760|cwe-miscellaneous-security-fixes
+cwe-resource-management-fixes|CWE Resource & Resource-Management Fixes|2026-07-29|1700|cwe-resource-management-fixes
+dependency-injection-patterns|Dependency Injection Patterns|2026-07-29|1360|dependency-injection-patterns
+detect-static-dependencies|Detect Static Dependencies|2026-07-29|951|detect-static-dependencies
+directory-build-organization|Organizing Build Infrastructure with Directory.Build Files|2026-07-29|1580|directory-build-organization
+documentation-file-placement|Documentation File Placement Skill|2026-07-29|500|documentation-file-placement
+documentation-fixes-bundle|Documentation Fixes Bundle Alias|2026-07-29|350|documentation-fixes-bundle
+documentation-fixes|Documentation Fixes Skill|2026-07-29|900|documentation-fixes
+documentation-frontmatter|Documentation Front Matter Skill|2026-07-29|420|documentation-frontmatter
+documentation-governance|Documentation Governance Skill|2026-07-29|650|documentation-governance
+documentation-link-repair|Documentation Link Repair Skill|2026-07-29|500|documentation-link-repair
+documentation-maintenance|Documentation Maintenance|2026-07-29|1400|documentation-maintenance
+documentation-refactor-review|Documentation Refactor Review|2026-07-29|950|documentation-refactor-review
+documentation-style-collaboration|Documentation Style Collaboration Skill|2026-07-29|420|documentation-style-collaboration
+dotnet-access-standards|.NET Access Standards|2026-07-29|1257|dotnet-access-standards
+dotnet-aot-compat|.NET AOT Compatibility|2026-07-29|980|dotnet-aot-compat
+dotnet-api-client-generation|.NET API Client Generation|2026-07-29|1184|dotnet-api-client-generation
+dotnet-api-client-resilience|.NET API Client Resilience|2026-07-29|1174|dotnet-api-client-resilience
+dotnet-architectural-layers|.NET Architectural Layers|2026-07-29|1300|dotnet-architectural-layers
+dotnet-aspire-vbd-development|.NET Aspire for VBD Development|2026-07-29|1230|dotnet-aspire-vbd-development
+dotnet-async-await-standards|.NET Async Await Standards|2026-07-29|1350|dotnet-async-await-standards
+dotnet-cancellation-token-standards|.NET Cancellation Token Standards|2026-07-29|1250|dotnet-cancellation-token-standards
+dotnet-code-quality-standards|.NET Code Quality Standards|2026-07-29|1250|dotnet-code-quality-standards
+dotnet-code-review|.NET Code Review|2026-07-29|1350|dotnet-code-review
+dotnet-dependency-injection-standards|.NET Dependency Injection Standards|2026-07-29|1350|dotnet-dependency-injection-standards
+dotnet-dto-standards|.NET DTO Standards|2026-07-29|1156|dotnet-dto-standards
+dotnet-engine-standards|.NET Engine Standards|2026-07-29|1170|dotnet-engine-standards
+dotnet-exception-handling-standards|.NET Exception Handling Standards|2026-07-29|1400|dotnet-exception-handling-standards
+dotnet-immutability-standards|.NET Immutability Standards|2026-07-29|1300|dotnet-immutability-standards
+dotnet-logging-best-practices|.NET Logging Best Practices|2026-07-29|1159|dotnet-logging-best-practices
+dotnet-logging-standards|.NET Logging Standards|2026-07-29|1300|dotnet-logging-standards
+dotnet-manager-standards|.NET Manager Standards|2026-07-29|1237|dotnet-manager-standards
+dotnet-mapping-standards|.NET Mapping Standards|2026-07-29|1157|dotnet-mapping-standards
+dotnet-namespace-standards|.NET Namespace Standards|2026-07-29|980|dotnet-namespace-standards
+dotnet-naming-standards|.NET Naming Standards|2026-07-29|1200|dotnet-naming-standards
+dotnet-performance-standards|.NET Performance Standards|2026-07-29|1350|dotnet-performance-standards
+dotnet-pinvoke|.NET P/Invoke|2026-07-29|980|dotnet-pinvoke
+dotnet-resilience-standards|.NET Resilience Standards|2026-07-29|1176|dotnet-resilience-standards
+dotnet-telemetry-standards|.NET Telemetry Standards|2026-07-29|1350|dotnet-telemetry-standards
+dotnet-trace-collect|.NET Trace Collect|2026-07-29|1320|dotnet-trace-collect
+dotnet-unit-testing|.NET Unit Testing|2026-07-29|1580|dotnet-unit-testing
+dotnet-validation-standards|.NET Validation Standards|2026-07-29|1300|dotnet-validation-standards
+dotnet-value-object-standards|.NET Value Object Standards|2026-07-29|1189|dotnet-value-object-standards
+dotnet-webapi|.NET Web API Project|2026-07-29|1560|dotnet-webapi
+dump-collect|.NET Crash Dump Collection|2026-07-29|1250|dump-collect
+efcore-dbcontext-design|EF Core DbContext Design|2026-07-29|1350|efcore-dbcontext-design
+efcore-migrations|EF Core Migrations|2026-07-29|1250|efcore-migrations
+efcore-testing-patterns|EF Core Testing Patterns|2026-07-29|1400|efcore-testing-patterns
+env-provider-skill|Environment Provider Skill|2026-07-29|1180|env-provider-skill
+eval-performance|MSBuild Evaluation Performance|2026-07-29|1290|eval-performance
+exp-mock-usage-analysis|Mock Usage Analysis|2026-07-29|1290|exp-mock-usage-analysis
+exp-simd-vectorization|SIMD Vectorization|2026-07-29|1200|exp-simd-vectorization
+exp-test-maintainability|Test Maintainability Assessment|2026-07-29|1495|exp-test-maintainability
+extension-points|MSBuild Extension Points|2026-07-29|1150|extension-points
+filter-syntax|Test Filter Syntax Reference|2026-07-29|900|filter-syntax
+find-untested-sources|Find Untested Sources|2026-07-29|920|find-untested-sources
+frontend-module-consolidation|Frontend Module Consolidation|2026-07-29|1185|frontend-module-consolidation
+generate-testability-wrappers|Generate Testability Wrappers|2026-07-29|1022|generate-testability-wrappers
+global-error-log-library|Global Error Log Library|2026-07-29|1450|global-error-log-library
+global-exception-handling|Global Exception Handling|2026-07-29|1279|global-exception-handling
+grade-tests|Grade Tests|2026-07-29|916|grade-tests
+ifx-component-communication|Ifx Component Communication|2026-07-29|1220|ifx-component-communication
+including-generated-files|Including Generated Files Into Your Build|2026-07-29|1120|including-generated-files
+incremental-build|Incremental Build Optimization|2026-07-29|1230|incremental-build
+item-management|MSBuild Item Management Patterns|2026-07-29|1120|item-management
+jwt-authentication-dotnet|JWT Authentication for .NET|2026-07-29|1223|jwt-authentication-dotnet
+long-running-job-patterns|Long-Running Job Patterns|2026-07-29|1550|long-running-job-patterns
+magic-strings|Magic Strings|2026-07-29|980|magic-strings
+mcp-csharp-create|C# MCP Server Creation|2026-07-29|1490|mcp-csharp-create
+mcp-csharp-debug|C# MCP Server Debugging|2026-07-29|1380|mcp-csharp-debug
+mcp-csharp-publish|C# MCP Server Publishing|2026-07-29|1450|mcp-csharp-publish
+mcp-csharp-test|C# MCP Server Testing|2026-07-29|1420|mcp-csharp-test
+method-signature-conventions|Method Signature Conventions|2026-07-29|1020|method-signature-conventions
+microbenchmarking|Benchmark Authoring Guidelines|2026-07-29|1070|microbenchmarking
+migrate-dotnet10-to-dotnet11|.NET 10 → .NET 11 Migration|2026-07-29|1500|migrate-dotnet10-to-dotnet11
+migrate-dotnet8-to-dotnet9|.NET 8 → .NET 9 Migration|2026-07-29|1600|migrate-dotnet8-to-dotnet9
+migrate-dotnet9-to-dotnet10|.NET 9 to .NET 10 Migration|2026-07-29|1300|migrate-dotnet9-to-dotnet10
+migrate-mstest-v1v2-to-v3|MSTest v1/v2 → v3 Migration|2026-07-29|1450|migrate-mstest-v1v2-to-v3
+migrate-mstest-v3-to-v4|MSTest v3 → v4 Migration|2026-07-29|1350|migrate-mstest-v3-to-v4
+migrate-nullable-references|Nullable Reference Migration|2026-07-29|1052|migrate-nullable-references
+migrate-static-to-wrapper|Migrate Static to Wrapper|2026-07-29|978|migrate-static-to-wrapper
+minimal-api-file-upload|Implementing File Uploads in ASP.NET Core Minimal APIs|2026-07-29|1289|minimal-api-file-upload
+msbuild-antipatterns|MSBuild Anti-Pattern Catalog|2026-07-29|1260|msbuild-antipatterns
+msbuild-modernization|MSBuild Modernization: Legacy to SDK-style Migration|2026-07-29|1300|msbuild-modernization
+msbuild-server|MSBuild Server for CLI Caching|2026-07-29|860|msbuild-server
+mtp-hot-reload|MTP Hot Reload for Iterative Test Fixing|2026-07-29|1000|mtp-hot-reload
+naming-standards|Modern C# Naming Standards|2026-07-29|1000|naming-standards
+nuget-trusted-publishing|NuGet Trusted Publishing Setup|2026-07-29|980|nuget-trusted-publishing
+openapi-typescript-client-generation|OpenAPI TypeScript Client Generation|2026-07-29|1540|openapi-typescript-client-generation
+optimizing-ef-core-queries|Optimizing EF Core Queries|2026-07-29|1350|optimizing-ef-core-queries
+platform-detection|Test Platform and Framework Detection|2026-07-29|880|platform-detection
+post-implementation-cleanup|Post-Implementation Cleanup|2026-07-29|1040|post-implementation-cleanup
+property-patterns|MSBuild Property Patterns|2026-07-29|1160|property-patterns
+quartz-calendar-schedules|Quartz.NET Calendar-Based Schedules|2026-07-29|1400|quartz-calendar-schedules
+quartz-job-authoring|Quartz.NET Job Authoring|2026-07-29|1500|quartz-job-authoring
+quartz-scheduling-patterns|Quartz.NET Scheduling Patterns|2026-07-29|1450|quartz-scheduling-patterns
+refactor|Refactor|2026-07-29|900|refactor
+resolve-project-references|Misleading ResolveProjectReferences Time|2026-07-29|820|resolve-project-references
+rfc-7807-compliance|RFC 7807 Problem Details (Legacy/Obsolete)|2026-07-29|840|rfc-7807-compliance
+rfc-8091-compliance|RFC 8091 JSON Sequence Media Type Compliance|2026-07-29|980|rfc-8091-compliance
+rfc-8259-compliance|RFC 8259 JSON Compliance|2026-07-29|980|rfc-8259-compliance
+rfc-8725-compliance|JWT RFC 8725 Best Current Practices|2026-07-29|1080|rfc-8725-compliance
+rfc-9457-compliance|HTTP Problem Details RFC 9457 Compliance|2026-07-29|1120|rfc-9457-compliance
+rfc-fixes-bundle|RFC Fixes Bundle|2026-07-29|1150|rfc-fixes-bundle
+roslyn-analyzer-authoring|Roslyn Analyzer Authoring|2026-07-29|1320|roslyn-analyzer-authoring
+roslyn-codefix-authoring|Roslyn Code Fix Authoring|2026-07-29|780|roslyn-codefix-authoring
+roslyn-source-generator-authoring|Roslyn Source Generator Authoring|2026-07-29|1410|roslyn-source-generator-authoring
+run-tests|Run .NET Tests|2026-07-29|1014|run-tests
+skill-suite-optimization|Skill Suite Optimization|2026-07-29|1800|skill-suite-optimization
+solution-markdown-sync|Solution Markdown Sync Skill|2026-07-29|760|solution-markdown-sync
+structured-logging-serilog|Structured Logging with Serilog|2026-07-29|1153|structured-logging-serilog
+subagent-orchestration|Subagent Orchestration|2026-07-29|1400|subagent-orchestration
+target-authoring|Custom Target Authoring Patterns|2026-07-29|1490|target-authoring
+technology-selection|.NET AI & Machine Learning (Technology Selection)|2026-07-29|1260|technology-selection
+test-analysis-extensions|Test Analysis Extensions|2026-07-29|820|test-analysis-extensions
+test-anti-patterns|Test Anti-Pattern Detection|2026-07-29|1020|test-anti-patterns
+test-fixes-bundle|Test Fixes Bundle Alias|2026-07-29|680|test-fixes-bundle
+test-fixes|Test Fixes Bundle|2026-07-29|750|test-fixes
+test-modernization-controller|Test Modernization Controller|2026-08-31|2200|test-modernization-controller
+test-gap-analysis|Test Gap Analysis via Pseudo-Mutation|2026-07-29|1141|test-gap-analysis
+test-smell-detection|Test Smell Detection|2026-07-29|1360|test-smell-detection
+test-tagging|Test Trait Tagging|2026-07-29|900|test-tagging
+thread-abort-migration|Thread.Abort Migration|2026-07-29|1550|thread-abort-migration
+vbd-advanced-design|Advanced Volatility-Based Decomposition Design|2026-07-29|1168|vbd-advanced-design
+vbd-architecture-conformance|VBD Architecture Conformance Testing|2026-07-29|1366|vbd-architecture-conformance
+vbd-artifact-automation|VBD Artifact Automation|2026-07-29|1330|vbd-artifact-automation
+vbd-boundary-contract-mapping|VBD Boundary Contract Mapping|2026-07-29|1219|vbd-boundary-contract-mapping
+vbd-candidate-estimation|VBD Candidate Estimation|2026-07-29|1096|vbd-candidate-estimation
+vbd-change-simulation|VBD Change Simulation|2026-07-29|1130|vbd-change-simulation
+vbd-contract-first-construction|VBD Contract-First Construction|2026-07-29|1147|vbd-contract-first-construction
+vbd-cutover-migration|VBD Cutover Migration|2026-07-29|1259|vbd-cutover-migration
+vbd-drift-analyzer-design|VBD Drift Analyzer Design|2026-07-29|1260|vbd-drift-analyzer-design
+vbd-evidence-quality|VBD Evidence Quality|2026-07-29|1120|vbd-evidence-quality
+vbd-modernization-portfolio|VBD Modernization Portfolio Management|2026-07-29|1203|vbd-modernization-portfolio
+vbd-operational-contracts|VBD Operational Contracts|2026-07-29|1280|vbd-operational-contracts
+vbd-phased-modernization|Phased VBD Modernization|2026-07-29|1461|vbd-phased-modernization
+vbd-symbolic-mapping|VBD Symbolic Mapping|2026-07-29|1180|vbd-symbolic-mapping
+vbd-system-design|VBD System Design|2026-07-29|1321|vbd-system-design
+vbd-use-case-migration|VBD Use-Case Migration Harness|2026-07-29|1165|vbd-use-case-migration
+vbd-use-case-reconstruction|VBD Use-Case Reconstruction|2026-07-29|1064|vbd-use-case-reconstruction
+vue3-component-library-design|Vue 3 Component Library Design|2026-07-29|1170|vue3-component-library-design
+vue3-e2e-testing-playwright|Vue 3 End-to-End Testing with Playwright|2026-07-29|1290|vue3-e2e-testing-playwright
+vue3-msal-authentication|Vue 3 MSAL Authentication|2026-07-29|1230|vue3-msal-authentication
+vue3-pinia-state-management|Vue 3 Pinia State Management|2026-07-29|1270|vue3-pinia-state-management
+vue3-webapp-setup|Vue 3 WebApp Setup|2026-07-29|1310|vue3-webapp-setup
+webapi-authz-hardening|WebAPI Authorization Hardening|2026-07-29|760|webapi-authz-hardening
+webapi-compatibility-migration|WebAPI Compatibility Migration|2026-07-29|820|webapi-compatibility-migration
+webapi-error-contract-hardening|WebAPI Error Contract Hardening|2026-07-29|780|webapi-error-contract-hardening
+webapi-hardening-controller|Web API Hardening Controller|2026-08-31|2400|webapi-hardening-controller
+webapi-input-validation|WebAPI Input Validation|2026-07-29|300|webapi-input-validation
+webapi-module-consolidation|Web API Module Consolidation|2026-07-29|1242|webapi-module-consolidation
+webapi-rest-route-standardization|WebAPI REST Route Standardization|2026-07-29|860|webapi-rest-route-standardization
+webapp-consolidation-strategy|Web Application Consolidation Strategy|2026-07-29|1296|webapp-consolidation-strategy
+webapp-cutover-strategy|Web Application Cutover Strategy|2026-07-29|1204|webapp-cutover-strategy
+webapp-frontend-security|Web App Front-End Security|2026-07-29|1244|webapp-frontend-security
+webapp-to-wpf-migration|WebApp to WPF Migration|2026-07-29|1215|webapp-to-wpf-migration
+webjobs-authoring|WebJobs Authoring|2026-07-29|1500|webjobs-authoring
+wpf-mvvm-implementation|WPF MVVM Implementation|2026-07-29|1175|wpf-mvvm-implementation
+wpf-project-setup|WPF Project Setup|2026-07-29|1155|wpf-project-setup
+wpf-rest-client-integration|WPF REST Client Integration|2026-07-29|1182|wpf-rest-client-integration
+wpf-screen-generation|WPF Screen Generation|2026-07-29|1146|wpf-screen-generation
+wpf-testing-patterns|WPF Testing Patterns|2026-07-29|1164|wpf-testing-patterns
+writing-mstest-tests|Writing MSTest Tests|2026-07-29|1475|writing-mstest-tests

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" Condition="'$(CodeFixesOnly)' != 'true'" />
+    <PackageReference Include="vc.Ifx.Roslyn" Version="$(CompilerPackageVersion)" Condition="'$(CodeFixesOnly)' != 'true'" />
+    <PackageReference Include="vc.Ifx.Analyzers" Version="$(CompilerPackageVersion)" PrivateAssets="all" Condition="'$(CodeFixesOnly)' != 'true'" />
+    <PackageReference Include="vc.Ifx.CodeFixes" Version="$(CompilerPackageVersion)" PrivateAssets="all" />
+    <PackageReference Include="vc.Ifx.Generators" Version="$(CompilerPackageVersion)" PrivateAssets="all" Condition="'$(CodeFixesOnly)' != 'true'" />
+    <PackageReference Include="vc.Ifx.Generators.Abstractions" Version="$(CompilerPackageVersion)" Condition="'$(CodeFixesOnly)' != 'true'" />
+  </ItemGroup>
+  <Target Name="RecordResolvedPackageAssets" AfterTargets="CoreCompile">
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/resolved-analyzers.txt" Lines="@(Analyzer)" Overwrite="true" />
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/resolved-references.txt" Lines="@(ReferencePath)" Overwrite="true" />
+  </Target>
+</Project>
