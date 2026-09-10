@@ -100,7 +100,7 @@ function Assert-IfxBuildProvenance {
         if ($project.settings.DebugType -in @('portable','full','pdbonly') -and [IO.Path]::ChangeExtension($project.targetPath, '.pdb') -cnotin $outputPaths) { throw "Missing compiled PDB identity: $($project.name)" }
         foreach ($file in @($project.inputs) + @($project.outputs)) { Test-IfxRecordedFile $file }
         foreach ($absent in $project.absentInputs) { if (Test-Path -LiteralPath $absent) { throw "Added build input: $absent" } }
-        $currentOutputPaths = @(Get-ChildItem -LiteralPath $project.settings.TargetDir -Recurse -File | ForEach-Object FullName | Sort-Object -Unique)
+        $currentOutputPaths = @(Get-ChildItem -LiteralPath $project.settings.TargetDir -Recurse -File -Force | ForEach-Object FullName | Sort-Object -Unique)
         if (@(Compare-Object @($outputPaths | Sort-Object -Unique) $currentOutputPaths -CaseSensitive).Count) { throw "Changed build output inventory: $($project.name)" }
         & {
             $arguments = @('msbuild', $project.projectPath, '-t:GetIfxBuildSettings', '-getItem:IfxBuildSetting,Compile,IfxDeclaredProjectReference,EmbeddedResource,Protobuf', '-m:1', '-p:BuildInParallel=false',

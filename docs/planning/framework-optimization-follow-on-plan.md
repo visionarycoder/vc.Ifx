@@ -18,6 +18,11 @@ Plan owner: Orchestrator. Authored: 2026-09-10.
 Document state: Reviewed for gated agentic dispatch; only P2-00 is initially dispatchable.
 Implementation state: Not started. No performance or AOT improvement is claimed.
 
+Follow-on: [Plan 3: Quality and Developer Usability](framework-quality-usability-plan.md)
+adds task-first discovery, API/configuration ergonomics, provider conformance, diagnostics,
+lifecycle verification and executable recipes after this plan's accepted Track A handoff.
+It does not change this plan's assignments, dependency decisions or implementation status.
+
 Agent reading order: read Scope and Decisions, Status Protocol, Dispatch and Shared
 Ownership, and Completion Standard first. Then read only the assigned workstream,
 its direct dependency handoffs, relevant package-routing rows and named artifacts.
@@ -39,7 +44,9 @@ Do not load every historical Plan 1 verification log to begin a bounded assignme
 - Use language features for clarity and domain expression, not feature-count targets.
   No wholesale extension-block, `field`, Span, ValueTask or collection conversion.
   Benchmark performance-sensitive changes and test overload/behavior compatibility.
-- Compatible work is Track A (P2-00 through P2-13). The primitives dependency split is
+- Compatible work is Track A (P2-00 through P2-13, plus P2-16 through P2-20).
+  Existing IDs are preserved; numeric order does not determine dispatch order.
+  The primitives dependency split is
   Track B (P2-14 and P2-15), blocked pending an explicit major-version decision.
   Track A can finish while Track B remains Blocked; the complete follow-on program
   cannot be described as fully delivered while Track B is unresolved.
@@ -75,12 +82,13 @@ The section is authoritative; tables are navigation, not duplicate status ledger
 1. P2-00 alone is initially dispatchable, for read-only handoff inspection and this
    plan's documents. It must not launch work against an active Plan 1 capture.
 2. After P2-00: P2-01, P2-03 and P2-04 can run concurrently on disjoint files.
-   P2-02 and P2-05 follow P2-01; they may then run beside design work.
+   P2-02, P2-05 and P2-17 follow P2-01; they may then run beside design work.
 3. Runtime lanes P2-06, P2-07 and P2-08 follow their dependencies below. Their exact
    source slices are separate; package-wide builds still share a serialized queue.
-4. P2-09 follows proxy optimization. P2-10 and P2-11 follow the affected runtime
-   changes; P2-12 also waits for P2-10's annotation changes. P2-13 is the single
-   Track A integration/acceptance lane.
+4. P2-09 follows proxy optimization. P2-16 security and P2-19 resilience then run
+   on released slices; P2-20 follows resilience. P2-10 and P2-11 wait for these runtime
+   changes; P2-12 also waits for P2-10's annotation changes. P2-18 checks clean package
+   consumers after P2-12 and P2-17. P2-13 accepts all Track A work, including P2-16 through P2-20.
 5. Track B is never dispatched by inference from Track A acceptance. P2-14 needs the
    named user decision; P2-15 performs a new major-version integration checkpoint.
 
@@ -97,9 +105,17 @@ The section is authoritative; tables are navigation, not duplicate status ledger
   edits to the same README, csproj or centralized test-project file.
 - P2-12 is a comment-only source pass after runtime/AOT writers stop. P2-11 is a test-only
   pass; defects are returned to source owners, not independently patched across lanes.
+- P2-16 and P2-19 may add dedicated security/resilience tests in parallel, but any
+  shared Proxy/HTTP/WebApi source file needs a serial edit window. P2-20 owns telemetry
+  implementation only after P2-19 releases its files. Security-reporting policy belongs
+  to P2-20; input threat models/fuzz cases to P2-16; dependency findings/licenses to P2-17.
+- P2-17 supplies release-integrity tooling and policy; P2-13 runs it against the final
+  archive inventory. P2-18 owns fresh consumer fixtures, not a second API comparator
+  or AOT harness. Reuse P2-01/P2-10 tooling and relay defects to package owners.
 - All builds/tests use the existing repository mutex and single-node settings through
   `scripts/Invoke-FrameworkTests.ps1`. Benchmark runs use the existing mutex wrapper.
-  New API/AOT/mutation runners must acquire the same lock; P2-01/P2-05 own that work.
+  New API/AOT/mutation/fuzz/consumer runners must acquire the same lock. P2-01/P2-05
+  supply shared integration contracts; each new lane owns only its dedicated tooling.
 - Mutation tools must use disposable isolated copies outside source build globs, with
   explicit input manifests. Never mutate the shared checkout or recorded build output.
 - No source, shared settings or generated inputs may change during an authoritative
@@ -124,6 +140,12 @@ Apply Plan 1's completion standard to every modified/new library, plus these rul
   with publish-and-run proof. An annotation alone is not compatibility evidence.
 - [ ] Source and dependency boundaries are validated. Test/benchmark/consumer fixtures
   remain non-packable and outside runtime public dependencies and coverage denominators.
+- [ ] Security/resource limits, end-to-end retry budgets, telemetry privacy and clean
+  consumer compatibility pass their accepted matrices; package-local happy paths alone
+  do not establish these guarantees.
+- [ ] Final release artifacts have a verified dependency/license inventory, audit result
+  and SBOM tied to exact package hashes. Audit outages and expired risk exceptions cannot
+  silently pass. Repository build locks do not claim to control downstream dependencies.
 - [ ] Notes record exact commands, exit codes, counts, artifact paths/hashes and remaining
   external gates. Failed and inconclusive experiments remain visible.
 - [ ] P2-13 or P2-15 performs a fresh warning-free full solution build, unfiltered full
@@ -415,9 +437,9 @@ Evaluation-only completion must be labeled explicitly; it is not generated-proxy
 ### P2-10: Certify Trimming and AOT Consumers
 
 Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
-Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-03/06/08/09. Claims follow tested support slices, not whole-repository annotations.
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-03/06/08/09/16/19/20. Certify after security, resilience and telemetry source changes; claims follow tested support slices.
 
-Direct dependencies: P2-03, P2-06, P2-08, P2-09.
+Direct dependencies: P2-03, P2-06, P2-08, P2-09, P2-16, P2-19, P2-20.
 Write scope: non-packable `tests/consumers/aot/` fixtures (new), AOT runner/tests and
 approved per-package annotations/properties; shared files only by handoff.
 Required artifact: accepted AOT support matrix and P2-01 consumer runner contract.
@@ -443,9 +465,9 @@ assertions and process exits. Runner negative tests reject omitted/failed/mislab
 ### P2-11: Stronger Behavioral Tests
 
 Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
-Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-05/06/07/08/09. Test-only lane after runtime changes freeze; return defects to their source owners.
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-05/06/07/08/09/16/19/20. Test-only lane after runtime changes freeze; reuse security/resilience regression cases and return source defects to owners.
 
-Direct dependencies: P2-05, P2-06, P2-07, P2-08, P2-09.
+Direct dependencies: P2-05, P2-06, P2-07, P2-08, P2-09, P2-16, P2-19, P2-20.
 Write scope: new property/mutation regression test files under existing package test
 folders; `docs/testing/quality-results.md` (new). No unchecked production source edits.
 Required artifact: accepted property/mutation policy and each package's public contracts.
@@ -493,10 +515,10 @@ documentation example tests and archive XML/README validation; final source capt
 ### P2-13: Track A Integrated Acceptance
 
 Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
-Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on all preceding Track A streams. Sole final build/coverage/report/package coordinator; excludes the explicitly blocked Track B split.
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on all Track A delivery streams, including P2-16 through P2-20 despite their later IDs. Sole final build/coverage/report/package coordinator; excludes the explicitly blocked Track B split.
 
 Direct dependencies: P2-00, P2-01, P2-02, P2-03, P2-04, P2-05, P2-06, P2-07,
-P2-08, P2-09, P2-10, P2-11, P2-12.
+P2-08, P2-09, P2-10, P2-11, P2-12, P2-16, P2-17, P2-18, P2-19, P2-20.
 Write scope: this plan, `docs/planning/optimization-acceptance.md` (new), approved CI glue;
 no unreviewed package refactoring during acceptance.
 Required artifacts: all accepted workstream contracts/results and Plan 1 external-gate ledger.
@@ -510,6 +532,10 @@ Required artifacts: all accepted workstream contracts/results and Plan 1 externa
   library package/symbol pairs without rebuilding or reusing stale archives.
 - [ ] Verify current project/package inventory, API baselines, symbols/Source Link, XML
   documentation, README and exact staged archive manifest. New fixtures are non-packable.
+- [ ] Run security corpus replay, accepted resilience/telemetry checks and the clean
+  consumer matrix. Generate the final dependency/license/SBOM evidence from the tested
+  package set, apply the audit/exception policy and verify its hash binding and notices.
+  P2-17/P2-18 initial fixture results are not final-archive certification.
 - [ ] Wire deterministic smoke/API/coverage/AOT checks into CI; keep noise-sensitive
   performance baselines on controlled runners and budgeted mutation runs explicit.
 - [ ] Report measured improvements, no-change decisions and unsupported AOT paths separately.
@@ -518,7 +544,7 @@ Required artifacts: all accepted workstream contracts/results and Plan 1 externa
 - [ ] Mark Track A Complete only for accepted local evidence and clearly label any separate
   external release gates. Do not mark Track B Complete or call the entire program finished.
 
-Verification: command protocol below plus P2-01/02/05/10 exact runner contracts; record
+Verification: command protocol below plus P2-01/02/05/10/16/17/18/19/20 runner contracts; record
 actual counts, hashes and failure evidence, not the historical Plan 1 totals as new results.
 
 ### P2-14: Approved Primitives Integration Split
@@ -560,17 +586,192 @@ Required artifacts: approved migration, package/API baselines, updated AOT matri
   installs the intended versions. Check package dependency resolution and asset selection.
 - [ ] Reconfirm performance budgets, trimming/AOT rows, documentation and external release
   checks affected by the split. Preserve unsupported scenarios honestly.
+- [ ] Repeat affected security/resource, retry/telemetry and clean-consumer checks for the
+  new graph; refresh dependency/license/SBOM evidence and host locks through their owners.
 - [ ] Record final Track A/Track B status separately. Actual publishing remains an explicitly
   authorized release operation after local and required external acceptance.
 
 Verification: complete new-inventory command protocol and approved-major consumer matrix;
 record exact revision/source identities and staged archive hashes.
 
+### P2-16: Security Boundaries and Resource Limits
+
+Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-01/05/06/07/08/09. Own threat models, bounded-input/fuzz tooling and approved boundary-limit slices; no live-target testing.
+
+Direct dependencies: P2-01, P2-05, P2-06, P2-07, P2-08, P2-09.
+Write scope: `docs/security/input-threat-model.md`, `docs/security/fuzzing-results.md`,
+`tests/security/` and `scripts/testing/security/` (new), dedicated regression tests and
+approved input-validation files. Shared HTTP/proxy files require a serial P2-19 handoff.
+Required artifact: `input-threat-model.md` (create before implementation), current query/response contracts.
+
+- [ ] Map untrusted versus trusted inputs for portable filters, JSON, route/header values,
+  authentication/tenant data, storage paths and compiler source. Record attacker control,
+  resource ownership, failure behavior and consumer responsibilities at each boundary.
+- [ ] Inventory existing depth/body/time limits before adding controls. Define tested
+  budgets for filter nodes, breadth, membership sizes, input bytes and processing work;
+  JSON depth alone does not bound a wide tree or a large collection.
+- [ ] Design additive limit/options contracts with documented defaults and overflow-safe
+  accounting. Preserve existing accepted inputs unless a security compatibility decision
+  is recorded; otherwise mark Blocked rather than silently imposing a breaking default.
+- [ ] Use a maintained suitable fuzz tool plus deterministic corpus replay with recorded
+  seeds, bounded time/memory and minimal regressions for failures. Cover malformed/duplicate
+  values, Unicode/culture, large shallow/deep structures, cancellation and parser differences.
+- [ ] Verify rejection occurs before expensive allocation/compilation/provider execution
+  where feasible; do not execute attacker-selected network destinations or real credentials.
+  Tool processes and stress allocations must be isolated and capped on the shared host.
+- [ ] Test authorization/tenant separation and non-disclosure of sensitive input in errors.
+  Relay telemetry-policy findings to P2-20; do not build a duplicate authentication framework.
+- [ ] Retain corpus, hashes and findings with safe synthetic data. Every crash/hang or
+  resource-limit failure needs a regression and owner disposition; a timed fuzz run is
+  evidence of tested cases, not proof of absence of security defects.
+
+Verification: deterministic corpus replay, positive/negative boundary cases, resource
+measurements and isolated fuzz process-exit tests; strict coverage of modified libraries.
+
+### P2-17: Dependency and Release Integrity
+
+Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-01. Own supply-chain policy/tooling and representative archive proof; P2-13 binds evidence to the final release set.
+
+Direct dependencies: P2-01.
+Write scope: `docs/packaging/dependency-integrity-policy.md`, dedicated packaging/infrastructure
+scripts/tests, `NuGet.config`, approved host lock files and `docs/LICENSE-INFO.md`;
+shared metadata/CI/manifest changes only through a bounded handoff.
+Required artifact: `dependency-integrity-policy.md` (create before implementation), P2-01 API/build baseline.
+
+- [ ] Inventory direct/transitive dependencies separately for runtime, build/test tools and
+  DLLs physically bundled inside analyzer/generator archives. Generate a standard-format
+  SBOM with versions, hashes, source and license evidence; never infer bundled contents
+  solely from the nuspec dependency list.
+- [ ] Extend the existing `NuGetAuditMode=all` workflow rather than duplicating it. Define
+  severity response, advisory freshness, unavailable audit-source behavior and time-limited
+  exceptions with an owner/rationale/expiry. No blanket suppression or green-on-outage policy.
+- [ ] Review package-source inheritance and mapping before adding feeds; make intended
+  sources explicit without breaking supported private-feed consumers. Keep credentials out
+  of config, fixtures, logs, SBOMs and artifacts. Source configuration is not credential setup.
+- [ ] Assess checked-in locked restores for executable test, benchmark and consumer hosts.
+  Test explicit update versus CI locked-mode failure, central version changes, RID/native
+  assets and isolated source-selection restore paths. Do not reuse a full-test lock blindly
+  for a scoped dependency graph or claim a library lock fixes downstream resolution.
+- [ ] Verify licenses/notices for each dependency category and distribution mode. Correct
+  the current MIT summary's unsupported express-patent-grant statement against the actual
+  license text and repair relative license links. Do not change the repository license;
+  escalate uncertain legal obligations to the owner rather than inventing legal guarantees.
+- [ ] Bind SBOM/notices/audit evidence to actual archive and build identities. Extend the
+  existing exact artifact-manifest schema/validator deliberately if evidence travels with
+  packages; do not add unlisted files to the current strict upload directory or weaken checks.
+- [ ] Prove tooling on representative archives, including bundled compiler dependencies.
+  P2-13 reruns it for the final inventory after all dependency changes; no signing key,
+  publication credential or remote attestation setup is implied by this workstream.
+
+Verification: deterministic inventory/SBOM tests, archive-content reconciliation, expired
+exception/audit outage/lock drift/manifest tampering negative cases and license-link checks.
+
+### P2-18: Clean Consumer Compatibility Matrix
+
+Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-01/10/12/17. Test actual packages outside repository defaults; reuse API/AOT infrastructure instead of duplicating it.
+
+Direct dependencies: P2-01, P2-10, P2-12, P2-17.
+Write scope: `tests/consumers/compatibility/`, dedicated consumer runner/tests and
+`docs/packaging/consumer-compatibility-matrix.md` (new). No production fixes without handoff.
+Required artifact: `consumer-compatibility-matrix.md` (create before tests), API baseline and AOT matrix.
+
+- [ ] Define supported host/OS/dependency-version combinations and exact package versions.
+  Cover each library individually plus representative compositions and the aggregator;
+  record intentionally unsupported combinations instead of promising arbitrary versions.
+- [ ] Materialize fixtures outside repository props/targets/NuGet.config search ancestry,
+  with isolated caches, explicit feeds/locks and no source ProjectReference back to vc.Ifx.
+  Confirm evaluated configuration proves no accidental root imports or test-only references.
+- [ ] Test declared minimum and accepted newer dependency sets where supported, native
+  assets and central-version overrides. Intentional version variants get independent locks;
+  a pinned repository build is not evidence for all consuming applications.
+- [ ] Compile and run actual archive consumers for DI, extension discovery, JSON, generated
+  endpoints/proxies and compiler-host exports. Verify individual packages do not accidentally
+  require the aggregator to supply dependencies; reuse P2-10 AOT evidence where identical.
+- [ ] Add negative fixtures for missing dependencies, unintended build assets, duplicate
+  analyzer loading and omitted matrix rows. Zero consumers or a compile-only substitute
+  for a required runtime scenario must fail.
+- [ ] Record fixture/package/environment hashes and process results. Changes to final
+  packages require affected cells to rerun; failures reopen the owning package workstream.
+
+Verification: complete supported matrix, clean-cache package restore/build/run proof and
+consumer-runner regression tests under the existing serialization/discovery contracts.
+
+### P2-19: End-to-End Resilience Budgets
+
+Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-01/07/08/09. Own operation-budget composition and dedicated tests; preserve existing whole-attempt transport deadlines.
+
+Direct dependencies: P2-01, P2-07, P2-08, P2-09.
+Write scope: approved Proxy/Pipeline/HTTP/WebApi deadline-composition files, dedicated
+cross-package tests and `docs/architecture/resilience-budget-contract.md` (new).
+Required artifact: `resilience-budget-contract.md` (create before implementation), existing Polly/transport contracts.
+
+- [ ] Trace one logical operation through queue/rate-limit waits, retry backoff, each
+  transport attempt and body reading. Distinguish overall deadline from per-attempt
+  timeout, HttpClient settings and caller cancellation; inventory existing behavior first.
+- [ ] Specify one owner of the overall budget and one owner of each retry layer. Preserve
+  caller cancellation and remaining budget across nested calls; do not reset an exhausted
+  budget for every attempt or stack framework retry over an SDK retry by default.
+- [ ] Prefer existing Polly/TimeProvider/cancellation mechanisms; add the smallest contract
+  only where a composed scenario demonstrates a gap. Document timeout/cancellation error
+  classification and compatibility before changing an existing public default.
+- [ ] Verify maximum attempts, cumulative elapsed budget and bounded retry amplification
+  across nested pipelines. Test expired-before-start, timeout during backoff/body reading,
+  concurrent operations, disposal and prompt release of streams/semaphores/registrations.
+- [ ] Preserve replay safety for writes, consumed streams and partially committed effects.
+  An idempotency header is not proof of server deduplication; test synthetic deduplication
+  contracts or refuse automatic replay. Do not retry caller cancellation or permanent failures.
+- [ ] Use deterministic clock/handler scenarios plus bounded real integration checks for
+  scheduling assumptions. Document the distinction between cooperative cancellation and
+  guaranteed termination of an underlying operation that ignores its token.
+
+Verification: cross-package deadline/replay/resource-release matrix, strict affected-module
+coverage and baseline performance comparison for any added per-call budget machinery.
+
+### P2-20: Telemetry and Support Contracts
+
+Status: [x] Ready [ ] In-flight [ ] Blocked [ ] Complete
+Owner: Unassigned; Updated: 2026-09-10; Notes: Depends on P2-01/07/08/09/19. Own operational contracts and released telemetry slices; source changes must precede AOT/docs/final acceptance.
+
+Direct dependencies: P2-01, P2-07, P2-08, P2-09, P2-19.
+Write scope: `docs/observability/telemetry-contract.md`, `docs/packaging/support-policy.md`,
+`SECURITY.md` (new), approved Observability/Proxy/Pipeline/WebApi telemetry files and dedicated tests.
+Required artifacts: telemetry/support drafts before source edits; P2-01 host policy and P2-19 budget contract.
+
+- [ ] Inventory existing ActivitySource/Meter names, events, tags, units and log event IDs.
+  Specify stability and migration rules; avoid renaming published telemetry merely for style.
+- [ ] Define bounded metric-label sets and safe trace/log fields. Do not use raw user,
+  tenant, request IDs, URLs or exception text as metric dimensions; distinguish trace
+  correlation from metric labels and keep exporters/provider choices consumer-owned.
+- [ ] Test redaction with synthetic secrets/tokens/headers/query values across success,
+  failure, timeout and retry logging, including exception objects and exporter output.
+  Test disabled telemetry overhead, no-listener behavior and duplicate registration.
+- [ ] Document runtime/SDK/compiler-host and OS support based on tested evidence, not
+  netstandard2.0 alone. Define deprecation notices, compatibility expectations, maintenance
+  ownership and package release/versioning policy consistent with P2-01 and Track B.
+- [ ] Draft a private security-reporting process, triage ownership and vulnerability-response
+  policy. Obtain approval of an actual contact/channel and any response commitments before
+  publishing them; mark Blocked with the exact missing decision rather than inventing one.
+- [ ] Coordinate P2-17 dependency advisories and P2-16 input findings under that policy.
+  P2-12 incorporates accepted contracts into package READMEs/XML docs; no duplicate owners.
+
+Verification: in-memory listener/exporter tests, bounded-label/redaction assertions,
+telemetry compatibility review, strict affected-module coverage and approved support/contact policy.
+
 ## Package Sub-plan Routing
 
 Each row scopes the package-specific checklist within its owning workstream; it is not
 a second claimable task. All current libraries receive P2-01 API checks, P2-03 AOT
 classification, P2-11 risk-based test review, P2-12 documentation and P2-13 acceptance.
+P2-16 classifies every package's trust/resource boundaries; P2-17 inventories all runtime,
+tool and bundled dependencies; P2-18 requires an explicit consumer-matrix disposition per
+package; P2-20 records support policy for all packages. P2-19 applies to composed operations
+in Proxy, Proxy.Http, Proxy.AspNetCore, Pipeline, Pipeline.Grpc and WebApi, with provider
+SDK retry ownership reviewed at storage/secrets/queue/table boundaries. P2-20 telemetry
+implementation focuses on Observability and its Proxy/Pipeline/WebApi consumers.
 Rows without runtime changes need review evidence, not speculative rewrites. Workers
 record per-package commands/results in their workstream artifact before handoff.
 
@@ -644,6 +845,11 @@ then pass that exact directory and current revision to the existing
 `-CoverageRunDirectory`, and `-Revision`. Never select an arbitrary latest/historical run.
 Verify the bound report, actual archive validator regressions and staged manifest again.
 The build identity must include embedded resources/protobuf and any new generated inputs.
+P2-16/17/18/19/20 publish exact dedicated commands in their required artifacts before
+dispatching consumer checks. These commands are future deliverables, not existing runners.
+Run bounded security/replay/telemetry checks and clean consumer fixtures before source
+freeze; rerun package-dependent consumer/SBOM checks against the final tested archives
+without rebuilding those libraries. Track B repeats affected cells for its new graph.
 
 ## Agent Handoff Template
 
@@ -671,7 +877,10 @@ Leave In-flight for acceptance; only mark Complete when all applicable criteria 
 Review result (2026-09-10): all six recommendations plus property/mutation testing are
 included. Configuration/API compatibility: P2-01; baseline measurements: P2-02;
 Filtering/Proxy hot paths: P2-06/07/09; JSON/AOT: P2-03/08/10; documentation: P2-12;
-dependency split: P2-04/14/15; test quality: P2-05/11. No speculative runtime retargeting
+dependency split: P2-04/14/15; test quality: P2-05/11. The added recommendations map to
+security/resource limits (P2-16), dependency/license/SBOM and host locks (P2-17), clean
+consumer compatibility (P2-18), total resilience budgets (P2-19), and telemetry/support
+contracts (P2-20). No speculative runtime retargeting
 of compiler tooling, automatic major-version migration or blanket AOT guarantee.
 
 ### Review Pass 2: Agentic Dispatch Check
@@ -680,10 +889,12 @@ of compiler tooling, automatic major-version migration or blanket AOT guarantee.
 - [x] Verify shared-file ownership, README windows, serialized verification and mutation isolation.
 - [x] Verify blocked Track B does not accidentally block Track A or become implicitly authorized.
 
-Review result (2026-09-10): structural checks found 16 unique workstreams with one
+Review result (2026-09-10, expanded plan): structural checks passed for 21 unique workstreams with one
 active status/Owner each, an acyclic dependency graph and 28 exact package-routing
-rows. Refined P2-12 to wait for AOT annotation edits, added reserved benchmark
-source/host windows and kept shared README/csproj changes behind serial handoffs.
+rows. Refined AOT/quality acceptance to wait for security, resilience and telemetry
+   changes; clean consumers follow documentation and integrity tooling. Track A acceptance
+now depends on all five added streams without depending on Track B. Existing IDs and
+shared-file handoffs are preserved; no implementation assignment was started by this update.
 
 ### Review Pass 3: Evidence and Completion Check
 
@@ -696,6 +907,9 @@ are explicitly future deliverables. Added consumer-versus-test discovery regress
 to prevent new AOT smoke projects breaking the two-test-project coverage/pack gates.
 Missing published baselines, noisy measurements, absent native toolchains and
 external release acceptance remain explicit evidence gaps, not automatic passes.
+Expanded review covers audit outages, expired exceptions, source-isolated consumer fixtures,
+scoped-build lock compatibility, SBOM/manifest binding, bounded fuzz execution and total
+retry budgets. Security contacts and service commitments require explicit owner approval.
 These reviews validate the plan, not implementation or runtime correctness.
 
 ## References
@@ -711,3 +925,9 @@ These reviews validate the plan, not implementation or runtime correctness.
   informs P2-03/P2-10's analyzer, dynamic-code and publish/run requirements.
 - [System.Text.Json source generation](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/source-generation)
   informs P2-08's metadata/context/resolver options; existing wire contracts remain authoritative.
+- [NuGet dependency locking](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies)
+  informs host restore reproducibility, not downstream library dependency guarantees.
+- [NuGet security auditing](https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages)
+  informs P2-17's extension of the existing transitive audit workflow.
+- [Standard MIT license text](https://opensource.org/license/mit) is the reference for
+  correcting the license summary, not authorization to relicense the repository.

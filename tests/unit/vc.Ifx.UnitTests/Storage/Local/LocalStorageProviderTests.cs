@@ -378,7 +378,7 @@ public sealed class LocalStorageProviderTests
     }
 
     [TestMethod]
-    public async Task NativeFileSharingFailuresDoNotReplaceOrDeleteContent()
+    public async Task NativeFileSharingPreservesHeldContentWithPlatformDeleteSemantics()
     {
         using var content = new MemoryStream([1]);
         await provider.WriteAsync(new("locked", content));
@@ -386,7 +386,16 @@ public sealed class LocalStorageProviderTests
         await Assert.ThrowsAsync<IOException>(() => provider.OpenReadAsync(new("locked")));
         using var replacement = new MemoryStream([2]);
         await Assert.ThrowsAsync<IOException>(() => provider.WriteAsync(new("locked", replacement)));
-        await Assert.ThrowsAsync<IOException>(() => provider.DeleteAsync(new("locked")));
+        if (OperatingSystem.IsWindows())
+        {
+            await Assert.ThrowsAsync<IOException>(() => provider.DeleteAsync(new("locked")));
+            Assert.IsTrue(File.Exists(Path.Combine(root, "locked")));
+        }
+        else
+        {
+            await provider.DeleteAsync(new("locked"));
+            Assert.IsFalse(File.Exists(Path.Combine(root, "locked")));
+        }
         Assert.AreEqual(1, held.ReadByte());
         Assert.IsTrue(replacement.CanRead);
     }

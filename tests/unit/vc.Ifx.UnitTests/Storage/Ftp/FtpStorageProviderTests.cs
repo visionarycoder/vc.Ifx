@@ -109,7 +109,7 @@ public sealed class FtpStorageProviderTests
     public async Task InvalidArgumentsDoNotCreateClients()
     {
         Assert.Throws<ArgumentNullException>(() => provider.FileExists((FileInfo)null!));
-        Assert.Throws<ArgumentException>(() => provider.FileExists(new FileInfo("file")));
+        Assert.Throws<ArgumentException>(() => provider.FileExists(new FileInfo(@"C:\file")));
         Assert.Throws<ArgumentNullException>(() => provider.OpenReadAsync(null!));
         Assert.Throws<ArgumentNullException>(() => provider.GetMetadataAsync(null!));
         Assert.Throws<ArgumentNullException>(() => provider.DeleteAsync(null!));
@@ -162,7 +162,7 @@ public sealed class FtpStorageProviderTests
         listing = [Item("/file")];
         Assert.IsTrue(provider.FileExists("file"));
         listing = [Item("/server/share/file")];
-        Assert.IsTrue(provider.FileExists(new FileInfo(@"\\server\share\file")));
+        Assert.IsTrue(provider.FileExists(new FileInfo(OperatingSystem.IsWindows() ? @"\\server\share\file" : "/server/share/file")));
     }
 
     private void Download(byte[] bytes, bool success = true)

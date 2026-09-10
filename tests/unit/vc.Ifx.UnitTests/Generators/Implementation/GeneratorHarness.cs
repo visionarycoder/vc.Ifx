@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -19,9 +18,16 @@ internal static class GeneratorHarness
         hosting ? References : References.Where(reference => !Path.GetFileName(reference.Display)!.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal)),
         new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, nullableContextOptions: NullableContextOptions.Enable));
 
-    private static IEnumerable<SyntaxTree> AttributeTrees([CallerFilePath] string sourcePath = "")
+    private static IEnumerable<SyntaxTree> AttributeTrees()
     {
-        var directory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourcePath)!, "../../../../../src/vc.Ifx.Generators.Abstractions/Attributes"));
+        // CI maps compiler source paths to /_/; locate the checkout from test output instead.
+        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "vc.Ifx.slnx")))
+        {
+            repository = repository.Parent;
+        }
+        if (repository is null) { throw new DirectoryNotFoundException("Generator tests require the framework checkout."); }
+        var directory = Path.Combine(repository.FullName, "src", "vc.Ifx.Generators.Abstractions", "Attributes");
         yield return CSharpSyntaxTree.ParseText("global using System;", ParseOptions, "GlobalUsings.cs");
         foreach (var path in Directory.GetFiles(directory, "*.cs").Order(StringComparer.Ordinal))
         {
