@@ -67,7 +67,13 @@ jobs:
           echo "has_package_json=true" >> "$GITHUB_OUTPUT"
           while IFS= read -r package_json_path; do
             [ -n "$package_json_path" ] || continue
-            if node -e 'const fs = require("fs"); const packageJsonPath = process.argv[1]; const requiredScripts = process.argv.slice(2); const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")); const scripts = packageJson.scripts ?? {}; const hasAllScripts = requiredScripts.every((name) => Object.prototype.hasOwnProperty.call(scripts, name)); process.exit(hasAllScripts ? 0 : 1);' "$package_json_path" "${required_scripts[@]}"; then
+            if node -e 'const fs = require("fs"); const packageJsonPath = process.argv[1]; const requiredScripts = process.argv.slice(2); try { const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")); const scripts = packageJson.scripts ?? {}; const hasAllScripts = requiredScripts.every((name) => Object.prototype.hasOwnProperty.call(scripts, name)); process.exit(hasAllScripts ? 0 : 1); } catch (error) { console.error(`Failed to read ${packageJsonPath}: ${error.message}`); process.exit(2); }' "$package_json_path" "${required_scripts[@]}"; then
+              node_status=0
+            else
+              node_status=$?
+            fi
+
+            if [ "$node_status" -eq 0 ]; then
               package_dir="$(dirname "$package_json_path")"
               echo "has_validation_package=true" >> "$GITHUB_OUTPUT"
               echo "package_dir=$package_dir" >> "$GITHUB_OUTPUT"
@@ -79,6 +85,10 @@ jobs:
               fi
 
               exit 0
+            fi
+
+            if [ "$node_status" -eq 2 ]; then
+              exit 1
             fi
           done <<< "$package_json_paths"
 
