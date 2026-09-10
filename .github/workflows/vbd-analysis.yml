@@ -56,17 +56,10 @@ jobs:
             "solution:markdown:check"
           )
 
-          package_json_paths="$(find . -path './node_modules' -prune -o -name 'package.json' -print)"
-          if [ -z "$package_json_paths" ]; then
-            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
-            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
-            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "has_package_json=true" >> "$GITHUB_OUTPUT"
-          while IFS= read -r package_json_path; do
-            [ -n "$package_json_path" ] || continue
+          has_package_json=false
+          while IFS= read -r -d '' package_json_path; do
+            has_package_json=true
+            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
             if node -e 'const fs = require("fs"); const packageJsonPath = process.argv[1]; const requiredScripts = process.argv.slice(2); try { const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")); const scripts = packageJson.scripts ?? {}; const hasAllScripts = requiredScripts.every((name) => Object.prototype.hasOwnProperty.call(scripts, name)); process.exit(hasAllScripts ? 0 : 1); } catch (error) { console.error(`Failed to read ${packageJsonPath}: ${error.message}`); process.exit(2); }' "$package_json_path" "${required_scripts[@]}"; then
               node_status=0
             else
@@ -90,7 +83,16 @@ jobs:
             if [ "$node_status" -eq 2 ]; then
               exit 1
             fi
-          done <<< "$package_json_paths"
+          done < <(find . -path './node_modules' -prune -o -name 'package.json' -print0)
+
+          if [ "$has_package_json" != 'true' ]; then
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_package_json=true" >> "$GITHUB_OUTPUT"
 
           echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
           echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
