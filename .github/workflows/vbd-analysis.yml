@@ -1,0 +1,99 @@
+name: VBD Analysis Validation
+
+on:
+  push:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "**/package.json"
+      - "**/package-lock.json"
+      - ".github/workflows/vbd-analysis.yml"
+  pull_request:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "**/package.json"
+      - "**/package-lock.json"
+      - ".github/workflows/vbd-analysis.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: VBD / frontmatter / solution validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Detect Node validation scripts
+        id: detect-node-validation
+        shell: bash
+        run: |
+          package_json_path="$(find . -path './node_modules' -prune -o -name 'package.json' -print | head -n 1)"
+          if [ -n "$package_json_path" ]; then
+            package_dir="$(dirname "$package_json_path")"
+            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+            echo "package_dir=$package_dir" >> "$GITHUB_OUTPUT"
+
+            if [ -f "$package_dir/package-lock.json" ]; then
+              echo "has_package_lock=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Node dependencies
+        if: steps.detect-node-validation.outputs.has_package_lock == 'true'
+        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" ci
+
+      - name: Run VBD artifact automation tests
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run vbd:artifacts:test
+
+      - name: Run documentation infrastructure tests
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: |
+          npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run frontmatter:test
+          npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run solution:markdown:test
+
+      - name: Validate docs/analysis (only if present)
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: |
+          if [ -d "docs/analysis" ]; then
+            npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run vbd:analysis:validate
+          else
+            echo "docs/analysis not present; skipping VBD analysis validation (validate-if-present)."
+          fi
+
+      - name: Validate Markdown front matter
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run frontmatter:validate
+
+      - name: Verify .github Markdown files are tracked in the solution
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run solution:markdown:check
+
+      - name: Skip Node validation when package.json is absent
+        if: steps.detect-node-validation.outputs.has_package_json != 'true'
+        run: echo "package.json not found; Node-based VBD/frontmatter/solution validation is skipped for this repository."
