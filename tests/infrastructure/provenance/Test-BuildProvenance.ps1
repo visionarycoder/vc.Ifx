@@ -21,10 +21,17 @@ function Assert-Rejected([string] $Name, [scriptblock] $Action, [string] $Patter
 }
 function Test-Mutation([string] $Name, [string] $Path, [switch] $Missing) {
     $bytes = [IO.File]::ReadAllBytes($Path)
+    $attributes = [IO.File]::GetAttributes($Path)
     try {
-        if ($Missing) { Remove-Item -LiteralPath $Path } else { [IO.File]::AppendAllText($Path, 'changed') }
+        if ($IsWindows) { [IO.File]::SetAttributes($Path, [IO.FileAttributes]::Normal) }
+        if ($Missing) { Remove-Item -LiteralPath $Path -Force } else { [IO.File]::AppendAllText($Path, 'changed') }
+        if (-not $Missing) { [IO.File]::SetAttributes($Path, $attributes) }
         Assert-Rejected $Name { Assert-IfxBuildProvenance -BuildDirectory $build } 'Changed build input/output|Missing build input/output'
-    } finally { [IO.File]::WriteAllBytes($Path, $bytes) }
+    } finally {
+        if ($IsWindows -and (Test-Path -LiteralPath $Path)) { [IO.File]::SetAttributes($Path, [IO.FileAttributes]::Normal) }
+        [IO.File]::WriteAllBytes($Path, $bytes)
+        [IO.File]::SetAttributes($Path, $attributes)
+    }
 }
 try {
     $acquired = $mutex.WaitOne([TimeSpan]::FromMinutes(20))
@@ -32,15 +39,29 @@ try {
     New-Item -ItemType Directory -Path $fixture | Out-Null
     '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
     "<Project><Import Project=`"$root/Directory.Build.targets`" /></Project>" | Set-Content (Join-Path $fixture 'Directory.Build.targets')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
+    'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
     & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.csproj'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
     $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release
     if (@($result.manifest.projects).Count -ne 1 -or @($result.manifest.projects[0].projectReferences).Count -ne 0) { throw 'Fixture must have zero project references.' }
     $checks.Add('fresh real build with zero project references')
     $project = $result.manifest.projects[0]
+    $hiddenOutput = Join-Path $project.settings.TargetDir '.provenance-mapping'
+    if ($hiddenOutput -cnotin @($project.outputs.path)) { throw 'Hidden output was not captured.' }
+    if ($IsWindows) { [IO.File]::SetAttributes($hiddenOutput, [IO.FileAttributes]::Hidden) }
+    $null = Assert-IfxBuildProvenance -BuildDirectory $build
+    $checks.Add('hidden output included in unchanged inventory')
+    Test-Mutation 'changed hidden output' $hiddenOutput
+    Test-Mutation 'missing hidden output' $hiddenOutput -Missing
+    $extraHidden = Join-Path $project.settings.TargetDir '.extra-mapping'
+    try {
+        'extra' | Set-Content -LiteralPath $extraHidden
+        if ($IsWindows) { [IO.File]::SetAttributes($extraHidden, [IO.FileAttributes]::Hidden) }
+        Assert-Rejected 'added hidden output' { Assert-IfxBuildProvenance -BuildDirectory $build } 'Changed build output inventory'
+    } finally { Remove-Item -LiteralPath $extraHidden -Force }
     Test-Mutation 'changed DLL at same HEAD' $project.targetPath
     Test-Mutation 'missing DLL' $project.targetPath -Missing
     Test-Mutation 'changed PDB' ([IO.Path]::ChangeExtension($project.targetPath, '.pdb'))
