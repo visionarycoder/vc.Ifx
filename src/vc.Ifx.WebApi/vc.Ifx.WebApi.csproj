@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>vc.Ifx.WebApi</PackageId>
+    <Title>vc.Ifx Web API Framework Library</Title>
+    <Description>Framework package for ASP.NET Core Web API exception handling, problem details, and resilience policies.</Description>
+    <PackageTags>framework;webapi;aspnetcore;exceptions;problem-details;resilience;polly;ifx</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Polly.Core" />
+  </ItemGroup>
+</Project>

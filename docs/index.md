@@ -39,7 +39,8 @@ Guides for AI-assisted development:
 ## 📚 Supporting Docs
 
 - [Onboarding Guide](./onboarding.md)
-- [Architecture Decision Records](./architecture-decision-records/)
+- [Architecture Decision Records](./adr/README.md)
+- [Roslyn Diagnostic Debt Analyzer](./roslyn/diagnostic-debt-analyzer.md)
 - [Contributing Guidelines](./contributing.md)
 
 ---

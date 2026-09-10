@@ -1,0 +1,22 @@
+<Project ToolsVersion="Current">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).no-output\</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory).no-output\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="**\*.*" Exclude="bin\**;obj\**;.no-output\**" />
+  </ItemGroup>
+
+  <Target Name="Build" />
+
+  <Target Name="Restore" />
+
+  <Target Name="Clean">
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)bin;$(MSBuildThisFileDirectory)obj;$(MSBuildThisFileDirectory).no-output" />
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+</Project>

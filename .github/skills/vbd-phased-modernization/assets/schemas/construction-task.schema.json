@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/construction-task.schema.json",
+  "title": "VBD Construction Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "componentId",
+    "title",
+    "projectType",
+    "useCases",
+    "symbols",
+    "gaps",
+    "dependencies",
+    "outputs",
+    "validation",
+    "completionCriteria",
+    "tokenBudget",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^TASK-[A-Za-z0-9-]+-[0-9]+$" },
+    "componentId": { "type": "string", "pattern": "^CMP-" },
+    "title": { "type": "string", "minLength": 1 },
+    "projectType": {
+      "enum": [
+        "Contract",
+        "Service",
+        "Orm",
+        "Simulator",
+        "Emulator",
+        "IntegrationTests",
+        "Benchmarks",
+        "Client",
+        "UI",
+        "Ifx",
+        "Aspire",
+        "Analyzer",
+        "CodeFix",
+        "Generator"
+      ]
+    },
+    "useCases": { "$ref": "#/$defs/stringArray" },
+    "symbols": { "$ref": "#/$defs/stringArray" },
+    "gaps": { "$ref": "#/$defs/stringArray" },
+    "dependencies": { "$ref": "#/$defs/stringArray" },
+    "outputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+    "validation": { "$ref": "#/$defs/nonEmptyStringArray" },
+    "completionCriteria": { "$ref": "#/$defs/nonEmptyStringArray" },
+    "tokenBudget": { "type": "integer", "minimum": 0 },
+    "actualHours": { "type": "number", "minimum": 0 },
+    "actualTokens": { "type": "integer", "minimum": 0 },
+    "startedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+    "completedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+    "status": {
+      "enum": ["pending", "in_progress", "done", "blocked", "invalidated"]
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

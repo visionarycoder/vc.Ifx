@@ -1,3 +1,17 @@
+---
+title: "ADR Template"
+doc_type: "reference"
+status: "active"
+last_updated: "2026-09-09"
+summary: "Reusable template for adding new architecture decision records."
+owner: "Platform/IDL"
+tags:
+  - adr
+  - architecture
+  - documentation
+target_audience: "both"
+---
+
 # [ADR-XXXX]: [Decision Title]
 
 ## Status

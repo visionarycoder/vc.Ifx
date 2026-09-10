@@ -1,0 +1,167 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/.copilot/">
+    <File Path=".copilot/copilot-instructions.md" />
+    <File Path=".copilot/csharp.instructions.md" />
+    <File Path=".copilot/design-patterns.instructions.md" />
+    <File Path=".copilot/repo-standards.md" />
+  </Folder>
+  <Folder Name="/.github/">
+    <File Path=".github/algorithms.instructions.md" />
+    <File Path=".github/angular.instructions.md" />
+    <File Path=".github/aspire.instructions.md" />
+    <File Path=".github/bash.instructions.md" />
+    <File Path=".github/cmd.instructions.md" />
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/csharp.instructions.md" />
+    <File Path=".github/database.instructions.md" />
+    <File Path=".github/design-patterns.instructions.md" />
+    <File Path=".github/docker.instructions.md" />
+    <File Path=".github/git.instructions.md" />
+    <File Path=".github/graphql.instructions.md" />
+    <File Path=".github/html.instructions.md" />
+    <File Path=".github/integration.instructions.md" />
+    <File Path=".github/javascript.instructions.md" />
+    <File Path=".github/mlnet.instructions.md" />
+    <File Path=".github/notebooks.instructions.md" />
+    <File Path=".github/orleans.instructions.md" />
+    <File Path=".github/playwright.instructions.md" />
+    <File Path=".github/powershell.instructions.md" />
+    <File Path=".github/python.instructions.md" />
+    <File Path=".github/readme.md" />
+    <File Path=".github/sql.instructions.md" />
+    <File Path=".github/testing.instructions.md" />
+    <File Path=".github/utilities.instructions.md" />
+    <File Path=".github/web.instructions.md" />
+  </Folder>
+  <Folder Name="/.github/ITEM-TEMPLATE/">
+    <File Path=".github/ISSUE-TEMPLATE/radar-change-proposal.md" />
+  </Folder>
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/publish.yml" />
+    <File Path=".github/workflows/update_changelog.yml" />
+    <File Path="verify-copilot-instructions.yml" />
+  </Folder>
+  <Folder Name="/.json/" />
+  <Folder Name="/.json/schemas/">
+    <File Path=".json/schemas/queryfilter.schema.json" />
+  </Folder>
+  <Folder Name="/.nuget/" />
+  <Folder Name="/.nuget/NuGet/">
+    <File Path=".nuget/NuGet/NuGet.config" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/docs.csproj" />
+    <File Path="docs/index.md" />
+    <File Path="docs/LICENSE-INFO.md" />
+    <File Path="docs/onboarding/readme.md" />
+  </Folder>
+  <Folder Name="/docs/adr/">
+    <File Path="docs/adr/adr-0001.md" />
+    <File Path="docs/adr/adr-0002.md" />
+    <File Path="docs/adr/adr-0003.md" />
+    <File Path="docs/adr/adr-0004.md" />
+    <File Path="docs/adr/adr-template.md" />
+    <File Path="docs/adr/index.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/">
+    <File Path="docs/best-practices/radar.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/cloud-architecture/">
+    <File Path="docs/best-practices/cloud-architecture/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/data-analytics/">
+    <File Path="docs/best-practices/data-analytics/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/devops/">
+    <File Path="docs/best-practices/devops/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/integration/">
+    <File Path="docs/best-practices/integration/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/observability/">
+    <File Path="docs/best-practices/observability/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/security/">
+    <File Path="docs/best-practices/security/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/software-architecture/">
+    <File Path="docs/best-practices/software-architecture/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/best-practices/templates/">
+    <File Path="docs/best-practices/templates/ReadMe.md" />
+  </Folder>
+  <Folder Name="/docs/diagrams/">
+    <File Path="docs/diagrams/decision-workflow.mermaid" />
+    <File Path="docs/diagrams/framework.dgml" />
+    <File Path="docs/diagrams/goverance-map.mermaid" />
+    <File Path="docs/diagrams/quadrant-radar.mermaid" />
+  </Folder>
+  <Folder Name="/docs/diagrams/query-filtering/">
+    <File Path="docs/diagrams/query-filtering/query-filter-class-diagram.mmd" />
+    <File Path="docs/diagrams/query-filtering/query-filter-sequence-diagram.mmd" />
+  </Folder>
+  <Folder Name="/docs/filtering/">
+    <File Path="docs/filtering/collection-operations.md" />
+  </Folder>
+  <Folder Name="/docs/review/">
+    <File Path="docs/reviews/branching-strategy.md" />
+    <File Path="docs/reviews/quarterly-radar-review.md" />
+    <File Path="docs/reviews/readme.md" />
+    <File Path="docs/reviews/release-checklist.md" />
+    <File Path="docs/reviews/system-map.md" />
+  </Folder>
+  <Folder Name="/performance/">
+    <Project Path="performance/vc.Ifx.Core.Benchmarks/vc.Ifx.Core.Benchmarks.csproj" />
+    <Project Path="performance/vc.Ifx.Filtering.Benchmarks/vc.Ifx.Filtering.Benchmarks.csproj" />
+    <Project Path="performance/vc.Ifx.Proxy.Benchmarks/vc.Ifx.Proxy.Benchmarks.csproj" />
+    <Project Path="performance/vc.Ifx.Storage.Benchmarks/vc.Ifx.Storage.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".copilotignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/vc.Ifx.Abstractions/vc.Ifx.Abstractions.csproj" />
+    <Project Path="src/vc.Ifx.Analyzers/vc.Ifx.Analyzers.csproj" />
+    <Project Path="src/vc.Ifx.CodeFixes/vc.Ifx.CodeFixes.csproj" />
+    <Project Path="src/vc.Ifx.Data.Azure.Tables/vc.Ifx.Data.Azure.Tables.csproj" />
+    <Project Path="src/vc.Ifx.Filtering/vc.Ifx.Filtering.csproj" />
+    <Project Path="src/vc.Ifx.Filtering.EntityFrameworkCore/vc.Ifx.Filtering.EntityFrameworkCore.csproj" />
+    <Project Path="src/vc.Ifx.Generators/vc.Ifx.Generators.csproj" />
+    <Project Path="src/vc.Ifx.Generators.Abstractions/vc.Ifx.Generators.Abstractions.csproj" />
+    <Project Path="src/vc.Ifx.Messaging.Azure.Queues/vc.Ifx.Messaging.Azure.Queues.csproj" />
+    <Project Path="src/vc.Ifx.Observability/vc.Ifx.Observability.csproj" />
+    <Project Path="src/vc.Ifx.Pipeline/vc.Ifx.Pipeline.csproj" />
+    <Project Path="src/vc.Ifx.Pipeline.Grpc/vc.Ifx.Pipeline.Grpc.csproj" />
+    <Project Path="src/vc.Ifx.Primitives/vc.Ifx.Primitives.csproj" />
+    <Project Path="src/vc.Ifx.Proxy/vc.Ifx.Proxy.csproj" />
+    <Project Path="src/vc.Ifx.Proxy.AspNetCore/vc.Ifx.Proxy.AspNetCore.csproj" />
+    <Project Path="src/vc.Ifx.Proxy.Http/vc.Ifx.Proxy.Http.csproj" />
+    <Project Path="src/vc.Ifx.Querying/vc.Ifx.Querying.csproj" />
+    <Project Path="src/vc.Ifx.Roslyn/vc.Ifx.Roslyn.csproj" />
+    <Project Path="src/vc.Ifx.Secrets.Abstractions/vc.Ifx.Secrets.Abstractions.csproj" />
+    <Project Path="src/vc.Ifx.Secrets.Azure.KeyVault/vc.Ifx.Secrets.Azure.KeyVault.csproj" />
+    <Project Path="src/vc.Ifx.Secrets.Local/vc.Ifx.Secrets.Local.csproj" />
+    <Project Path="src/vc.Ifx.Storage.Abstractions/vc.Ifx.Storage.Abstractions.csproj" />
+    <Project Path="src/vc.Ifx.Storage.Azure.Blobs/vc.Ifx.Storage.Azure.Blobs.csproj" />
+    <Project Path="src/vc.Ifx.Storage.Ftp/vc.Ifx.Storage.Ftp.csproj" />
+    <Project Path="src/vc.Ifx.Storage.Local/vc.Ifx.Storage.Local.csproj" />
+    <Project Path="src/vc.Ifx.WebApi/vc.Ifx.WebApi.csproj" />
+    <Project Path="src/vc.Ifx/vc.Ifx.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/integration/vc.Ifx.IntegrationTests/vc.Ifx.IntegrationTests.csproj" />
+    <Project Path="tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj" />
+  </Folder>
+</Solution>

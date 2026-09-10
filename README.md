@@ -1,83 +1,79 @@
-# VisionaryCoder Framework
+# vc.Ifx
 
-[![Build & Test](https://github.com/visionarycoder/vc/actions/workflows/publish.yml/badge.svg)](https://github.com/visionarycoder/vc/actions/workflows/publish.yml)
-[![NuGet](https://img.shields.io/nuget/v/VisionaryCoder.Framework.Core.svg)](https://www.nuget.org/packages/VisionaryCoder.Framework.Core)
+[![Build & Test](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml/badge.svg)](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modular, enterprise-grade framework starting from a single foundational library. This repository contains the source, documentation, samples and tests for the VisionaryCoder Framework ecosystem.
+A modular, enterprise-grade .NET 10 framework of independently versioned building-block libraries (`vc.Ifx.*`) covering filtering/querying, storage, secrets, messaging, observability, gRPC pipeline, and Roslyn tooling.
 
 ---
 
 ## 🚀 Quickstart
 
-```bash
+```powershell
 # Clone
-git clone https://github.com/visionarycoder/Framework.git
-cd Framework
+git clone https://github.com/visionarycoder/vc.Ifx.git
+cd vc.Ifx
 
 # Restore
-dotnet restore VisionaryCoder.Framework.sln
+dotnet restore vc.Ifx.slnx
 
 # Build & Test
-dotnet build VisionaryCoder.Framework.sln --configuration Release
-dotnet test VisionaryCoder.Framework.sln --configuration Release
+dotnet build vc.Ifx.slnx --configuration Release
+dotnet test vc.Ifx.slnx --configuration Release
 ```
 
 ---
 
 ## 📦 Solution Overview
 
-This repository currently contains a single main library that aggregates foundational capabilities. The intent is to progressively decompose this monolith into smaller packages (see ADRs and roadmap in `docs/`), and this README serves as the top-level index linking to module-level READMEs and developer guidance to make that process easier.
+`vc.Ifx.slnx` aggregates the framework's foundational libraries and their tests. `Databases/` and `tools/` are independent solutions and are not part of `vc.Ifx.slnx`.
 
-### Projects
+### Projects (`src/`)
 
-- `src/VisionaryCoder.Framework` — Core library and shared utilities (see `src/VisionaryCoder.Framework/README.md`)
-- `tests/VisionaryCoder.Framework.Tests` — Unit tests validating framework behaviors
+- `vc.Ifx` — Core library and shared utilities
+- `vc.Ifx.Abstractions` — Provider-agnostic interfaces
+- `vc.Ifx.Primitives` — Value objects and primitive types
+- `vc.Ifx.Filtering`, `vc.Ifx.Filtering.EntityFrameworkCore` — Filtering subsystem and EF Core adapter
+- `vc.Ifx.Querying` — Query serialization and helpers
+- `vc.Ifx.Pipeline`, `vc.Ifx.Pipeline.Grpc` — Execution pipeline and gRPC transport
+- `vc.Ifx.Proxy`, `vc.Ifx.Proxy.AspNetCore`, `vc.Ifx.Proxy.Http` — Proxy abstractions and hosts
+- `vc.Ifx.Storage.Abstractions`, `vc.Ifx.Storage.Azure.Blobs`, `vc.Ifx.Storage.Ftp`, `vc.Ifx.Storage.Local` — Storage providers
+- `vc.Ifx.Secrets.Abstractions`, `vc.Ifx.Secrets.Azure.KeyVault`, `vc.Ifx.Secrets.Local` — Secrets providers
+- `vc.Ifx.Data.Azure.Tables` — Azure Table Storage data access
+- `vc.Ifx.Messaging.Azure.Queues` — Azure Storage Queues messaging
+- `vc.Ifx.Observability` — Logging, tracing, and metrics helpers
+- `vc.Ifx.Analyzers`, `vc.Ifx.CodeFixes`, `vc.Ifx.Generators`, `vc.Ifx.Roslyn` — Roslyn analyzers, code fixes, and source generators (netstandard2.0 / C# 8)
 
-### Module READMEs (entry points)
+### Tests (`tests/`)
 
-- Core project README: `src/VisionaryCoder.Framework/README.md`
-- Filtering subsystem: `src/VisionaryCoder.Framework/Filtering/README.md`
-- Querying serialization & helpers: `src/VisionaryCoder.Framework/Querying/README.md`
-- Documentation and architecture decisions: `docs/` (ADRs, best-practices, diagrams)
-
-Use these module READMEs as the canonical documentation when splitting the project into multiple packages.
+- `tests/unit/vc.Ifx.UnitTests` — Unit tests
+- `tests/integration` — Integration test projects
 
 ## 🗃️ Repository Structure (High-Level)
 
 ```text
-/.copilot
-/docs
-/src/VisionaryCoder.Framework
-  ├─ Filtering/
-  ├─ Querying/
-  └─ VisionaryCoder.Framework.csproj
-/tests/VisionaryCoder.Framework.Tests
-/.github
+/.github        # Copilot instructions, skills, prompts, workflows
+/docs           # Architecture decisions, best-practice guidance
+/src            # vc.Ifx.* libraries
+/tests
+  /unit         # vc.Ifx.UnitTests
+  /integration  # Integration test projects
+/Databases      # Independent solution (Databases.slnx)
+/tools          # Independent standalone tool solutions
 ```
 
 ## 📚 Documentation & Roadmap
 
-- Architectural Decision Records (ADRs): `docs/adr/index.md`
-- Design diagrams and best-practice capsules: `docs/*`
-- Roadmap notes: `docs/reviews/*`
-
-## 🧭 How to subdivide this repo (next steps)
-
-If you plan to split this repository into multiple packages, follow these high-level steps:
-
-1. Identify volatility boundaries using VBD (Volatility-Based Decomposition). Good candidates: Filtering, Querying/Serialization, Execution Strategies, POCO helpers, EFCore adapters.
-2. Create new projects under `src/` for each package and move code with one-class-per-file, preserving namespaces (e.g., `VisionaryCoder.Framework.Filtering.Abstractions`).
-3. Keep `IFilterExecutionStrategy` and other small provider-agnostic interfaces in their own `*.Abstractions` package to avoid circular references.
-4. Introduce `VisionaryCoder.Framework.*.csproj` projects with clear dependencies and update solution file.
-5. Add module README files (use those in this repo as templates) and ADRs to justify the split.
+- Architectural Decision Records (ADRs): `docs/adr/`
+- Living architecture playbook: `docs/index.md`
+- License details: `docs/LICENSE-INFO.md`
 
 ## 🤝 Contributing
 
-Contributions are welcome. Please open an issue or ADR proposal for large architectural changes. Keep PRs focused and update module READMEs when moving code.
+Contributions are welcome. Please open an issue or ADR proposal for large architectural changes. Keep PRs focused and update project-level READMEs when moving code.
 
 ---
 
-This document is the canonical solution-level index. See module READMEs for implementation details and examples.
+This document is the canonical solution-level index.
 
-Last synchronized with solution structure: 2025-11-14
+Last synchronized with solution structure: 2026-09-09

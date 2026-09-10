@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/migration-rehearsal.schema.json",
+  "title": "VBD Migration Rehearsal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "cutoverWaveId", "useCases", "routingState", "shadow", "replayPassed", "rollbackPassed", "drift", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^MIG-[A-Za-z0-9-]+-[0-9]+$" },
+    "cutoverWaveId": { "type": "string", "pattern": "^CUT-" },
+    "useCases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^UC-" },
+      "uniqueItems": true
+    },
+    "routingState": { "enum": ["legacy", "shadow", "canary", "target", "rollback"] },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["samples", "differences", "blockingDifferences"],
+      "properties": {
+        "samples": { "type": "integer", "minimum": 0 },
+        "differences": { "type": "integer", "minimum": 0 },
+        "blockingDifferences": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "replayPassed": { "type": "boolean" },
+    "rollbackPassed": { "type": "boolean" },
+    "drift": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windowHours", "incidents", "status"],
+      "properties": {
+        "windowHours": { "type": "number", "minimum": 0 },
+        "incidents": { "type": "integer", "minimum": 0 },
+        "status": { "enum": ["pending", "monitoring", "passed", "failed"] }
+      }
+    },
+    "status": { "enum": ["ready", "not-ready", "monitoring", "complete"] }
+  }
+}

@@ -1,0 +1,62 @@
+name: VBD Analysis Validation
+
+on:
+  push:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "package.json"
+      - ".github/workflows/vbd-analysis.yml"
+  pull_request:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "package.json"
+      - ".github/workflows/vbd-analysis.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: VBD / frontmatter / solution validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run VBD artifact automation tests
+        run: npm run vbd:artifacts:test
+
+      - name: Run documentation infrastructure tests
+        run: npm run frontmatter:test && npm run solution:markdown:test
+
+      - name: Validate docs/analysis (only if present)
+        run: |
+          if [ -d "docs/analysis" ]; then
+            npm run vbd:analysis:validate
+          else
+            echo "docs/analysis not present; skipping VBD analysis validation (validate-if-present)."
+          fi
+
+      - name: Validate Markdown front matter
+        run: npm run frontmatter:validate
+
+      - name: Verify .github Markdown files are tracked in the solution
+        run: npm run solution:markdown:check
