@@ -86,8 +86,12 @@ try {
     if ($absent.Count -eq 0) { throw 'Fixture must record an absent local analyzer configuration.' }
     try {
         '' | Set-Content -LiteralPath $absent[0]
+        # Unix dotfiles are hidden; model that attribute on Windows as well.
+        if ($IsWindows) { [IO.File]::SetAttributes($absent[0], [IO.FileAttributes]::Hidden) }
         Assert-Rejected 'added previously absent config' { Assert-IfxBuildProvenance -BuildDirectory $build } 'Added build input'
-    } finally { Remove-Item -LiteralPath $absent[0] }
+    } finally { Remove-Item -LiteralPath $absent[0] -Force }
+    if (Test-Path -LiteralPath $absent[0]) { throw 'Temporary hidden analyzer configuration was not removed.' }
+    $checks.Add('hidden analyzer configuration cleanup')
     $coverage = Join-Path $run 'coverage'
     New-Item -ItemType Directory -Path $coverage | Out-Null
     @{ noBuild = $true; buildIdentity = @{ sha256 = $result.sha256 } } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $coverage 'run-context.json')
