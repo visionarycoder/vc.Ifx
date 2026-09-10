@@ -121,36 +121,48 @@ jobs:
           echo "package.json files were found, but none defines the required VBD/frontmatter/solution validation scripts."
           exit 1
 
+      - name: Ensure validation lockfile exists
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock != 'true'
+        run: |
+          echo "The selected validation package at ${{ steps.detect-node-validation.outputs.package_dir }} must include a package-lock.json so this workflow can use npm ci deterministically."
+          exit 1
+
       - name: Install Node dependencies
         if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
-        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" ci
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: npm ci
 
       - name: Run VBD artifact automation tests
         if: steps.detect-node-validation.outputs.has_validation_package == 'true'
-        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run vbd:artifacts:test
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: npm run vbd:artifacts:test
 
       - name: Run documentation infrastructure tests
         if: steps.detect-node-validation.outputs.has_validation_package == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: |
-          npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run frontmatter:test
-          npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run solution:markdown:test
+          npm run frontmatter:test
+          npm run solution:markdown:test
 
       - name: Validate docs/analysis (only if present)
         if: steps.detect-node-validation.outputs.has_validation_package == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: |
-          if [ -d "docs/analysis" ]; then
-            npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run vbd:analysis:validate
+          if [ -d "${{ github.workspace }}/docs/analysis" ]; then
+            npm run vbd:analysis:validate
           else
             echo "docs/analysis not present; skipping VBD analysis validation (validate-if-present)."
           fi
 
       - name: Validate Markdown front matter
         if: steps.detect-node-validation.outputs.has_validation_package == 'true'
-        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run frontmatter:validate
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: npm run frontmatter:validate
 
       - name: Verify .github Markdown files are tracked in the solution
         if: steps.detect-node-validation.outputs.has_validation_package == 'true'
-        run: npm --prefix "${{ steps.detect-node-validation.outputs.package_dir }}" run solution:markdown:check
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: npm run solution:markdown:check
 
       - name: Skip Node validation when package.json is absent
         if: steps.detect-node-validation.outputs.has_package_json != 'true'
