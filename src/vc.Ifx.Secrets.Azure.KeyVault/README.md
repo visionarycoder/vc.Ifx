@@ -137,6 +137,7 @@ SDK retry behavior. They require no Azure credentials, live vault, network,
 timed sleeps, or secrets. On 2026-09-09 the enforced coverage command passed
 75/75 tests with 172/172 lines and 78/78 branches covered (100% line, branch, and
 method coverage). The package build passed with zero warnings and errors.
-Final solution/full-suite gates remain with Orchestrator, and package refresh
-remains with the metadata owner, as recorded in
-`docs/planning/framework-upgrade-parallel-plan.md`.
+[Final local acceptance](../../docs/planning/local-verification-20260910.md)
+subsequently passed the full solution, suite, strict package coverage, reporting,
+and package validation. Hosted execution and publication remain external checks;
+local tests do not establish live Key Vault deployment behavior.

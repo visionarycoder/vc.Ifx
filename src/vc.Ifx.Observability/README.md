@@ -99,8 +99,10 @@ and deterministic Pipeline clocks, without exporters, network requests or
 wall-clock delays. DI integration covers success, failure and cancellation,
 exact metric/log counts, activity ownership, and borrowed SDK lifetimes.
 
-Status remains In-flight for final integration, packaging and repository-wide
-gates owned by the orchestrator. No whole-solution check was run by this worker.
+[Final local acceptance](../../docs/planning/local-verification-20260910.md)
+supersedes this initial scoped checkpoint: full solution, suite, strict coverage,
+reporting, and packaging passed. Hosted execution and hands-on IDE acceptance
+remain separate external checks.
 
 Primary references: [.NET metrics](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation)
 and [Activity lifetime](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Diagnostics.DiagnosticSource/src/System/Diagnostics/Activity.cs).

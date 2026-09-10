@@ -51,7 +51,7 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/
 
 The strict report includes the entire analyzer assembly, including all retained legacy helpers and Ifx001Signature. No blanket rule removal or new coverage exclusion is used to reach the threshold.
 
-Verification on 2026-09-09: 506 tests passed, including 46 original debt/shared-contract regression cases. Whole analyzer module coverage: 100% lines (2024/2024), 100% branches (1090/1090), 100% methods. Strict evidence: `TestResults/coverage/vc.Ifx.Analyzers/4803bd0e0a104e059b89cc2595043c1c/vc.Ifx.UnitTests/coverage.opencover.xml`. Serialized analyzer build passed with 0 warnings and 0 errors. Implementation ready; awaiting global integration. Orchestrator owns the final solution build, full suite, global coverage and packaging integration; this is not a full-solution result.
+Verification on 2026-09-09: 506 tests passed, including 46 original debt/shared-contract regression cases. Whole analyzer module coverage: 100% lines (2024/2024), 100% branches (1090/1090), 100% methods. Strict evidence: `TestResults/coverage/vc.Ifx.Analyzers/4803bd0e0a104e059b89cc2595043c1c/vc.Ifx.UnitTests/coverage.opencover.xml`. Serialized analyzer build passed with 0 warnings and 0 errors. This scoped result is historical. [Final local acceptance](../../docs/planning/local-verification-20260910.md) subsequently passed the full solution, suite, coverage, report, and package checks. Hosted execution and hands-on IDE checks remain external acceptance items.
 
 ## Why It Does Not Emit CA#### or CS####
 

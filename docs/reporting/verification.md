@@ -1,9 +1,16 @@
 # Reporting Verification: 2026-09-09
 
-Gate 5 is In-flight. Local implementation is ready; Orchestrator owns final
-integration, complete solution/suite/coverage, final all-package snapshot and hosted
-CI. Direct task messaging was unavailable; relay the analyzer coordination request
-in [report-contract.md](report-contract.md) to Nash. No analyzer source was changed.
+## Current Status
+
+Gate 5 and all 28 libraries are locally accepted as of 2026-09-10. The
+[final local checkpoint](../planning/local-verification-20260910.md) supersedes
+initial handoff status and records complete solution, suite, coverage, reporting,
+and package acceptance. Hosted/IDE checks and publishing configuration remain open.
+
+## Historical Worker Record
+
+The sections below preserve the initial 2026-09-09 scoped implementation evidence,
+not current repository-wide counts or outstanding agent assignments.
 
 ## Proven Results
 
@@ -74,13 +81,14 @@ in [report-contract.md](report-contract.md) to Nash. No analyzer source was chan
   passed. Package behavior tests remain with their owners after ongoing edits.
 - Removed only gRPC's project-wide CS8981 NoWarn after confirming generated files'
   own pragmas. Shared-wrapper gRPC build with `-WarningsAsErrors` passed with zero
-  warnings/errors. Its README still has the owner's older pending-removal wording;
-  relay the completed change without editing the owner's documentation.
+  warnings/errors. The current gRPC README records the removed project-wide suppression;
+  no owner relay remains outstanding for this historical change.
 
 ## Limitations
 
 Metrics are the documented ordinary-method syntax policy, not semantic CFG/CA1502
 or whole-language callable coverage. Original SARIF locations remain in retained
 SARIF; the report summarizes diagnostics and metric facts. Generated-code exclusions
-are explicit and do not remove handwritten records/async methods. Hosted Linux,
-complete 28-package reports and publishing configuration are unverified global gates.
+are explicit and do not remove handwritten records/async methods. Complete
+28-package reporting passed in the later local checkpoint. Hosted Linux and
+publishing configuration remain unverified external checks.

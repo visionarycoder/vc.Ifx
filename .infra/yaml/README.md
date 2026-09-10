@@ -21,8 +21,9 @@ The workflow uses `pull_request`, never `pull_request_target`. PR code runs on a
 ephemeral GitHub-hosted Ubuntu 24.04 runner with read-only repository permissions,
 no supplied publish secrets, and no persisted checkout credentials. Publishing is
 a separate job gated on both a trusted push event and successful quality result.
-That job downloads only the package/symbol archives and SDK selection file from
-the same workflow run. It does not check out or execute repository scripts.
+That job downloads the package/symbol archives, SDK selection file, and exact
+package manifest from the same workflow run. It verifies the manifest and archive
+hashes before installing the SDK. It does not check out or execute repository scripts.
 
 The default token has `contents: read`. Only the publish job receives
 `packages: write`; the NuGet.org key is passed only to its tag-publishing step.
@@ -36,20 +37,25 @@ the verified release tag beside each reference.
    `IsTestProject=true`.
 2. Run `scripts/Test-FrameworkDependencies.ps1` for dependency boundaries and
    source/test/benchmark solution membership.
-3. Restore and build `vc.Ifx.slnx` in Release using the shared mutex wrapper,
-   `-WarningsAsErrors`, `-m:1`, and `-p:BuildInParallel=false`; capture fresh
-   per-package SARIF and Compile fingerprints using `-ReportBuildDirectory`.
-4. Run coverage-infrastructure and reporting-host regression/evaluation checks.
-5. Run the shared wrapper with `-FullCoverage -Configuration Release -NoBuild
-   -WarningsAsErrors`. This uses the just-built complete test assemblies, rejects
-   empty discovery/results, merges only current-run coverage, and enforces exact
-   100% line and branch counts for every expected package.
-6. Generate versioned reports from the same build and coverage run. Missing
-   coverage produces failed reports with Unknown measurements, not success.
-7. Run the existing package validator with `-Pack`, then its real/mutated archive
-   regression checks. Packing and validation happen after successful coverage.
-8. For a release tag, reject any archive whose version differs from the stable
-   tag. Upload validated package/symbol artifacts only after all quality steps pass.
+3. Run coverage, reporting-process, package-manifest/wrapper, and build-provenance
+   infrastructure regression checks before capture; some checks build test fixtures.
+4. Restore and build the complete Release solution through the shared mutex wrapper
+   with warnings as errors, one MSBuild node, and a fresh ReportBuildDirectory.
+   Capture compiler SARIF plus evaluated inputs and DLL/PDB build identity.
+5. Set IFX_REPORT_BUILD to that capture and run unfiltered full coverage with
+   `-FullCoverage -Configuration Release -NoBuild -WarningsAsErrors`.
+   Reject empty discovery/results and enforce exact 100% lines and branches for
+   every package using only this run's coverage.
+6. Generate the report from the same captured build and coverage run. When failed
+   coverage leaves a usable context, retain a failed report without masking failure.
+7. Run `scripts/packaging/Invoke-ValidatedPackageArtifacts.ps1`. It verifies the
+   tested build before/after packaging, packs without rebuild/restore, validates
+   archives without the validator's `-Pack` switch, matches DLL/PDB payload hashes,
+   and stages only the exact manifest inventory.
+8. Run real/mutated archive regression checks against the raw package directory.
+9. For a tag, require stable vX.Y.Z and verify every staged package version matches.
+10. Recheck the exact validated upload manifest after the self-tests. The workflow
+    uploads that staging directory only after successful quality completion.
 
 Coverage is never filtered by test source folder, test name, or package in CI.
 There is no report-only path or allowed-failure step. The generated-code policy
@@ -60,8 +66,9 @@ README, symbol, and Source Link checks.
 
 `TestResults/**` is retained for 14 days even on failure. The absence of artifacts
 after a pre-build failure is reported as an upload warning, not a replacement for
-the already-failed quality job. Package artifact globs are limited to the root
-archive directory and cannot include the validator's deliberately broken fixtures.
+the already-failed quality job. Package uploads use the exact validated staging directory and manifest inventory,
+not a broad archive glob; the validator's deliberately broken fixtures remain outside
+that directory.
 Package/symbol artifacts also remain available for PR review but are never
 published by PR runs.
 
@@ -117,11 +124,13 @@ pwsh -NoProfile -File tests/infrastructure/coverage/Test-CoverageInfrastructure.
 actionlint .github/workflows/publish.yml
 ```
 
-The Orchestrator owns the coordinated warning-free full build, full suite, combined
-100% coverage, final packaging snapshot, and first hosted execution. Known baseline
-failures remain recorded in
-[the unit baseline](../../docs/testing/initial-unit-baseline-2026-09-09.md).
-This workflow deliberately fails while any of those quality conditions is unmet.
+The [2026-09-10 local checkpoint](../../docs/planning/local-verification-20260910.md)
+records the completed warning-free full build, 3,632 passing tests, all 28 strict
+coverage results, passed report, and validated package/symbol pairs. The
+[initial unit baseline](../../docs/testing/initial-unit-baseline-2026-09-09.md) is
+historical, not the current failure list. First hosted execution, actual artifact
+transfer/publication, administrator settings, and hands-on IDE acceptance remain
+open. Local acceptance does not prove these external conditions.
 
 References: [GitHub composite actions](https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action),
 [workflow token permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token).

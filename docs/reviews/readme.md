@@ -15,10 +15,10 @@ This folder contains the **governance playbooks and review guides** that keep ou
 
 ## 🔗 Related Artifacts
 
-- [📡 Radar](../../best-practices/radar.md)  
-- [📦 Capsules](../../best-practices/)  
-- [📜 ADR Index](../architecture-decision-records/index.md)  
-- [👩‍💻 Onboarding Guide](../onboarding.md)
+- [📡 Radar](../best-practices/radar.md)
+- [📦 Capsules](../best-practices/readme.md)
+- [📜 ADR Index](../adr/index.md)
+- [👩‍💻 Onboarding Guide](../onboarding/readme.md)
 
 ---
 
@@ -26,9 +26,9 @@ This folder contains the **governance playbooks and review guides** that keep ou
 
 This folder is the **operational heart of governance**:
 
-- Ensures every release is **traceable**.
-- Keeps practices **validated and current**.
-- Provides **visuals and checklists** so contributors can follow the process without guesswork**.**
+- Ensures every release is **traceable**.  
+- Keeps practices **validated and current**.  
+- Provides **visuals and checklists** so contributors can follow the process without guesswork.  
 
 Together, these documents form a **living playbook** for architecture and release governance.
 

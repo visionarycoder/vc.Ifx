@@ -110,9 +110,9 @@ flowchart LR
 
 ## Related Governance Docs
 
-- [Branching Strategy Playbook](branching-strategy.md)
-- [Quarterly Radar Review Checklist](quarterly-radar-review.md)
-- [ADR Index](../architecture-decision-records/index.md)
+- [Branching Strategy Playbook](../reviews/branching-strategy.md)
+- [Quarterly Radar Review Checklist](../reviews/quarterly-radar-review.md)
+- [ADR Index](../adr/index.md)
 
 ## Capsules
 

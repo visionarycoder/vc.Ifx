@@ -131,7 +131,7 @@ introduces no shared business-domain model library.
 
 ## Verification Status
 
-Implementation is ready for Orchestrator integration. On 2026-09-10, the serialized
+Initial scoped evidence: on 2026-09-10, the serialized
 strict package gate passed 463 tests, 2294/2294 lines and 692/692 branches (100%),
 with warnings treated as errors. Coverage measures the entire compiled Proxy
 module; test sources were scoped to `Proxy`, not the full solution suite.
@@ -144,7 +144,9 @@ Evidence: `TestResults/coverage/vc.Ifx.Proxy/9dd7e51162384aa586c68073ef9dd05d/su
 The corrected legacy authentication registration contract also passed all eight
 targeted tests in Release with warnings as errors, artifact
 `TestResults/tests/vc.Ifx.UnitTests/41dc673d374949c0bfe24b837eb3a566/tests.trx`.
-No handwritten source was excluded to achieve coverage. Final combined legacy
-suite, adapter integration, solution-wide build/pack and release verification
-remain assigned to Orchestrator; the plan stays In-flight until those gates pass.
+No handwritten source was excluded to achieve coverage.
+[Final local acceptance](../../docs/planning/local-verification-20260910.md)
+subsequently passed the full suite, warning-free solution build, strict coverage,
+reporting, and package validation. The package is locally complete; hosted
+execution, publication, and hands-on IDE acceptance remain external checks.
 Retry implementation follows the [Polly retry contract](https://www.pollydocs.org/strategies/retry.html).

@@ -160,6 +160,8 @@ live services, sleeps as correctness assertions, or mocked HttpClient methods ar
 They cover methods/URLs, headers, bodies, JSON/text/binary responses, ownership/disposal,
 bounded bodies, caller/context cancellation, header and body deadlines, exception identity,
 replay classification, disabled classification, DI construction and serializer snapshots.
-Exact measured evidence and the explicit final-verification handoff are in the package's
-section of `docs/planning/framework-upgrade-parallel-plan.md`. Full core integration,
-zero-warning solution/Release/full-suite/global coverage and repack remain Orchestrator gates.
+The [parallel plan](../../docs/planning/framework-upgrade-parallel-plan.md) records
+package evidence. [Final local acceptance](../../docs/planning/local-verification-20260910.md)
+passed the warning-free Release solution build, full suite, strict coverage,
+reporting, and package checks. Hosted execution and publication remain external
+checks; local transport tests do not prove live service behavior.

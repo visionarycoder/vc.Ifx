@@ -73,9 +73,10 @@ handler, and PipelineInvoker-to-gRPC in-flight cancellation without network I/O.
 
 The stale suppression-removal request is resolved; the evidence above is the
 recorded local run, not a fresh measurement from documentation reconciliation.
-Final consumer integration, packaging and
-repository-wide gates remain with the orchestrator. No whole-solution check or
-live endpoint test was run by this worker.
+[Final local acceptance](../../docs/planning/local-verification-20260910.md)
+subsequently passed the full solution, suite, strict coverage, reporting, and
+package checks. Hosted execution and publication remain open; these local results
+are not live endpoint validation.
 
 Primary references: [gRPC cancellation](https://learn.microsoft.com/en-us/aspnet/core/grpc/deadlines-cancellation?view=aspnetcore-10.0)
 and [testing generated clients](https://learn.microsoft.com/en-us/aspnet/core/grpc/test-services?view=aspnetcore-10.0).

@@ -87,8 +87,8 @@ not transient by default. Optional TimeProvider allows deterministic delay tests
 Custom pipelines own their retry/timeout/circuit-breaker budgets. Avoid a second
 retry policy in an HTTP/gRPC handler or another interceptor, and never opt in
 without idempotency and replayable requests. Retry-After-aware protocols require
-an application policy. Package dependencies are retained for legacy compatibility;
-removing Polly 7 dependencies is a separate consumer migration.
+an application policy. The centrally pinned Polly packages are 8.6.4. The legacy AsyncPolicy API remains
+available for compatibility; retaining that API does not imply a Polly 7 package dependency.
 
 Behavior changes: live registry resolution replaces indefinitely stale cached
 routes; invalid arguments/routes fail early; cancellation flows through built-ins;
@@ -96,9 +96,9 @@ metrics now counts failed/canceled calls in total; unsafe default retries are
 disabled; HTTP baggage uses platform propagation. Existing positional
 EndpointResolution and ServiceEntry constructor shapes are retained.
 
-Integration request: gRPC should implement the new IRemoteDispatcher overload
-and forward its token to the gRPC call. Observability adapters keep their current
-interfaces and should verify idempotent span End/Dispose behavior and the updated
+The gRPC adapter implements the cancellation-aware IRemoteDispatcher overload
+and forwards its token to the gRPC call. Observability adapters retain their
+interfaces and verify idempotent span End/Dispose behavior and the updated
 metric meanings. Hosts should register supplied collaborators explicitly; this
 package does not invent provider DI registrations.
 
@@ -118,8 +118,9 @@ added. Serialized, warnings-as-errors builds of vc.Ifx.Pipeline.Grpc and
 vc.Ifx.Observability passed unchanged with zero warnings/errors. These builds
 prove source compatibility, not full consumer behavior or binary compatibility.
 
-The package remains In-flight pending adapter cancellation/observability
-integration tests and repository-wide build, test, packaging, and release gates.
-No whole-solution check was run by this worker.
+These initial scoped results are superseded by
+[final local acceptance](../../docs/planning/local-verification-20260910.md), which
+passed the full solution, suite, strict package coverage, reporting, and packaging.
+Hosted execution, publication, and hands-on IDE acceptance remain external checks.
 Primary references: [Polly retry](https://www.pollydocs.org/strategies/retry.html)
 and [platform context injection](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.distributedcontextpropagator.inject?view=net-10.0).

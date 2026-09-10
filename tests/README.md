@@ -18,7 +18,7 @@ whole-suite command without coordinating with the orchestrator first.
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Filter 'FullyQualifiedName~Primitives'
 
 # Isolate compilation while other package test folders are being edited.
-pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -TestSourceScope Filtering -TestPackage vc.Ifx.Filtering -Filter 'FullyQualifiedName~Filtering'
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -TestSourceScope Querying -TestPackage vc.Ifx.Querying -Filter 'FullyQualifiedName~Querying'
 
 # Targeted package coverage; exact 100% line AND branch enforcement.
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Primitives -Filter 'FullyQualifiedName~Primitives'
@@ -175,14 +175,17 @@ is enabled for GitHub Actions/Azure Pipelines. The hardcoded RepositoryBranch=ma
 was removed so the SDK derives package branch metadata from Git; explicit CI
 property overrides remain supported. The stable analyzer tool exists on
 [NuGet](https://www.nuget.org/packages/Microsoft.CodeAnalysis.Analyzers/5.9.0).
-Final restore/repack verification after this pin remains a coordinated handoff.
+The [2026-09-10 local checkpoint](../docs/planning/local-verification-20260910.md)
+records completed restore/build, 3,632 passing tests, exact 100% coverage for all
+28 packages, passed reporting, and validated package/symbol pairs.
 
-Gate 4 should run the infrastructure regression script followed by
-`Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release` without
-`-ReportOnly`, and publish `TestResults/**` even on failure. Restore/build warnings,
-packaging, and dependency verification remain separate CI steps. This workstream
-does not claim those gates, a passing full suite, or 100% coverage of unfinished
-packages. See Gate 1's notes for the actual measured verification.
+CI runs dependency and infrastructure checks before capturing a fresh Release
+solution build. It then runs `-FullCoverage -Configuration Release -NoBuild
+-WarningsAsErrors` with `IFX_REPORT_BUILD` pointing to that capture, generates the
+matching report, and packages the tested binaries without rebuilding. It never
+uses `-ReportOnly`. TestResults evidence is retained even on failure. Do not run
+output-mutating checks between capture and coverage/report/pack. These local
+results do not claim hosted publication or hands-on IDE acceptance.
 
 No-build runs now require a captured fresh build via `IFX_REPORT_BUILD`. See
 [fresh build identity](../docs/testing/build-provenance.md) for DLL/PDB and input
@@ -194,4 +197,4 @@ invoked by the authoritative
 [GitHub workflow](../.github/workflows/publish.yml). CI passes
 `-WarningsAsErrors` through the shared wrapper and uses unscoped full coverage
 after a complete Release build. See [.infra/yaml/README.md](../.infra/yaml/README.md)
-for event and publication rules and the remaining hosted/global verification.
+for event and publication rules and the remaining external verification.

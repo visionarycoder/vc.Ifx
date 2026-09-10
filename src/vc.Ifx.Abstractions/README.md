@@ -86,8 +86,8 @@ separate package migration; package metadata and dependencies are unchanged here
   IsFailure after cancellation must await/catch cancellation instead.
 - Dispose derived services deterministically. Do not rely on the former base
   finalizer to run Dispose(false).
-- Existing root FrameworkResultTests contains two obsolete null-success tests;
-  updating that unassigned file is an orchestrator migration requirement.
+- Root FrameworkResultTests now verifies null-success Match and Map behavior;
+  consumers should update equivalent expectations during migration.
 
 ## Verification
 
@@ -111,7 +111,8 @@ validation without ReportOnly. Evidence:
 `TestResults/coverage/vc.Ifx.Abstractions/cde87fa6abca4fc18cd2f20ecb8d9c14/`.
 Package build passed with zero warnings/errors. No additional coverage exclusions.
 
-The existing result regression suite passed 25/27 tests; the two null-success
-expectations identified above remain an orchestrator-owned migration. This
-package remains In-flight for that migration and the whole-solution build,
-full-suite/global coverage, and final package gates.
+The initial result regression suite passed 25/27 tests before the two obsolete
+null-success expectations were corrected. That historical result is superseded by
+[final local acceptance](../../docs/planning/local-verification-20260910.md): all
+3,632 tests passed, every package met strict coverage, and packaging passed.
+Hosted execution and hands-on IDE acceptance remain separate external checks.
