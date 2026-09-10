@@ -1,6 +1,10 @@
 ---
 description: HTML/Web markup standards and accessibility best practices
 applyTo: '**/*.{html,htm,xhtml}'
+title: HTML / Web Markup Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # HTML / Web Markup Instructions

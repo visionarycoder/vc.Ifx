@@ -1,3 +1,10 @@
+---
+title: Fresh Build Identity
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
+
 # Fresh Build Identity
 
 `Invoke-FrameworkTests.ps1 -BuildOnly -ReportBuildDirectory <fresh-directory>`

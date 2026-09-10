@@ -1,3 +1,10 @@
+---
+title: System Map: Architecture Governance Artifacts
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
+
 # System Map: Architecture Governance Artifacts
 
 This document provides a **meta‑level view** of how our architecture governance artifacts interconnect.  

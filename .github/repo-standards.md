@@ -1,3 +1,10 @@
+---
+title: Copilot Instructions: Repository Standards
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
+
 # Copilot Instructions: Repository Standards
 
 ## Purpose

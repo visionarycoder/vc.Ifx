@@ -1,3 +1,10 @@
+---
+title: vc.Ifx Parallel Upgrade Plan
+doc_type: plan
+status: active
+last_updated: 2026-09-10
+---
+
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
@@ -168,7 +175,7 @@ Prior owner record: Owner: Nash (bounded Gate 3 documentation reconciliation); U
 ### Gate 4: CI/CD Wiring
 
 Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
-Owner: Orchestrator (external acceptance); Updated: 2026-09-10; Notes: Local CI implementation accepted: 31 artifact and 12 wrapper regressions passed; exact culture paths and BuildProjectReferences=false verified in actual final pack. Remains In-flight only for hosted Linux execution/artifact transfer, required-check configuration, feed permissions and authorized publication; no active implementation agent. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
+Owner: Orchestrator (external acceptance); Updated: 2026-09-10; Notes: Gate 4 hosted verification resumed. Existing main run 34498384866 exposed hidden-config cleanup failure; draft PR #9 fixes it and hidden-output enumeration discovered in PR run 34499807987. First PR run passed Linux provenance and warning-free full build, then stopped before coverage on the hidden Coverlet mapping inventory. Local updated provenance34 and package-wrapper12 passed; both failure artifact downloads matched GitHub digests. Latest remote fix commit 05b42c4a8d662bbe03af6466b7b1b1c70e7f8607, non-publishing PR run 34500464709 underway. Direct dependencies: accepted provenance and package-manifest contracts; evidence/artifacts/settings limits in docs/planning/external-acceptance-20260910.md. Main is unprotected, RestrictAccess ruleset disabled, administration API denied to integration, feed credentials unverified, development Visual Studio absent. No security settings, publication, merge, or unrelated worktree changes performed. Keep In-flight for hosted acceptance; prior local completion remains dated evidence only.
 Prior owner record: Owner: Orchestrator; Updated: 2026-09-10; Notes: Accept frozen CI worker handoff and claim only Gate 4 for real no-build packaging reference-resolution correction. Gate 1 implementation is frozen and handed to final acceptance. Actual first pack b9e8e1bc02b0445388f82933ca6bd4c3 failed safely with NETSDK1085 in Roslyn because compiler package ResolveReferences attempted a reference build. Set BuildProjectReferences=false alongside NoBuild/NoRestore, verify wrapper regression and actual 28-package path; no project/source/build-identity edits. Direct dependency is installed SDK ResolveProjectReferences; required artifact tests/infrastructure/packaging/README.md. No package contract is blocked.
 
 Prior CI worker handoff (preserved):

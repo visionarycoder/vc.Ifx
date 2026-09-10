@@ -1,6 +1,10 @@
 ---
 description: Jupyter notebook development and data science best practices
 applyTo: '**/*.ipynb,**/notebooks/**,**/*notebook*'
+title: Notebooks Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Notebooks Instructions

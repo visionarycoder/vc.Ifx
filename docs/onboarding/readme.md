@@ -1,3 +1,9 @@
+---
+title: Developer Onboarding
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Developer Onboarding
 
 ## Prerequisites

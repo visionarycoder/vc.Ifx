@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { test } = require('node:test');
+const { test, before, after } = require('node:test');
 
 const repositoryRoot = path.resolve(__dirname, '..', '..');
 const cliPath = path.join(repositoryRoot, 'scripts', 'vbd-artifacts.js');
@@ -13,12 +13,12 @@ const sandboxRoot = path.join(repositoryRoot, '.sandbox');
 
 let testRoot = '';
 
-test.before(() => {
+before(() => {
   fs.mkdirSync(sandboxRoot, { recursive: true });
   testRoot = fs.mkdtempSync(path.join(sandboxRoot, 'vbd-artifacts-test-'));
 });
 
-test.after(() => {
+after(() => {
   if (!testRoot) {
     return;
   }
@@ -174,6 +174,7 @@ test('checkpoint writes a deterministic checkpoint file with summary fields', ()
 function writeTask(filePath, overrides) {
   const task = {
     id: 'TASK-Example-1',
+    kind: 'construction-task',
     componentId: 'CMP-Example',
     title: 'Example task',
     projectType: 'Ifx',

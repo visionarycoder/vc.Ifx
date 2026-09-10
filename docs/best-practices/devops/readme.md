@@ -1,3 +1,9 @@
+---
+title: DevOps & Platform Engineering Best Practices
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # DevOps & Platform Engineering Best Practices
 
 ## 1. Purpose

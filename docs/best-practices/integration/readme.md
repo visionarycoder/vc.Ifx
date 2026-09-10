@@ -1,3 +1,9 @@
+---
+title: Integration & APIs Best Practices
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Integration & APIs Best Practices
 
 ## 1. Purpose

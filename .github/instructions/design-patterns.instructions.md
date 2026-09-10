@@ -1,3 +1,10 @@
+---
+title: Copilot Instructions: C# Design Patterns
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
+---
+
 # Copilot Instructions: C# Design Patterns
 
 ## Purpose

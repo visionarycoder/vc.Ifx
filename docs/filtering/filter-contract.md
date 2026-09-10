@@ -1,3 +1,9 @@
+---
+title: Filter Contract
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Filter Contract
 
 Filtering owns predicates and portable predicate trees. QuerySpec/database access

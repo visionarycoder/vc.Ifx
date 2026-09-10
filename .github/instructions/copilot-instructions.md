@@ -1,5 +1,9 @@
 ---
 applyTo: '**/*'
+title: Copilot Base Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Copilot Base Instructions

@@ -1,6 +1,10 @@
 ---
 description: Microsoft Orleans actor model and distributed systems best practices
 applyTo: '**/orleans/**,**/*grain*,**/*silo*,**/*orleans*'
+title: Orleans Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Orleans Instructions

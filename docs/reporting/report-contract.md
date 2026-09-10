@@ -1,3 +1,9 @@
+---
+title: Reporting Contract v1
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Reporting Contract v1
 
 Owner: Reporting worker; Updated: 2026-09-09; Status: implementation in flight.

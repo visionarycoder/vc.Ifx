@@ -1,6 +1,10 @@
 ---
 description: SQL database standards and best practices
 applyTo: '**/*.sql'
+title: SQL Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # SQL Instructions

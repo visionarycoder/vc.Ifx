@@ -306,7 +306,7 @@ function validateArtifacts(rootPath, sourceRootPath) {
       dependencyCycles: [],
       duplicateIds: [],
       unresolvedReferences: [],
-      sourceChecksSkipped: !sourceRootPath || !fs.existsSync(sourceRootPath),
+      sourceChecksSkipped: Boolean(sourceRootPath && !fs.existsSync(sourceRootPath)),
     };
   }
 
@@ -458,7 +458,7 @@ function analyzeArtifacts(rootPath, options = {}) {
 
     if (kind && schemas.has(kind)) {
       const schema = schemas.get(kind);
-      const violations = validateAgainstSchema(json, schema, schemas, '$');
+      const violations = validateAgainstSchema(json, schema, schemas, '$', schema);
 
       for (const violation of violations) {
         schemaViolations.push({
@@ -620,18 +620,18 @@ function resolveArtifactKind(json, directoryName, schemas) {
     : 'unknown';
 }
 
-function validateAgainstSchema(value, schema, schemaRegistry, pointer) {
+function validateAgainstSchema(value, schema, schemaRegistry, pointer, rootSchema) {
   if (!schema || typeof schema !== 'object') {
     return [];
   }
 
   if (typeof schema.$ref === 'string') {
-    const referencedSchema = resolveSchemaReference(schema.$ref, schema, schemaRegistry);
+    const referencedSchema = resolveSchemaReference(schema.$ref, rootSchema || schema, schemaRegistry);
     if (!referencedSchema) {
       return [`${pointer} has unresolved schema reference '${schema.$ref}'.`];
     }
 
-    return validateAgainstSchema(value, referencedSchema, schemaRegistry, pointer);
+    return validateAgainstSchema(value, referencedSchema, schemaRegistry, pointer, rootSchema || schema);
   }
 
   const violations = [];
@@ -707,6 +707,7 @@ function validateAgainstSchema(value, schema, schemaRegistry, pointer) {
             schema.items,
             schemaRegistry,
             `${pointer}[${index}]`,
+            rootSchema || schema,
           ),
         );
       }
@@ -734,6 +735,7 @@ function validateAgainstSchema(value, schema, schemaRegistry, pointer) {
             propertySchema,
             schemaRegistry,
             `${pointer}.${propertyName}`,
+            rootSchema || schema,
           ),
         );
       }
@@ -756,6 +758,7 @@ function validateAgainstSchema(value, schema, schemaRegistry, pointer) {
             schema.additionalProperties,
             schemaRegistry,
             `${pointer}.${propertyName}`,
+            rootSchema || schema,
           ),
         );
       }
@@ -829,6 +832,10 @@ function extractArtifactReferences(value) {
 
   walkValue(value, '$', null, (currentValue, currentPath, keyName) => {
     if (typeof currentValue === 'string') {
+      if (/\[\d+\]$/.test(currentPath)) {
+        return;
+      }
+
       if (keyName === 'id') {
         return;
       }
@@ -907,7 +914,7 @@ function looksLikeReferenceField(fieldName) {
 
   return (
     REFERENCE_FIELD_PATTERN.test(fieldName) ||
-    /(Ids?|Cases?|Symbols?|Tasks?|WaveId|CandidateId|ComponentId|Manifest|callers|callees)/i.test(
+    /(useCases|supportingSymbols|symbols|tasks|cutoverWaveId|candidateId|selectedCandidateId|parentManifest|hybridOf|candidatesConsidered|callers|callees)/i.test(
       fieldName,
     )
   );

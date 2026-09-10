@@ -1,3 +1,9 @@
+---
+title: Minimal API generator contract v1
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Minimal API generator contract v1
 
 Status: attribute contract frozen and endpoint generator implemented locally on

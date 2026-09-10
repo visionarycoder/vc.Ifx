@@ -1,3 +1,10 @@
+---
+title: vc.Ifx Follow-on Optimization Plan
+doc_type: plan
+status: active
+last_updated: 2026-09-10
+---
+
 # vc.Ifx Follow-on Optimization Plan
 
 ## Goal

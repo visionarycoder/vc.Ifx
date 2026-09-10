@@ -1,3 +1,10 @@
+---
+title: Initial Unit Baseline: 2026-09-09
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Initial Unit Baseline: 2026-09-09
 
 Command: `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1`

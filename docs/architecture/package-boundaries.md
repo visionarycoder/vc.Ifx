@@ -1,3 +1,9 @@
+---
+title: Package Contract Boundaries
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Package Contract Boundaries
 
 Owner: Nash, Contract Boundaries; Updated: 2026-09-10; Status: bounded implementation/docs reconciliation ready; final verification handed to Orchestrator, global gates In-flight.

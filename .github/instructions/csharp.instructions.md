@@ -1,5 +1,9 @@
 ---
 applyTo: "**/*.cs"
+title: Copilot Instructions: Core C# Generation
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Copilot Instructions: Core C# Generation

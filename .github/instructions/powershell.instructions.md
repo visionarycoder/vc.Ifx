@@ -1,6 +1,10 @@
 ---
 description: PowerShell scripting standards and best practices
 applyTo: '**/*.{ps1,psm1,psd1}'
+title: PowerShell Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # PowerShell Instructions

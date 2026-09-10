@@ -1,6 +1,10 @@
 ---
 description: Algorithm implementation and data structure best practices
 applyTo: '**/algorithms/**,**/Algorithm.*/**,**/*algorithm*,**/*search*,**/*sort*'
+title: Algorithms Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Algorithms Instructions

@@ -1,3 +1,9 @@
+---
+title: HTTP Response Catalog
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # HTTP Response Catalog
 
 Contract owner: vc.Ifx.WebApi. Date: 2026-09-09. Dependencies remain Microsoft.AspNetCore.App and Polly.Core 8.6.4; no vc.Ifx project dependencies.

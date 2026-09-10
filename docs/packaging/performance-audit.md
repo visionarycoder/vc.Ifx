@@ -1,3 +1,9 @@
+---
+title: Performance project audit
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
 # Performance project audit
 
 Local implementation checkpoint: 2026-09-09. The original inventory contained

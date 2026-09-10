@@ -1,3 +1,9 @@
+---
+title: Best Practices
+doc_type: readme
+status: active
+last_updated: 2026-09-10
+---
 # Best Practices
 
 Each specialty has one canonical `readme.md` containing its guidance. Add new

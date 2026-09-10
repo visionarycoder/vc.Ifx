@@ -1,6 +1,6 @@
 ---
 title: C# Coding Standards - Quick Reference
-doc_type: quick_reference
+doc_type: reference
 status: active
 last_updated: 2026-08-19
 ---

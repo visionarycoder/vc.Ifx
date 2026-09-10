@@ -1,6 +1,10 @@
 ---
 description: Python coding standards and best practices following PEP 8
 applyTo: '**/*.{py,pyw,pyi}'
+title: Python Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Python Instructions

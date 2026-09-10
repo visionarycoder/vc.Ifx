@@ -1,3 +1,10 @@
+---
+title: Branching Strategy Playbook
+doc_type: guide
+status: active
+last_updated: 2026-09-10
+---
+
 # Branching Strategy Playbook
 
 ## Current Automation

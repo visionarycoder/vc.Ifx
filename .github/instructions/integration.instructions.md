@@ -1,6 +1,10 @@
 ---
 description: Integration patterns and API development best practices
 applyTo: '**/*integration*,**/*api*,**/webhook*,**/*client*'
+title: Integration Instructions
+doc_type: instruction
+status: active
+last_updated: 2026-09-10
 ---
 
 # Integration Instructions

@@ -1,3 +1,10 @@
+---
+title: Local Integration Acceptance
+doc_type: report
+status: active
+last_updated: 2026-09-10
+---
+
 # Local Integration Acceptance
 
 Owner: Orchestrator; Updated: 2026-09-10.

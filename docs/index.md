@@ -1,3 +1,9 @@
+---
+title: Living Architecture Playbook
+doc_type: reference
+status: active
+last_updated: 2026-09-10
+---
 # Living Architecture Playbook
 
 Welcome to the **Architecture Playbook**.  
