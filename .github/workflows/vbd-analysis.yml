@@ -60,7 +60,25 @@ jobs:
           while IFS= read -r -d '' package_json_path; do
             has_package_json=true
             echo "has_package_json=true" >> "$GITHUB_OUTPUT"
-            if node -e 'const fs = require("fs"); const packageJsonPath = process.argv[1]; const requiredScripts = process.argv.slice(2); try { const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")); const scripts = packageJson.scripts ?? {}; const hasAllScripts = requiredScripts.every((name) => Object.prototype.hasOwnProperty.call(scripts, name)); process.exit(hasAllScripts ? 0 : 1); } catch (error) { console.error(`Failed to read ${packageJsonPath}: ${error.message}`); process.exit(2); }' "$package_json_path" "${required_scripts[@]}"; then
+            if node - "$package_json_path" "${required_scripts[@]}" <<'EOF'
+          const fs = require("fs");
+
+          const packageJsonPath = process.argv[2];
+          const requiredScripts = process.argv.slice(3);
+
+          try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+            const scripts = packageJson.scripts ?? {};
+            const hasAllScripts = requiredScripts.every((name) =>
+              Object.prototype.hasOwnProperty.call(scripts, name));
+
+            process.exit(hasAllScripts ? 0 : 1);
+          } catch (error) {
+            console.error(`Failed to read ${packageJsonPath}: ${error.message}`);
+            process.exit(2);
+          }
+          EOF
+            then
               node_status=0
             else
               node_status=$?
