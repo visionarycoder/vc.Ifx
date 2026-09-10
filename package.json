@@ -1,0 +1,17 @@
+{
+  "name": "vc.ifx-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dependency-free Node.js tooling for VBD artifact automation, markdown front matter validation, and solution/markdown synchronization.",
+  "scripts": {
+    "vbd:artifacts:test": "node scripts/tests/vbd-artifacts.test.js",
+    "vbd:analysis:validate": "node scripts/vbd-artifacts.js validate docs/analysis",
+    "frontmatter:test": "node scripts/validate-frontmatter.js --self-test",
+    "frontmatter:validate": "node scripts/validate-frontmatter.js",
+    "solution:markdown:test": "node scripts/sync-solution-markdown.js --self-test",
+    "solution:markdown:check": "node scripts/sync-solution-markdown.js --check"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
