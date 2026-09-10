@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>vc.Ifx.Proxy.AspNetCore</PackageId>
+    <Description>ASP.NET Core identity and hosting integration for vc.Ifx proxies.</Description>
+    <PackageTags>proxy;aspnetcore;identity;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\vc.Ifx.Proxy\vc.Ifx.Proxy.csproj" />
+    <ProjectReference Include="..\vc.Ifx.Secrets.Abstractions\vc.Ifx.Secrets.Abstractions.csproj" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

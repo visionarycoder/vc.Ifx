@@ -1,57 +1,164 @@
-name: Build & Publish with NBGV
+name: Framework Quality and Publish
 
 on:
+  pull_request: {}
+  merge_group: {}
   push:
-    branches:
-      - main
-    tags:
-      - 'v*.*.*'
-  workflow_dispatch:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: framework-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  quality:
+    name: Framework quality gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    outputs:
+      manifest-sha256: ${{ steps.gate.outputs.manifest-sha256 }}
+    permissions:
+      contents: read
+    env:
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      ContinuousIntegrationBuild: 'true'
+      TreatWarningsAsErrors: 'true'
+      NuGetAuditMode: all
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0   # required for NBGV
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Install the repository SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          global-json-file: global.json
 
-      - name: Install NBGV tool
-        run: dotnet tool install --global nbgv
+      - name: Execute authoritative quality steps
+        id: gate
+        uses: ./.infra/yaml/framework-quality
 
-      - name: Get Version
-        run: nbgv cloud -a
+      - name: Retain test and coverage evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-evidence-${{ github.sha }}
+          path: TestResults/**
+          if-no-files-found: warn
+          retention-days: 14
 
-      - name: Restore
-        run: dotnet restore
+      - name: Retain validated packages for downstream publishing
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: validated-packages-${{ github.sha }}
+          path: ${{ env.IFX_PACKAGE_UPLOAD_DIRECTORY }}
+          if-no-files-found: error
+          retention-days: 14
 
-      - name: Build (multi-target)
-        run: dotnet build --configuration Release --no-restore
+  publish:
+    name: Publish validated packages
+    needs: quality
+    if: >-
+      github.event_name == 'push' && needs.quality.result == 'success' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    steps:
+      - name: Download packages from this successful quality run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: validated-packages-${{ github.sha }}
+          path: artifacts/validated
 
-      - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
+      - name: Verify downloaded archive inventory before installing SDK or publishing
+        shell: pwsh
+        env:
+          PACKAGE_REVISION: ${{ github.sha }}
+          PACKAGE_MANIFEST_SHA256: ${{ needs.quality.outputs.manifest-sha256 }}
+        run: |
+          function Test-PackageArtifactManifest {
+              [CmdletBinding()]
+              param([Parameter(Mandatory)][string] $Directory, [Parameter(Mandatory)][string] $Revision,
+                  [Parameter(Mandatory)][string] $ManifestSha256)
+              # Keep this verifier self-contained: the publish job executes this body inline, never downloaded scripts.
+              $ErrorActionPreference = 'Stop'
+              Set-StrictMode -Version Latest
+              $manifestPath = Join-Path $Directory 'package-manifest.json'
+              if ($ManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z' -or
+                  (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $ManifestSha256) { throw 'Package manifest hash mismatch.' }
+              $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+              if ($manifest.schemaVersion -ne 1 -or $manifest.revision -cne $Revision -or $Revision -cnotmatch '\A[0-9a-f]{40}\z' -or
+                  $manifest.buildManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z' -or $manifest.coverageManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z') { throw 'Invalid package manifest provenance.' }
+              if ($manifest.packages.Count -eq 0 -or $manifest.sdk.file -cne 'global.json') { throw 'Empty or invalid artifact inventory.' }
+              $expected = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+              $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+              $null = $expected.Add('package-manifest.json')
+              $null = $expected.Add('global.json')
+              $entries = @($manifest.sdk)
+              foreach ($package in $manifest.packages) {
+                  if ($package.id -cnotmatch '\Avc\.Ifx(?:\.[A-Za-z0-9]+)*\z' -or -not $ids.Add($package.id) -or
+                      $package.version -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z') { throw 'Invalid or duplicate package identity.' }
+                  if ($package.package.file -cne "$($package.id).$($package.version).nupkg" -or
+                      $package.symbols.file -cne "$($package.id).$($package.version).snupkg") { throw 'Archive name does not match package identity.' }
+                  foreach ($entry in @($package.package, $package.symbols)) {
+                      if (-not $expected.Add($entry.file)) { throw 'Duplicate artifact filename.' }
+                      $entries += $entry
+                  }
+              }
+              $files = @(Get-ChildItem -LiteralPath $Directory -Force)
+              if ($files.Count -ne $expected.Count) { throw 'Artifact file inventory mismatch.' }
+              foreach ($file in $files) {
+                  if ($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -or -not $expected.Contains($file.Name)) { throw 'Unexpected artifact entry.' }
+              }
+              foreach ($entry in $entries) {
+                  if ($entry.sha256 -cnotmatch '\A[0-9a-f]{64}\z' -or
+                      (Get-FileHash -LiteralPath (Join-Path $Directory $entry.file) -Algorithm SHA256).Hash.ToLowerInvariant() -cne $entry.sha256) { throw 'Artifact hash mismatch.' }
+              }
+              return $manifest
+          }
+          $null = Test-PackageArtifactManifest -Directory 'artifacts/validated' -Revision $env:PACKAGE_REVISION -ManifestSha256 $env:PACKAGE_MANIFEST_SHA256
 
-      - name: Pack
-        run: dotnet pack --configuration Release --no-build -o ./artifacts
+      - name: Install the validated repository SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: artifacts/validated/global.json
 
-      - name: Publish to GitHub Packages (prerelease/nightly)
+      - name: Publish main builds to GitHub Packages
         if: github.ref == 'refs/heads/main'
-        run: dotnet nuget push ./artifacts/*.nupkg \
-              --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-              --api-key ${{ secrets.GITHUB_TOKEN }} \
-              --skip-duplicate
+        shell: pwsh
+        working-directory: artifacts/validated
+        env:
+          PACKAGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_OWNER: ${{ github.repository_owner }}
+        run: |
+          $manifest = Get-Content -LiteralPath 'package-manifest.json' -Raw | ConvertFrom-Json
+          foreach ($package in $manifest.packages) {
+            dotnet nuget push $package.package.file --source "https://nuget.pkg.github.com/$env:PACKAGE_OWNER/index.json" --api-key $env:PACKAGE_TOKEN --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { throw "GitHub Packages push failed for $($package.id)." }
+          }
 
-      - name: Publish to NuGet.org (stable releases)
+      - name: Publish stable releases to NuGet.org
         if: startsWith(github.ref, 'refs/tags/v')
-        run: dotnet nuget push ./artifacts/*.nupkg \
-              --source https://api.nuget.org/v3/index.json \
-              --api-key ${{ secrets.NUGET_API_KEY }} \
-              --skip-duplicate
+        shell: pwsh
+        working-directory: artifacts/validated
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is not configured.' }
+          $manifest = Get-Content -LiteralPath 'package-manifest.json' -Raw | ConvertFrom-Json
+          foreach ($package in $manifest.packages) {
+            dotnet nuget push $package.package.file --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { throw "NuGet.org push failed for $($package.id)." }
+          }

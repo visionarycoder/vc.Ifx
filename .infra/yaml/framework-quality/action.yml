@@ -1,0 +1,98 @@
+name: Framework Quality Gate
+description: Build, test, enforce exact per-package coverage, and validate packages.
+outputs:
+  manifest-sha256:
+    description: SHA256 of the exact validated package artifact manifest.
+    value: ${{ steps.packages.outputs.manifest-sha256 }}
+runs:
+  using: composite
+  steps:
+    - name: Require centralized test projects
+      shell: pwsh
+      run: |
+        $projects = @(Get-ChildItem tests -Recurse -Filter '*.csproj' -File |
+          Where-Object { $_.FullName -notmatch '[\\/](obj|bin)[\\/]' })
+        if ($projects.Count -ne 2) { throw "Expected two centralized test projects; discovered $($projects.Count)." }
+        foreach ($project in $projects) {
+          [xml] $document = Get-Content -LiteralPath $project.FullName -Raw
+          if ($null -eq $document.SelectSingleNode('//IsTestProject[text()="true"]')) {
+            throw "Not a declared test project: $($project.FullName)"
+          }
+        }
+        Write-Host "Discovered $($projects.Count) test projects. Test execution must also produce nonzero TRX counters."
+
+    - name: Verify dependency boundaries and solution inventory
+      shell: pwsh
+      run: ./scripts/Test-FrameworkDependencies.ps1
+
+    - name: Verify coverage infrastructure
+      shell: pwsh
+      run: ./tests/infrastructure/coverage/Test-CoverageInfrastructure.ps1
+
+    - name: Verify reporting host failure and provenance behavior
+      shell: pwsh
+      run: ./tests/infrastructure/reporting/Test-ReportingProcessExit.ps1 -Configuration Release
+
+    - name: Verify exact package artifact and publishing inventory
+      shell: pwsh
+      run: |
+        ./tests/infrastructure/packaging/Test-PackageArtifactManifest.ps1
+        pwsh -NoProfile -File ./tests/infrastructure/packaging/Test-ValidatedPackageArtifacts.ps1
+        if ($LASTEXITCODE -ne 0) { throw 'Package wrapper regressions failed.' }
+
+    - name: Verify tested build identity and mutation rejection
+      shell: pwsh
+      run: ./tests/infrastructure/provenance/Test-BuildProvenance.ps1
+
+    - name: Restore and build the complete solution without warnings
+      id: build
+      shell: pwsh
+      run: |
+        $build = Join-Path $env:GITHUB_WORKSPACE "TestResults/reporting/$([Guid]::NewGuid().ToString('N'))"
+        "IFX_REPORT_BUILD=$build" | Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8
+        ./scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
+
+    - name: Run all tests and enforce 100 percent coverage for every package
+      id: coverage
+      shell: pwsh
+      run: ./scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors
+
+    - name: Generate deterministic SARIF, source metrics and exact coverage reports
+      if: ${{ !cancelled() && steps.build.outcome == 'success' && env.IFX_COVERAGE_RUN != '' }}
+      shell: pwsh
+      env:
+        REPORT_REVISION: ${{ github.sha }}
+      run: ./scripts/reporting/Invoke-FrameworkReport.ps1 -BuildDirectory $env:IFX_REPORT_BUILD -CoverageRunDirectory $env:IFX_COVERAGE_RUN -Revision $env:REPORT_REVISION -Configuration Release
+
+    - name: Pack and validate every package and symbol archive
+      id: packages
+      shell: pwsh
+      env:
+        PACKAGE_REVISION: ${{ github.sha }}
+      run: ./scripts/packaging/Invoke-ValidatedPackageArtifacts.ps1 -BuildDirectory $env:IFX_REPORT_BUILD -CoverageRunDirectory $env:IFX_COVERAGE_RUN -Revision $env:PACKAGE_REVISION
+
+    - name: Verify package validator against real and malformed archives
+      shell: pwsh
+      run: ./scripts/packaging/Test-PackageValidation.ps1 -PackageDirectory $env:IFX_PACKAGE_DIRECTORY
+
+    - name: Verify stable release tag matches package versions
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: pwsh
+      env:
+        RELEASE_TAG: ${{ github.ref_name }}
+      run: |
+        if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+$') { throw 'NuGet releases require a stable vX.Y.Z tag.' }
+        $expectedVersion = $env:RELEASE_TAG.Substring(1)
+        $manifest = Get-Content -LiteralPath (Join-Path $env:IFX_PACKAGE_UPLOAD_DIRECTORY 'package-manifest.json') -Raw | ConvertFrom-Json
+        foreach ($package in $manifest.packages) {
+          if ($package.version -cne $expectedVersion) { throw "$($package.id) version $($package.version) does not match tag $env:RELEASE_TAG." }
+        }
+
+    - name: Recheck exact upload inventory after package self-tests
+      shell: pwsh
+      env:
+        PACKAGE_REVISION: ${{ github.sha }}
+        PACKAGE_MANIFEST_SHA256: ${{ steps.packages.outputs.manifest-sha256 }}
+      run: |
+        Import-Module ./scripts/packaging/PackageArtifactManifest.psm1
+        $null = Test-PackageArtifactManifest -Directory $env:IFX_PACKAGE_UPLOAD_DIRECTORY -Revision $env:PACKAGE_REVISION -ManifestSha256 $env:PACKAGE_MANIFEST_SHA256

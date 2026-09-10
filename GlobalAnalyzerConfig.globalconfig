@@ -2,6 +2,19 @@ is_global = true
 
 # Microsoft C# Code Analysis Rules
 
+# CA1502: Avoid excessive complexity (policy: cyclomatic complexity must follow best practices; threshold below flags methods over the McCabe-recommended limit of 10)
+dotnet_diagnostic.CA1502.severity = warning
+dotnet_code_quality.CA1502.threshold = 10
+
+# CA1501: Avoid excessive inheritance (complements CA1502 for structural complexity)
+dotnet_diagnostic.CA1501.severity = warning
+
+# CA1505: Avoid unmaintainable code (maintainability index floor)
+dotnet_diagnostic.CA1505.severity = warning
+
+# CA1506: Avoid excessive class coupling
+dotnet_diagnostic.CA1506.severity = warning
+
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = warning
 

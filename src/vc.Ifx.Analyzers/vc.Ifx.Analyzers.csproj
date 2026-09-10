@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>vc.Ifx.Analyzers</PackageId>
+    <Description>C# diagnostics for vc.Ifx framework policies and diagnostic debt.</Description>
+    <PackageTags>roslyn;analyzers;diagnostics;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackCompilerExtension</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\vc.Ifx.Roslyn\vc.Ifx.Roslyn.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="AnalyzerReleases.Shipped.md" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="AnalyzerReleases.Unshipped.md" Pack="true" PackagePath="analyzers/dotnet/cs" />
+  </ItemGroup>
+
+  <!-- Roslyn loads private tooling dependencies beside the compiler extension. -->
+  <Target Name="PackCompilerExtension" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath);$(TargetDir)$(AssemblyName).pdb;$(TargetDir)$(AssemblyName).xml">
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'vc.Ifx.Roslyn'">
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+</Project>

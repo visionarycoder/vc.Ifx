@@ -1,0 +1,2 @@
+// CA1825
+public class AnalyzerConsumer { }

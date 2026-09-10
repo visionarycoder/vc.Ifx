@@ -1,0 +1,80 @@
+name: VBD Analysis Validation
+
+on:
+  push:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "package.json"
+      - ".github/workflows/vbd-analysis.yml"
+  pull_request:
+    paths:
+      - "scripts/vbd-artifacts.js"
+      - "scripts/tests/vbd-artifacts.test.js"
+      - "scripts/validate-frontmatter.js"
+      - "scripts/sync-solution-markdown.js"
+      - "docs/analysis/**"
+      - ".github/skills/vbd-*/**"
+      - ".github/prompts/vbd-*.prompt.md"
+      - "package.json"
+      - ".github/workflows/vbd-analysis.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: VBD / frontmatter / solution validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Detect Node validation scripts
+        id: detect-node-validation
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run VBD artifact automation tests
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm run vbd:artifacts:test
+
+      - name: Run documentation infrastructure tests
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm run frontmatter:test && npm run solution:markdown:test
+
+      - name: Validate docs/analysis (only if present)
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: |
+          if [ -d "docs/analysis" ]; then
+            npm run vbd:analysis:validate
+          else
+            echo "docs/analysis not present; skipping VBD analysis validation (validate-if-present)."
+          fi
+
+      - name: Validate Markdown front matter
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm run frontmatter:validate
+
+      - name: Verify .github Markdown files are tracked in the solution
+        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        run: npm run solution:markdown:check
+
+      - name: Skip Node validation when package.json is absent
+        if: steps.detect-node-validation.outputs.has_package_json != 'true'
+        run: echo "package.json not found; Node-based VBD/frontmatter/solution validation is skipped for this repository."

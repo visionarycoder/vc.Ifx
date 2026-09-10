@@ -52,7 +52,7 @@ Ensure the Solution Architect Radar and Best Practice Capsules remain accurate, 
 
 ## Automation
 
-- **ADR index:** GitHub Action regenerates docs/architecture-decision-records/index.md.
+- **ADR index:** GitHub Action regenerates docs/adr/index.md.
 - **Lint & links:** Validate internal links to capsules and ADRs in CI.
 - **Docs build:** MkDocs preview for PRs (if enabled).
 
@@ -100,4 +100,4 @@ timeline
 ## Related Visuals
 
 - [Branching Strategy Diagram](branching-strategy.md#branching-strategy-playbook)
-- [Radar Quadrants](../../best-practices/radar.md#visual-radar-mermaid)
+- [Radar Quadrants](../best-practices/radar.md#visual-radar-mermaid)
