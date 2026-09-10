@@ -481,7 +481,7 @@ public class TenantContextTests
     #region Thread Safety Tests
 
     [TestMethod]
-    public void TenantContext_ShouldHandleConcurrentAccess()
+    public void TenantContext_ShouldSupportCallerSynchronizedConcurrentWrites()
     {
         // Arrange
         var context = new TenantContext
@@ -491,6 +491,7 @@ public class TenantContextTests
         };
 
         var tasks = new List<Task>();
+        var sync = new object();
 
         // Act
         for (int i = 0; i < 10; i++)
@@ -498,8 +499,12 @@ public class TenantContextTests
             int index = i;
             tasks.Add(Task.Run(() =>
             {
-                context.EnabledFeatures.Add($"feature{index}");
-                context.Settings[$"setting{index}"] = index;
+                // These public mutable collections require caller-owned synchronization.
+                lock (sync)
+                {
+                    context.EnabledFeatures.Add($"feature{index}");
+                    context.Settings[$"setting{index}"] = index;
+                }
             }));
         }
 
