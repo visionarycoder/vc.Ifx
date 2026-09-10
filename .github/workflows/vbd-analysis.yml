@@ -110,7 +110,7 @@ jobs:
       - name: Ensure validation package exists
         if: steps.detect-node-validation.outputs.has_package_json == 'true' && steps.detect-node-validation.outputs.has_validation_package != 'true'
         run: |
-          echo "package.json files were found, but none defines the required VBD/frontmatter/solution validation scripts."
+          echo "The repository root package.json is missing one or more required VBD/frontmatter/solution validation scripts."
           exit 1
 
       - name: Ensure validation lockfile exists
