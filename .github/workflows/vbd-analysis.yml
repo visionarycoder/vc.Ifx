@@ -11,6 +11,7 @@ on:
       - ".github/skills/vbd-*/**"
       - ".github/prompts/vbd-*.prompt.md"
       - "package.json"
+      - "package-lock.json"
       - ".github/workflows/vbd-analysis.yml"
   pull_request:
     paths:
@@ -22,6 +23,7 @@ on:
       - ".github/skills/vbd-*/**"
       - ".github/prompts/vbd-*.prompt.md"
       - "package.json"
+      - "package-lock.json"
       - ".github/workflows/vbd-analysis.yml"
   workflow_dispatch: {}
 
@@ -43,36 +45,126 @@ jobs:
 
       - name: Detect Node validation scripts
         id: detect-node-validation
+        shell: bash
         run: |
-          if [ -f "package.json" ]; then
-            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
-          else
+          package_json_path="$GITHUB_WORKSPACE/package.json"
+          required_scripts=(
+            "vbd:artifacts:test"
+            "frontmatter:test"
+            "solution:markdown:test"
+            "vbd:analysis:validate"
+            "frontmatter:validate"
+            "solution:markdown:check"
+          )
+
+          if [ ! -f "$package_json_path" ]; then
             echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+            echo "has_invalid_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
+          echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          if node - "$package_json_path" "${required_scripts[@]}" <<'EOF'
+          const fs = require("fs");
+
+          const packageJsonPath = process.argv[2];
+          const requiredScripts = process.argv.slice(3);
+
+          try {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+            const scripts = packageJson.scripts ?? {};
+            const hasAllScripts = requiredScripts.every((name) =>
+              Object.prototype.hasOwnProperty.call(scripts, name));
+
+            process.exit(hasAllScripts ? 0 : 1);
+          } catch (error) {
+            console.error(`Failed to read ${packageJsonPath}: ${error.message}`);
+            process.exit(2);
+          }
+          EOF
+          then
+            node_status=0
+          else
+            node_status=$?
+          fi
+
+          if [ "$node_status" -eq 2 ]; then
+            echo "has_invalid_package_json=true" >> "$GITHUB_OUTPUT"
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "package_dir=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
+          echo "has_invalid_package_json=false" >> "$GITHUB_OUTPUT"
+
+          if [ "$node_status" -eq 0 ]; then
+            echo "has_validation_package=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "$GITHUB_WORKSPACE/package-lock.json" ]; then
+            echo "has_package_lock=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure root package.json is valid
+        if: steps.detect-node-validation.outputs.has_invalid_package_json == 'true'
+        run: |
+          echo "The repository root package.json is invalid JSON and must be fixed before VBD validation can run."
+          exit 1
+
+      - name: Ensure root package.json defines validation scripts
+        if: steps.detect-node-validation.outputs.has_package_json == 'true' && steps.detect-node-validation.outputs.has_validation_package != 'true' && steps.detect-node-validation.outputs.has_invalid_package_json != 'true'
+        run: |
+          echo "The repository root package.json is missing one or more required VBD/frontmatter/solution validation scripts."
+          exit 1
+
+      - name: Ensure validation lockfile exists
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock != 'true'
+        run: |
+          echo "The selected validation package at ${{ steps.detect-node-validation.outputs.package_dir }} must include a package-lock.json so this workflow can use npm ci deterministically."
+          exit 1
+
+      - name: Install Node dependencies
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: npm ci
+
       - name: Run VBD artifact automation tests
-        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: npm run vbd:artifacts:test
 
       - name: Run documentation infrastructure tests
-        if: steps.detect-node-validation.outputs.has_package_json == 'true'
-        run: npm run frontmatter:test && npm run solution:markdown:test
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
+        run: |
+          npm run frontmatter:test
+          npm run solution:markdown:test
 
       - name: Validate docs/analysis (only if present)
-        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: |
-          if [ -d "docs/analysis" ]; then
+          if [ -d "${{ github.workspace }}/docs/analysis" ]; then
             npm run vbd:analysis:validate
           else
             echo "docs/analysis not present; skipping VBD analysis validation (validate-if-present)."
           fi
 
       - name: Validate Markdown front matter
-        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: npm run frontmatter:validate
 
       - name: Verify .github Markdown files are tracked in the solution
-        if: steps.detect-node-validation.outputs.has_package_json == 'true'
+        if: steps.detect-node-validation.outputs.has_validation_package == 'true' && steps.detect-node-validation.outputs.has_package_lock == 'true'
+        working-directory: ${{ steps.detect-node-validation.outputs.package_dir }}
         run: npm run solution:markdown:check
 
       - name: Skip Node validation when package.json is absent
