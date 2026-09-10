@@ -10,8 +10,8 @@ on:
       - "docs/analysis/**"
       - ".github/skills/vbd-*/**"
       - ".github/prompts/vbd-*.prompt.md"
-      - "**/package.json"
-      - "**/package-lock.json"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/vbd-analysis.yml"
   pull_request:
     paths:
@@ -22,8 +22,8 @@ on:
       - "docs/analysis/**"
       - ".github/skills/vbd-*/**"
       - ".github/prompts/vbd-*.prompt.md"
-      - "**/package.json"
-      - "**/package-lock.json"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/vbd-analysis.yml"
   workflow_dispatch: {}
 
@@ -47,6 +47,7 @@ jobs:
         id: detect-node-validation
         shell: bash
         run: |
+          package_json_path="$GITHUB_WORKSPACE/package.json"
           required_scripts=(
             "vbd:artifacts:test"
             "frontmatter:test"
@@ -56,11 +57,15 @@ jobs:
             "solution:markdown:check"
           )
 
-          has_package_json=false
-          while IFS= read -r -d '' package_json_path; do
-            has_package_json=true
-            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
-            if node - "$package_json_path" "${required_scripts[@]}" <<'EOF'
+          if [ ! -f "$package_json_path" ]; then
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          if node - "$package_json_path" "${required_scripts[@]}" <<'EOF'
           const fs = require("fs");
 
           const packageJsonPath = process.argv[2];
@@ -78,42 +83,29 @@ jobs:
             process.exit(2);
           }
           EOF
-            then
-              node_status=0
-            else
-              node_status=$?
-            fi
-
-            if [ "$node_status" -eq 0 ]; then
-              package_dir="$(dirname "$package_json_path")"
-              echo "has_validation_package=true" >> "$GITHUB_OUTPUT"
-              echo "package_dir=$package_dir" >> "$GITHUB_OUTPUT"
-
-              if [ -f "$package_dir/package-lock.json" ]; then
-                echo "has_package_lock=true" >> "$GITHUB_OUTPUT"
-              else
-                echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
-              fi
-
-              exit 0
-            fi
-
-            if [ "$node_status" -eq 2 ]; then
-              exit 1
-            fi
-          done < <(find . -path './node_modules' -prune -o -name 'package.json' -print0)
-
-          if [ "$has_package_json" != 'true' ]; then
-            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
-            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
-            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          then
+            node_status=0
+          else
+            node_status=$?
           fi
 
-          echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          if [ "$node_status" -eq 2 ]; then
+            exit 1
+          fi
 
-          echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
-          echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+          echo "package_dir=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
+
+          if [ "$node_status" -eq 0 ]; then
+            echo "has_validation_package=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_validation_package=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "$GITHUB_WORKSPACE/package-lock.json" ]; then
+            echo "has_package_lock=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_package_lock=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Ensure validation package exists
         if: steps.detect-node-validation.outputs.has_package_json == 'true' && steps.detect-node-validation.outputs.has_validation_package != 'true'
