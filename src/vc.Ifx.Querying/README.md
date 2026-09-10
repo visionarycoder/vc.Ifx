@@ -28,6 +28,8 @@ compatibility filters use CLR semantics; database provider support varies.
 See [the contract](../../docs/filtering/query-contract.md) for versioning and
 validation. Tests include SQLite queries, malformed payloads, schema/operator
 consistency, null semantics and serialization roundtrips.
+See [the application-stack usage guide](../../docs/filtering/application-stack-usage.md)
+for layered Client/Manager/Access usage with FilterSpec and EF Core.
 
 ```powershell
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -TestSourceScope Querying -TestPackage vc.Ifx.Querying -CoveragePackage vc.Ifx.Querying -Filter FullyQualifiedName~Querying

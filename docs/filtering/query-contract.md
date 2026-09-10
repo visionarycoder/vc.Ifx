@@ -34,3 +34,6 @@ types are validated during rehydration. Unknown schema versions are not silently
 accepted: a future format requires an explicit converter/versioned entry point.
 Rehydration adapts the legacy shape to the shared Filtering expression engine;
 it never drops invalid children or returns an unfiltered query on failure.
+
+See [application-stack-usage.md](./application-stack-usage.md) for layered
+Client/Manager/Access usage guidance with FilterSpec and EF Core integration.

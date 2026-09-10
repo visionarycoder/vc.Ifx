@@ -31,3 +31,6 @@ EF collation/null/provider behavior requires separate integration verification.
 Polymorphic JSON uses `$type`: condition, group, collection, constant, not.
 Existing enum values and leaf field names stay unchanged. Applications must enforce
 allowed fields, size/depth limits and authorization before accepting external ASTs.
+
+See [application-stack-usage.md](./application-stack-usage.md) for layered
+Client/Manager/Access usage guidance with QuerySpec and EF Core integration.

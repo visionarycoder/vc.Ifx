@@ -39,6 +39,8 @@ TimeOnly membership values preserve seconds and fractional ticks during portable
 and JSON round trips.
 See [the contract](../../docs/filtering/filter-contract.md) for supported syntax,
 scalar collection paths, serialization, compatibility and application validation.
+See [the application-stack usage guide](../../docs/filtering/application-stack-usage.md)
+for layered Client/Manager/Access usage with QuerySpec and EF Core.
 
 ## Verification
 
