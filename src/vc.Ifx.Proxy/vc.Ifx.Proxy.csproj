@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>vc.Ifx.Proxy</PackageId>
+    <Description>Proxy invocation pipelines and cross-cutting interceptors for vc.Ifx.</Description>
+    <PackageTags>proxy;interceptors;resilience;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -21,12 +26,13 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Options" />
-    <PackageReference Include="Polly.Caching.Memory" />
-    <PackageReference Include="Polly.Caching.MemoryCache" />
-    <PackageReference Include="Polly.Contrib.WaitAndRetry" />
+    <PackageReference Include="Polly" />
     <PackageReference Include="Polly.Core" />
     <PackageReference Include="Polly.Extensions" />
     <PackageReference Include="Polly.RateLimiting" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

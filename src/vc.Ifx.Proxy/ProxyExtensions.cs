@@ -21,10 +21,11 @@ public static class ProxyExtensions
         public IServiceCollection AddProxyPipeline()
     {
         // Register core pipeline components
-        services.TryAddSingleton<IProxyPipeline, DefaultProxyPipeline>();
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddScoped<IProxyPipeline, DefaultProxyPipeline>();
 
         // Register memory cache if not already registered
-        services.TryAddSingleton<IMemoryCache, MemoryCache>();
+        services.AddMemoryCache();
         return services;
 
     }

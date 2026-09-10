@@ -25,9 +25,7 @@ public sealed class FrameworkInfoProvider : IFrameworkInfoProvider
         get
         {
             var assembly = Assembly.GetExecutingAssembly();
-            return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                   ?? assembly.GetName().Version?.ToString()
-                   ?? "0.0.0";
+            return GetVersion(assembly);
         }
     }
 
@@ -46,6 +44,7 @@ public sealed class FrameworkInfoProvider : IFrameworkInfoProvider
     /// The compilation timestamp is derived from the executing assembly file's
     /// creation time. This provides an approximation useful for diagnostics but
     /// is not guaranteed to be the exact build-time in all CI/CD environments.
+    /// Missing files and single-file assemblies return <see cref="DateTimeOffset.MinValue"/>.
     /// </remarks>
     public DateTimeOffset CompiledAt { get; } = GetCompilationTime();
 
@@ -56,8 +55,19 @@ public sealed class FrameworkInfoProvider : IFrameworkInfoProvider
     private static DateTimeOffset GetCompilationTime()
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var fileInfo = new FileInfo(assembly.Location);
-        return fileInfo.CreationTime;
+        return GetCompilationTime(assembly.Location);
+    }
+
+    private static string GetVersion(Assembly assembly) =>
+        assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? assembly.GetName().Version?.ToString()
+        ?? "0.0.0";
+
+    private static DateTimeOffset GetCompilationTime(string location)
+    {
+        // Single-file hosts have no assembly path; missing files have no reliable timestamp.
+        if (string.IsNullOrEmpty(location) || !File.Exists(location)) return DateTimeOffset.MinValue;
+        return File.GetCreationTime(location);
     }
     
 }

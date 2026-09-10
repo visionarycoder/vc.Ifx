@@ -1,60 +1,52 @@
 using System.Linq.Expressions;
-using System.Reflection;
+using VisionaryCoder.Framework.Filtering;
+using Core = VisionaryCoder.Framework.Filtering.Abstractions;
 
 namespace VisionaryCoder.Framework.Querying.Serialization;
 
+/// <summary>Adapts legacy serialized filters to validated provider expressions.</summary>
 public static class QueryFilterRehydrator
 {
+    /// <summary>Rehydrates a filter without executing a query or dropping invalid children.</summary>
     public static QueryFilter<T> ToQueryFilter<T>(this FilterNode node)
     {
-        return node switch
-        {
-            PropertyFilter pf => BuildPropertyFilter<T>(pf),
-            CompositeFilter cf => BuildCompositeFilter<T>(cf),
-            _ => throw new NotSupportedException($"Unknown filter node: {node?.GetType().Name}")
-        };
+        ArgumentNullException.ThrowIfNull(node);
+        FilterNode snapshot = QueryFilterSerializer.Deserialize(QueryFilterSerializer.Serialize(node))!;
+        return Build<T>(snapshot);
     }
 
-    private static QueryFilter<T> BuildPropertyFilter<T>(PropertyFilter pf)
+    private static QueryFilter<T> Build<T>(FilterNode node)
     {
-        ParameterExpression param = Expression.Parameter(typeof(T), "x");
-        MemberExpression prop = Expression.PropertyOrField(param, pf.Property);
-        ConstantExpression constant = Expression.Constant(pf.Value ?? string.Empty);
-
-        Expression body = pf.Operator switch
-        {
-            "Contains" => CallStringMethod(prop, "Contains", constant, pf.IgnoreCase),
-            "StartsWith" => CallStringMethod(prop, "StartsWith", constant, pf.IgnoreCase),
-            "EndsWith" => CallStringMethod(prop, "EndsWith", constant, pf.IgnoreCase),
-            _ => throw new NotSupportedException($"Unsupported operator {pf.Operator}")
-        };
-
-        return new QueryFilter<T>(Expression.Lambda<Func<T, bool>>(body, param));
+        if (node is PropertyFilter property) return BuildProperty<T>(property);
+        // The structural reader has validated and snapshotted every node in this tree.
+        var composite = (CompositeFilter)node;
+        return composite.Operator == "Not" ? Build<T>(composite.Children[0]).Not()
+            : composite.Children.Select(Build<T>).Join(composite.Operator == "And");
     }
 
-    private static QueryFilter<T> BuildCompositeFilter<T>(CompositeFilter cf)
+    private static QueryFilter<T> BuildProperty<T>(PropertyFilter property)
     {
-        if (cf is { Operator: "Not", Children.Count: 1 })
-            return cf.Children[0].ToQueryFilter<T>().Not();
-
-        return cf.Operator switch
+        if (property.IgnoreCase)
         {
-            "And" => cf.Children.Select(c => c.ToQueryFilter<T>()).Join(useAnd: true),
-            "Or" => cf.Children.Select(c => c.ToQueryFilter<T>()).Join(useAnd: false),
-            _ => throw new NotSupportedException($"Unsupported composite operator {cf.Operator}")
-        };
-    }
-
-    private static Expression CallStringMethod(Expression prop, string method, ConstantExpression constant, bool ignoreCase)
-    {
-        if (!ignoreCase)
-        {
-            return Expression.Call(prop, typeof(string).GetMethod(method, [typeof(string)])!, constant);
+            ParameterExpression parameter = Expression.Parameter(typeof(T), "item");
+            Expression member = parameter;
+            foreach (string segment in property.Property.Split('.')) member = Expression.PropertyOrField(member, segment);
+            if (member.Type != typeof(string)) throw new NotSupportedException("ignoreCase requires a string member.");
+            if (property.Operator is not ("Contains" or "StartsWith" or "EndsWith" or "Equals" or "NotEquals"))
+                throw new NotSupportedException("ignoreCase is supported for string matching and equality only.");
+            if (property.Value is null && property.Operator is not ("Equals" or "NotEquals"))
+                throw new ArgumentException("String matching requires a non-null value.", nameof(property));
+            Expression value = Expression.Constant(property.Value, typeof(string));
+            Expression body = property.Operator is "Equals" or "NotEquals"
+                ? Expression.Call(typeof(string), nameof(string.Equals), Type.EmptyTypes, member, value, Expression.Constant(StringComparison.OrdinalIgnoreCase))
+                : Expression.AndAlso(Expression.NotEqual(member, Expression.Constant(null, typeof(string))),
+                    Expression.Call(member, property.Operator, Type.EmptyTypes, value, Expression.Constant(StringComparison.OrdinalIgnoreCase)));
+            if (property.Operator == "NotEquals") body = Expression.Not(body);
+            return new QueryFilter<T>(Expression.Lambda<Func<T, bool>>(body, parameter));
         }
-
-        MethodInfo toLower = typeof(string).GetMethod(nameof(string.ToLowerInvariant), Type.EmptyTypes)!;
-        MethodCallExpression loweredProp = Expression.Call(prop, toLower);
-        ConstantExpression loweredConst = Expression.Constant(((string)constant.Value!).ToLowerInvariant());
-        return Expression.Call(loweredProp, typeof(string).GetMethod(method, [typeof(string)])!, loweredConst);
+        Core.FilterOperation operation = QueryFilterOperations.All[property.Operator];
+        Core.FilterNode condition = new Core.FilterCondition(property.Property, operation, property.Value);
+        if (property.Operator == "NotIn") condition = new Core.FilterNegation(condition);
+        return new QueryFilter<T>(FilterExpression.Create<T>(condition));
     }
 }

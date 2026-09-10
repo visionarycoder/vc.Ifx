@@ -98,7 +98,14 @@ public class TokenResult
     /// Gets the time remaining until token expiration.
     /// </summary>
     /// <value>The remaining time, or TimeSpan.Zero if expired.</value>
-    public TimeSpan TimeUntilExpiry => IsExpired ? TimeSpan.Zero : ExpiryTime - DateTimeOffset.UtcNow;
+    public TimeSpan TimeUntilExpiry
+    {
+        get
+        {
+            TimeSpan remaining = ExpiryTime - DateTimeOffset.UtcNow;
+            return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+        }
+    }
 
     /// <summary>
     /// Gets whether the token is close to expiration (within the specified threshold).
@@ -117,10 +124,7 @@ public class TokenResult
     /// </summary>
     public void UpdateExpiryTime()
     {
-        if (ExpiresIn > 0)
-        {
-            ExpiryTime = DateTimeOffset.UtcNow.AddSeconds(ExpiresIn);
-        }
+        ExpiryTime = DateTimeOffset.UtcNow.AddSeconds(Math.Max(0, ExpiresIn));
     }
 
     /// <summary>

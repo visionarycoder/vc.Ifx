@@ -190,6 +190,7 @@ public class StorageService(ILogger<StorageService> logger) : ServiceBase<Storag
     {
         ValidatePath(path);
         ValidateSearchPattern(searchPattern);
+        cancellationToken.ThrowIfCancellationRequested();
         await Task.Yield();
         foreach (string file in Directory.EnumerateFiles(path, searchPattern))
         {

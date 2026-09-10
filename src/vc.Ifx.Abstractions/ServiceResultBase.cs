@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+
 namespace VisionaryCoder.Framework;
 
 /// <summary>
@@ -24,4 +26,11 @@ public abstract class ServiceResultBase(bool isSuccess, string? errorMessage, Ex
     /// Gets the exception if the operation failed with an exception.
     /// </summary>
     public Exception? Exception { get; } = exception;
+
+    internal static void ValidateFailureException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        if (exception is OperationCanceledException)
+            ExceptionDispatchInfo.Throw(exception);
+    }
 }

@@ -116,7 +116,7 @@ public class FrameworkInfoProviderTests
     public void GetCompilationTime_ShouldReturnAssemblyCreationTime()
     {
         // Arrange
-        var assembly = Assembly.GetExecutingAssembly();
+        var assembly = typeof(FrameworkInfoProvider).Assembly;
         var fileInfo = new FileInfo(assembly.Location);
         DateTime expectedTime = fileInfo.CreationTime;
 

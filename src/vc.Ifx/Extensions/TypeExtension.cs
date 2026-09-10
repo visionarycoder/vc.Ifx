@@ -45,10 +45,10 @@ public static class TypeExtension
             int intValue => intValue,
             bool boolValue => boolValue ? 1 : 0,
             string stringValue => int.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out int result) ? result : defaultValue,
-            double doubleValue => (int)doubleValue,
-            decimal decimalValue => (int)decimalValue,
+            double doubleValue => doubleValue.AsIntegerOrNull() ?? defaultValue,
+            decimal decimalValue => decimalValue.AsIntegerOrNull() ?? defaultValue,
             long longValue => longValue > int.MaxValue || longValue < int.MinValue ? defaultValue : (int)longValue,
-            float floatValue => (int)floatValue,
+            float floatValue => floatValue.AsIntegerOrNull() ?? defaultValue,
             byte byteValue => byteValue,
             short shortValue => shortValue,
             uint uintValue => uintValue > int.MaxValue ? defaultValue : (int)uintValue,
@@ -66,9 +66,9 @@ public static class TypeExtension
             long longValue => longValue,
             int intValue => intValue,
             string stringValue => long.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out long result) ? result : defaultValue,
-            double doubleValue => (long)doubleValue,
-            decimal decimalValue => (long)decimalValue,
-            float floatValue => (long)floatValue,
+            double doubleValue => doubleValue.AsLongOrNull() ?? defaultValue,
+            decimal decimalValue => decimalValue.AsLongOrNull() ?? defaultValue,
+            float floatValue => floatValue.AsLongOrNull() ?? defaultValue,
             uint uintValue => uintValue,
             ulong ulongValue => ulongValue > long.MaxValue ? defaultValue : (long)ulongValue,
             _ => defaultValue
@@ -99,15 +99,22 @@ public static class TypeExtension
     {
         if (value == null)
             return defaultValue;
-        return value switch
+        try
         {
-            decimal decimalValue => decimalValue,
-            bool boolValue => boolValue ? 1m : 0m,
-            string stringValue => decimal.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : defaultValue,
-            double doubleValue => (decimal)doubleValue,
-            float floatValue => (decimal)floatValue,
-            _ => defaultValue
-        };
+            return value switch
+            {
+                decimal decimalValue => decimalValue,
+                bool boolValue => boolValue ? 1m : 0m,
+                string stringValue => decimal.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : defaultValue,
+                double doubleValue => (decimal)doubleValue,
+                float floatValue => (decimal)floatValue,
+                _ => defaultValue
+            };
+        }
+        catch (OverflowException)
+        {
+            return defaultValue;
+        }
     }
     /// Converts the value to a float.
     /// <returns>The float value, or the default value if conversion fails.</returns>
@@ -140,7 +147,8 @@ public static class TypeExtension
         {
             DateTime dateTimeValue => dateTimeValue,
             string stringValue => DateTime.TryParse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : defaultValue,
-            long longValue => DateTimeOffset.FromUnixTimeMilliseconds(longValue).DateTime,
+            long longValue => longValue >= -62135596800000L && longValue <= 253402300799999L
+                ? DateTimeOffset.FromUnixTimeMilliseconds(longValue).DateTime : defaultValue,
             int intValue => DateTimeOffset.FromUnixTimeSeconds(intValue).DateTime,
             _ => defaultValue
         };
@@ -156,7 +164,8 @@ public static class TypeExtension
             DateTimeOffset dateTimeOffsetValue => dateTimeOffsetValue,
             DateTime dateTimeValue => new DateTimeOffset(dateTimeValue),
             string stringValue => DateTimeOffset.TryParse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset result) ? result : defaultValue,
-            long longValue => DateTimeOffset.FromUnixTimeMilliseconds(longValue),
+            long longValue => longValue >= -62135596800000L && longValue <= 253402300799999L
+                ? DateTimeOffset.FromUnixTimeMilliseconds(longValue) : defaultValue,
             int intValue => DateTimeOffset.FromUnixTimeSeconds(intValue),
             _ => defaultValue
         };
@@ -250,9 +259,9 @@ public static class TypeExtension
         {
             TEnum enumValue => enumValue,
             string stringValue => Enum.TryParse(stringValue, true, out TEnum result) ? result : defaultValue,
-            int intValue => Enum.IsDefined(typeof(TEnum), intValue) ? (TEnum)Enum.ToObject(typeof(TEnum), intValue) : defaultValue,
-            byte byteValue => Enum.IsDefined(typeof(TEnum), byteValue) ? (TEnum)Enum.ToObject(typeof(TEnum), byteValue) : defaultValue,
-            short shortValue => Enum.IsDefined(typeof(TEnum), shortValue) ? (TEnum)Enum.ToObject(typeof(TEnum), shortValue) : defaultValue,
+            int intValue => DefinedEnumOrNull<TEnum>(intValue) ?? defaultValue,
+            byte byteValue => DefinedEnumOrNull<TEnum>(byteValue) ?? defaultValue,
+            short shortValue => DefinedEnumOrNull<TEnum>(shortValue) ?? defaultValue,
             _ => defaultValue
         };
     }
@@ -268,7 +277,7 @@ public static class TypeExtension
             string stringValue => TimeSpan.TryParse(stringValue, CultureInfo.InvariantCulture, out TimeSpan result) ? result : defaultValue,
             long longValue => TimeSpan.FromTicks(longValue),
             int intValue => TimeSpan.FromMilliseconds(intValue),
-            double doubleValue => TimeSpan.FromMilliseconds(doubleValue),
+            double doubleValue => MillisecondsOrNull(doubleValue) ?? defaultValue,
             _ => defaultValue
         };
     }
@@ -285,7 +294,6 @@ public static class TypeExtension
         {
             TElement[] arrayValue => arrayValue,
             IEnumerable<TElement> enumerableValue => enumerableValue.ToArray(),
-            string stringValue when typeof(TElement) == typeof(char) => stringValue.Cast<TElement>().ToArray(),
             _ => null
         };
     }
@@ -319,7 +327,7 @@ public static class TypeExtension
             double doubleValue => doubleValue >= int.MinValue && doubleValue <= int.MaxValue ? (int)doubleValue : null,
             decimal decimalValue => decimalValue >= int.MinValue && decimalValue <= int.MaxValue ? (int)decimalValue : null,
             long longValue => longValue >= int.MinValue && longValue <= int.MaxValue ? (int)longValue : null,
-            float floatValue => floatValue >= int.MinValue && floatValue <= int.MaxValue ? (int)floatValue : null,
+            float floatValue => floatValue >= int.MinValue && (double)floatValue <= int.MaxValue ? (int)floatValue : null,
             uint uintValue => uintValue <= int.MaxValue ? (int)uintValue : null,
             _ => null
         };
@@ -335,9 +343,9 @@ public static class TypeExtension
             long longValue => longValue,
             bool boolValue => boolValue ? 1L : 0L,
             string stringValue => long.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out long result) ? result : null,
-            double doubleValue => doubleValue >= long.MinValue && doubleValue <= long.MaxValue ? (long)doubleValue : null,
+            double doubleValue => doubleValue >= long.MinValue && doubleValue < 9223372036854775808D ? (long)doubleValue : null,
             decimal decimalValue => decimalValue >= long.MinValue && decimalValue <= long.MaxValue ? (long)decimalValue : null,
-            float floatValue => floatValue >= long.MinValue && floatValue <= long.MaxValue ? (long)floatValue : null,
+            float floatValue => floatValue >= long.MinValue && floatValue < 9223372036854775808D ? (long)floatValue : null,
             ulong ulongValue => ulongValue <= long.MaxValue ? (long)ulongValue : null,
             _ => null
         };
@@ -501,9 +509,9 @@ public static class TypeExtension
         {
             TEnum enumValue => enumValue,
             string stringValue => Enum.TryParse(stringValue, true, out TEnum result) ? result : null,
-            int intValue => Enum.IsDefined(typeof(TEnum), intValue) ? (TEnum)Enum.ToObject(typeof(TEnum), intValue) : null,
-            byte byteValue => Enum.IsDefined(typeof(TEnum), byteValue) ? (TEnum)Enum.ToObject(typeof(TEnum), byteValue) : null,
-            short shortValue => Enum.IsDefined(typeof(TEnum), shortValue) ? (TEnum)Enum.ToObject(typeof(TEnum), shortValue) : null,
+            int intValue => DefinedEnumOrNull<TEnum>(intValue),
+            byte byteValue => DefinedEnumOrNull<TEnum>(byteValue),
+            short shortValue => DefinedEnumOrNull<TEnum>(shortValue),
             _ => null
         };
     }
@@ -521,28 +529,12 @@ public static class TypeExtension
             {
                 return result;
             }
-            // Try standard conversions for reference types
-            Type targetType = typeof(TResult);
-            if (targetType == typeof(string)) return value.AsStringOrNull() as TResult;
-            if (targetType == typeof(bool)) return (TResult?)(object?)value.AsBooleanOrNull();
-            if (targetType == typeof(int)) return (TResult?)(object?)value.AsIntegerOrNull();
-            if (targetType == typeof(long)) return (TResult?)(object?)value.AsLongOrNull();
-            if (targetType == typeof(double)) return (TResult?)(object?)value.AsDoubleOrNull();
-            if (targetType == typeof(decimal)) return (TResult?)(object?)value.AsDecimalOrNull();
-            if (targetType == typeof(float)) return (TResult?)(object?)value.AsFloatOrNull();
-            if (targetType == typeof(DateTime)) return (TResult?)(object?)value.AsDateTimeOrNull();
-            if (targetType == typeof(Guid)) return (TResult?)(object?)value.AsGuidOrNull();
-            if (targetType == typeof(byte)) return (TResult?)(object?)value.AsByteOrNull();
-            if (targetType == typeof(short)) return (TResult?)(object?)value.AsShortOrNull();
-            if (targetType == typeof(char)) return (TResult?)(object?)value.AsCharOrNull();
-            if (targetType == typeof(TimeSpan)) return (TResult?)(object?)value.AsTimeSpanOrNull();
-            // Try direct conversion if it's a value type
-            if (value is TResult resultValue)
-                return resultValue;
+            // The class constraint permits reference identity and string conversion only.
+            if (typeof(TResult) == typeof(string)) return value.AsStringOrNull() as TResult;
         }
         catch
         {
-            // Handle exceptions if necessary
+            // Retain the legacy nonthrowing contract for user-defined ToString methods.
         }
         return null;
     }
@@ -573,6 +565,27 @@ public static class TypeExtension
     }
 
     #endregion
+
+    private static TEnum? DefinedEnumOrNull<TEnum>(int value) where TEnum : struct, Enum
+    {
+        // Parsing checks the enum's actual underlying range before IsDefined, avoiding
+        // both mismatched boxed primitive types and truncation in Enum.ToObject.
+        return Enum.TryParse(value.ToString(CultureInfo.InvariantCulture), out TEnum result)
+            && Enum.IsDefined(result) ? result : null;
+    }
+
+    private static TimeSpan? MillisecondsOrNull(double value)
+    {
+        if (double.IsNaN(value)) return null;
+        try
+        {
+            return TimeSpan.FromMilliseconds(value);
+        }
+        catch (OverflowException)
+        {
+            return null;
+        }
+    }
 
     /// Gets a value indicating whether the object is of the specified type.
     /// <typeparam name="T">The type to check.</typeparam>

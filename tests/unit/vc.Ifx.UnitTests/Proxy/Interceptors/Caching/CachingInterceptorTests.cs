@@ -64,7 +64,7 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_FirstCall_ShouldCacheMiss()
     {
         // Arrange
-        var context = new ProxyContext { OperationName = "TestOp" };
+        var context = new ProxyContext { Method = "GET", OperationName = "TestOp" };
         int callCount = 0;
 
         Task<ProxyResponse<string>> Next(ProxyContext ctx, CancellationToken ct)
@@ -86,8 +86,8 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_SecondCall_ShouldCacheHit()
     {
         // Arrange
-        var context1 = new ProxyContext { OperationName = "TestOp" };
-        var context2 = new ProxyContext { OperationName = "TestOp" };
+        var context1 = new ProxyContext { Method = "GET", OperationName = "TestOp" };
+        var context2 = new ProxyContext { Method = "GET", OperationName = "TestOp" };
         int callCount = 0;
 
         Task<ProxyResponse<int>> Next(ProxyContext ctx, CancellationToken ct)
@@ -112,7 +112,7 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_WithDisableCache_ShouldBypassCache()
     {
         // Arrange
-        var context = new ProxyContext { OperationName = "TestOp" };
+        var context = new ProxyContext { Method = "GET", OperationName = "TestOp" };
         context.Metadata["DisableCache"] = true;
         int callCount = 0;
 
@@ -134,8 +134,8 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_WithFailedResponse_ShouldNotCache()
     {
         // Arrange
-        var context1 = new ProxyContext { OperationName = "FailOp" };
-        var context2 = new ProxyContext { OperationName = "FailOp" };
+        var context1 = new ProxyContext { Method = "GET", OperationName = "FailOp" };
+        var context2 = new ProxyContext { Method = "GET", OperationName = "FailOp" };
         int callCount = 0;
 
         Task<ProxyResponse<string>> Next(ProxyContext ctx, CancellationToken ct)
@@ -156,7 +156,7 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_WithCustomCacheDuration_ShouldUseCustomDuration()
     {
         // Arrange
-        var context = new ProxyContext { OperationName = "CustomDurationOp" };
+        var context = new ProxyContext { Method = "GET", OperationName = "CustomDurationOp" };
         context.Metadata["CacheDurationSeconds"] = 60;
 
         Task<ProxyResponse<bool>> Next(ProxyContext ctx, CancellationToken ct) =>
@@ -166,7 +166,7 @@ public class CachingInterceptorTests
         await interceptor.InvokeAsync(context, Next, CancellationToken.None);
 
         // Assert - should be cached
-        var cachedContext = new ProxyContext { OperationName = "CustomDurationOp" };
+        var cachedContext = new ProxyContext { Method = "GET", OperationName = "CustomDurationOp" };
         cachedContext.Metadata["CacheDurationSeconds"] = 60;
         ProxyResponse<bool> result = await interceptor.InvokeAsync(cachedContext, Next, CancellationToken.None);
 
@@ -184,8 +184,8 @@ public class CachingInterceptorTests
         };
         var customInterceptor = new CachingInterceptor(mockLogger.Object, cache, customOptions);
 
-        var context1 = new ProxyContext { OperationName = "TestOp" };
-        var context2 = new ProxyContext { OperationName = "TestOp" };
+        var context1 = new ProxyContext { Method = "GET", OperationName = "TestOp" };
+        var context2 = new ProxyContext { Method = "GET", OperationName = "TestOp" };
         int callCount = 0;
 
         Task<ProxyResponse<string>> Next(ProxyContext ctx, CancellationToken ct)
@@ -207,8 +207,8 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_DifferentOperations_ShouldHaveSeparateCacheEntries()
     {
         // Arrange
-        var context1 = new ProxyContext { OperationName = "Op1" };
-        var context2 = new ProxyContext { OperationName = "Op2" };
+        var context1 = new ProxyContext { Method = "GET", OperationName = "Op1" };
+        var context2 = new ProxyContext { Method = "GET", OperationName = "Op2" };
         int callCount = 0;
 
         Task<ProxyResponse<int>> Next(ProxyContext ctx, CancellationToken ct)
@@ -231,7 +231,7 @@ public class CachingInterceptorTests
     public async Task InvokeAsync_WithCancellationToken_ShouldPassThrough()
     {
         // Arrange
-        var context = new ProxyContext { OperationName = "TestOp" };
+        var context = new ProxyContext { Method = "GET", OperationName = "TestOp" };
         var cts = new CancellationTokenSource();
         CancellationToken receivedToken = default;
 

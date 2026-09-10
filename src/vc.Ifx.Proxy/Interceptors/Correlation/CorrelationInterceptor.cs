@@ -35,31 +35,37 @@ public sealed class CorrelationInterceptor : IOrderedProxyInterceptor
         ProxyDelegate<T> next,
         CancellationToken cancellationToken = default)
     {
-        // Get or generate correlation ID
-        string? correlationId = correlationContext.CorrelationId;
-        if (string.IsNullOrEmpty(correlationId))
-        {
-            correlationId = idGenerator.GenerateId();
-            correlationContext.CorrelationId = correlationId;
-            logger.LogDebug("Generated new correlation ID: {CorrelationId}", correlationId);
-        }
-        else
-        {
-            logger.LogDebug("Using existing correlation ID: {CorrelationId}", correlationId);
-        }
-        // Add correlation ID to proxy context
-        context.Items["CorrelationId"] = correlationId;
-        // Add correlation ID to logging scope
-        using IDisposable? scope = logger.BeginScope("CorrelationId: {CorrelationId}", correlationId);
-
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
+        string? previousId = correlationContext.CorrelationId;
+        Dictionary<string, string> previousData = correlationContext.Data;
+        string? correlationId = previousId;
         try
         {
-            return await next(context, cancellationToken);
+            correlationContext.Data = new Dictionary<string, string>(previousData ?? []);
+            if (string.IsNullOrEmpty(correlationId))
+            {
+                correlationId = idGenerator.GenerateId();
+                correlationContext.SetCorrelationId(correlationId);
+                logger.LogDebug("Generated new correlation ID: {CorrelationId}", correlationId);
+            }
+            else
+                logger.LogDebug("Using existing correlation ID: {CorrelationId}", correlationId);
+            context.Items["CorrelationId"] = correlationId;
+            context.CorrelationId = correlationId;
+            using IDisposable? scope = logger.BeginScope("CorrelationId: {CorrelationId}", correlationId);
+            return await next(context, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error in correlation interceptor with CorrelationId: {CorrelationId}", correlationId);
             throw;
+        }
+        finally
+        {
+            correlationContext.CorrelationId = previousId;
+            correlationContext.Data = previousData!;
         }
     }
 }

@@ -111,12 +111,6 @@ public class DefaultCachePolicyProvider(CachingOptions options) : ICachePolicyPr
     /// <returns>True if the method is cacheable by default.</returns>
     private static bool IsMethodCacheable(string? method)
     {
-        return method switch
-        {
-            "GET" or "HEAD" => true,
-            "POST" => false, // Generally not cached unless explicitly configured
-            "PUT" or "DELETE" or "PATCH" => false,
-            _ => false
-        };
+        return method is "GET" or "HEAD";
     }
 }

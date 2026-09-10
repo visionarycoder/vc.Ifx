@@ -37,8 +37,8 @@ public sealed class MapperGenerator : IIncrementalGenerator
             foreach (var classDecl in classDeclarations)
             {
                 var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                var symbol = model.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
-                if (symbol != null)
+                var symbol = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl)!;
+                if (!namedTypeSymbols.Contains(symbol, SymbolEqualityComparer.Default))
                 {
                     namedTypeSymbols.Add(symbol);
                 }
@@ -48,7 +48,7 @@ public sealed class MapperGenerator : IIncrementalGenerator
             var groups = namedTypeSymbols.GroupBy(t => t.Name);
             foreach (var group in groups)
             {
-                var types = group.ToList();
+                var types = group.OrderBy(type => type.ToDisplayString(), StringComparer.Ordinal).ToList();
 
                 if (types.Count < 2)
                     continue;

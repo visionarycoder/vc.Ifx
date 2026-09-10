@@ -19,6 +19,7 @@ public class AuthorizationServiceCollectionExtensionsTests
     public void TestInitialize()
     {
         services = new ServiceCollection();
+        services.AddSingleton<ICollection<string>>(["Reader"]);
     }
 
     #region Manual Registration Tests

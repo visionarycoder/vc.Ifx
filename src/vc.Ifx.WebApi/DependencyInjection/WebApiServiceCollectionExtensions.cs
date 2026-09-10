@@ -7,8 +7,10 @@ using VisionaryCoder.Framework.WebApi.Resilience;
 
 namespace VisionaryCoder.Framework.WebApi.DependencyInjection;
 
+/// <summary>Registers replaceable Web API hosting infrastructure.</summary>
 public static class WebApiServiceCollectionExtensions
 {
+    /// <summary>Registers error handling and validated resilience options without replacing application services.</summary>
     public static IServiceCollection AddIfxWebApi(
         this IServiceCollection services,
         Action<WebApiExceptionHandlingOptions>? configureExceptionHandling = null,
@@ -20,20 +22,32 @@ public static class WebApiServiceCollectionExtensions
         services.AddOptions<WebApiExceptionHandlingOptions>()
             .Configure(options =>
             {
-                options.AddDefaultMappings();
                 configureExceptionHandling?.Invoke(options);
-            });
+            })
+            .Validate(options => { options.Validate(); return true; })
+            .ValidateOnStart();
 
         services.AddOptions<WebApiResilienceOptions>()
-            .Configure(options => configureResilience?.Invoke(options));
+            .Configure(options => configureResilience?.Invoke(options))
+            .Validate(options => { options.Validate(); return true; })
+            .ValidateOnStart();
 
         services.TryAddSingleton<IProblemDetailsExceptionMapper, ProblemDetailsExceptionMapper>();
         services.TryAddSingleton<IWebApiResiliencePipelineFactory, WebApiResiliencePipelineFactory>();
+        services.TryAddSingleton<IWebApiTransientFailureClassifier, WebApiTransientFailureClassifier>();
+        services.TryAddSingleton(TimeProvider.System);
         services.AddExceptionHandler<GlobalExceptionHandler>();
 
         return services;
     }
 
+    /// <summary>Adds ASP.NET Core exception handling using the registered handlers.</summary>
+    /// <remarks>
+    /// Built-in middleware short-circuits aborted cancellation/I/O failures with status 499
+    /// before handlers run, and clears unstarted response headers before mapping other errors.
+    /// Required headers for mapped errors must be supplied by trusted code after that reset.
+    /// Prefer ordinary authentication challenges and routing responses when applicable.
+    /// </remarks>
     public static IApplicationBuilder UseIfxWebApiExceptionHandling(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);

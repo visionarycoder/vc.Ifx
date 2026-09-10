@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -6,95 +6,90 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using vc.Ifx.Analyzers.Helpers;
 using vc.Ifx.Analyzers.Models;
 
-namespace vc.Ifx.Analyzers.Rules.Volatility
+namespace vc.Ifx.Analyzers.Rules.Volatility;
+
+public static class Vbd300EngineStateless
 {
+    public static readonly DiagnosticDescriptor Rule = new(DiagnosticIds.Vbd300EngineStateless, "Engines must be stateless", "Engine '{0}' contains state", "Architecture", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#legacy-vbd-policy");
 
-    public static class Vbd300EngineStateless
+    public static void Initialize(AnalysisContext context)
     {
-        public static readonly DiagnosticDescriptor Rule = new(DiagnosticIds.Vbd300EngineStateless, "Engines must be stateless", "Engine '{0}' contains state", "Architecture", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "Docs/Volatility/vbd300.md");
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+    }
 
-        public static void Initialize(AnalysisContext context)
+    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var namedType = (INamedTypeSymbol)context.Symbol;
+
+        var assemblyName = context.Compilation.Assembly.Name;
+
+        if (ProjectAnalyzer.GetLayer(assemblyName!) != Layer.Engine)
+            return;
+
+        if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))
+            return;
+
+        var stateMember = FindStateMember(namedType, context.CancellationToken);
+        if (stateMember == null)
+            return;
+
+        var location = stateMember.Locations[0];
+
+        var diagnostic = Diagnostic.Create(Rule, location, namedType.Name);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static ISymbol? FindStateMember(INamedTypeSymbol type, CancellationToken cancellationToken)
+    {
+        foreach (var member in type.GetMembers())
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
-        }
-
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
-        {
-            if (context.Symbol is not INamedTypeSymbol namedType)
-                return;
-
-            var assemblyName = namedType.ContainingAssembly?.Name;
-            if (string.IsNullOrWhiteSpace(assemblyName))
-                return;
-
-            if (ProjectAnalyzer.GetLayer(assemblyName!) != Layer.Engine)
-                return;
-
-            if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))
-                return;
-
-            var stateMember = FindStateMember(namedType);
-            if (stateMember == null)
-                return;
-
-            var location = stateMember.Locations.FirstOrDefault()
-                           ?? namedType.Locations.FirstOrDefault()
-                           ?? Location.None;
-
-            var diagnostic = Diagnostic.Create(Rule, location, namedType.Name);
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        private static ISymbol? FindStateMember(INamedTypeSymbol type)
-        {
-            foreach (var member in type.GetMembers())
+            cancellationToken.ThrowIfCancellationRequested();
+            if (member is IFieldSymbol field && IsMutableInstanceField(field))
             {
-                if (member is IFieldSymbol field && IsMutableInstanceField(field))
-                {
-                    return field;
-                }
-
-                if (member is IPropertySymbol property && IsMutableProperty(property))
-                {
-                    return property;
-                }
+                return field;
             }
 
-            return null;
+            if (member is IPropertySymbol property && IsMutableProperty(property))
+            {
+                return property;
+            }
         }
 
-        // VBD300 targets genuinely mutable engine state: a non-static, non-const, non-readonly
-        // instance field that can change across method calls. Excludes:
-        //  - readonly fields � injected dependencies / set-once values are not mutable state;
-        //  - compiler-generated backing fields (auto-properties, primary-constructor captures) �
-        //    the property itself is reported via IsMutableProperty, so flagging its backing field
-        //    too would double-report the same member.
-        private static bool IsMutableInstanceField(IFieldSymbol field)
-        {
-            if (field.IsStatic || field.IsConst || field.IsReadOnly)
-                return false;
+        return null;
+    }
 
-            if (field.IsImplicitlyDeclared || field.AssociatedSymbol is IPropertySymbol)
-                return false;
+    // VBD300 targets genuinely mutable engine state: a non-static, non-const, non-readonly
+    // instance field that can change across method calls. Excludes:
+    //  - readonly fields - injected dependencies / set-once values are not mutable state;
+    //  - compiler-generated backing fields (auto-properties, primary-constructor captures) -
+    //    the property itself is reported via IsMutableProperty, so flagging its backing field
+    //    too would double-report the same member.
+    private static bool IsMutableInstanceField(IFieldSymbol field)
+    {
+        if (field.IsStatic || field.IsReadOnly)
+            return false;
 
-            return true;
-        }
+        if (field.IsImplicitlyDeclared)
+            return false;
 
-        // A settable, non-init, non-static instance property is mutable engine state. This deliberately
-        // mirrors VBD500's contract-immutability check: a `{ get; set; }` member in an engine is both a
-        // contract concern (VBD500) and mutable state (VBD300), and is intentionally flagged under both.
-        private static bool IsMutableProperty(IPropertySymbol property)
-        {
-            if (property.IsStatic)
-                return false;
+        return true;
+    }
 
-            var setter = property.SetMethod;
-            if (setter == null || setter.IsInitOnly)
-                return false;
+    // A settable, non-init, non-static instance property is mutable engine state. This deliberately
+    // mirrors VBD500's contract-immutability check: a `{ get; set; }` member in an engine is both a
+    // contract concern (VBD500) and mutable state (VBD300), and is intentionally flagged under both.
+    private static bool IsMutableProperty(IPropertySymbol property)
+    {
+        if (property.IsStatic)
+            return false;
 
-            return true;
-        }
+        var setter = property.SetMethod;
+        if (setter == null || setter.IsInitOnly)
+            return false;
+
+        return true;
     }
 }

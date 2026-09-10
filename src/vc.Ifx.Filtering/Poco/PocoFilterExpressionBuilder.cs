@@ -8,205 +8,151 @@ namespace VisionaryCoder.Framework.Filtering.Poco;
 
 internal static class PocoFilterExpressionBuilder
 {
-    public static Expression? BuildExpression<T>(FilterNode? filter, ParameterExpression parameter)
-        => Build(filter, parameter);
+    public static Expression BuildExpression<T>(FilterNode? filter, ParameterExpression parameter) =>
+        filter is null ? Expression.Constant(true) : Build(filter, parameter);
 
-    private static Expression? Build(FilterNode? node, ParameterExpression parameter)
+    private static Expression Build(FilterNode node, ParameterExpression parameter)
     {
-        if (node is null) return null;
+        ArgumentNullException.ThrowIfNull(node);
         return node switch
         {
-            FilterGroup g => BuildGroup(g, parameter),
-            FilterCondition c => BuildCondition(c, parameter),
-            FilterCollectionCondition cc => BuildCollectionCondition(cc, parameter),
-            _ => null
+            FilterConstant constant => Expression.Constant(constant.Value),
+            FilterNegation not => Expression.Not(Build(not.Operand, parameter)),
+            FilterGroup group => BuildGroup(group, parameter),
+            FilterCondition condition => BuildCondition(condition, parameter),
+            FilterCollectionCondition collection => BuildCollection(collection, parameter),
+            _ => throw new NotSupportedException($"Filter node '{node.GetType().Name}' is not supported.")
         };
     }
 
-    private static Expression? BuildGroup(FilterGroup group, ParameterExpression parameter)
+    private static Expression BuildGroup(FilterGroup group, ParameterExpression parameter)
     {
-        Expression? combined = null;
+        if (!Enum.IsDefined(group.Combination)) throw new ArgumentOutOfRangeException(nameof(group));
+        Expression combined = Expression.Constant(group.Combination == FilterCombination.And);
         foreach (FilterNode child in group.Children)
         {
-            Expression? expr = Build(child, parameter);
-            if (expr is null) continue;
-            combined = combined is null
-                ? expr
-                : group.Combination == FilterCombination.And
-                    ? Expression.AndAlso(combined, expr)
-                    : Expression.OrElse(combined, expr);
+            Expression next = Build(child, parameter);
+            combined = group.Combination == FilterCombination.And
+                ? Expression.AndAlso(combined, next) : Expression.OrElse(combined, next);
         }
         return combined;
     }
 
-    private static Expression? BuildCondition(FilterCondition condition, ParameterExpression parameter)
+    private static Expression BuildCondition(FilterCondition condition, ParameterExpression parameter)
     {
-        MemberExpression? member = BuildMemberAccess(parameter, condition.Path);
-        if (member is null) return null;
-
-        // Special handling for IN
+        Expression member = Member(parameter, condition.Path);
         if (condition.Operator == FilterOperation.In)
         {
-            // condition.Value holds JSON array of string values
-            if (string.IsNullOrEmpty(condition.Value)) return null;
-            try
-            {
-                var items = JsonSerializer.Deserialize<List<string?>>(condition.Value) ?? new();
-                if (items.Count == 0) return null;
-
-                // Build OR equals: (member == v1) || (member == v2) ...
-                Expression? combined = null;
-                foreach (string? s in items)
-                {
-                    object? parsed = ConvertFromString(s, Nullable.GetUnderlyingType(member.Type) ?? member.Type);
-                    if (parsed is null && (Nullable.GetUnderlyingType(member.Type) ?? member.Type).IsValueType && (Nullable.GetUnderlyingType(member.Type) ?? member.Type) != typeof(string))
-                        continue;
-
-                    ConstantExpression c = Expression.Constant(parsed, parsed?.GetType() ?? typeof(string));
-                    Expression leftExpr = member;
-                    if (member.Type != c.Type)
-                    {
-                        if (Nullable.GetUnderlyingType(member.Type) == c.Type)
-                        {
-                            // ok
-                        }
-                        else
-                        {
-                            leftExpr = Expression.Convert(member, c.Type);
-                        }
-                    }
-
-                    Expression eq = Expression.Equal(leftExpr, PromoteNull(c, leftExpr.Type));
-                    combined = combined is null ? eq : Expression.OrElse(combined, eq);
-                }
-
-                return combined;
-            }
-            catch
-            {
-                return null;
-            }
+            string?[] items = JsonSerializer.Deserialize<string?[]>(condition.Value ??
+                throw new ArgumentException("Membership requires a JSON array.", nameof(condition)))
+                ?? throw new ArgumentException("Membership requires a JSON array.", nameof(condition));
+            NewArrayExpression values = Expression.NewArrayInit(member.Type,
+                items.Select(item => Constant(item, member.Type)));
+            return Expression.Call(typeof(Enumerable), nameof(Enumerable.Contains), [member.Type], values, member);
         }
-
-        Type targetType = Nullable.GetUnderlyingType(member.Type) ?? member.Type;
-        object? constantValue = ConvertFromString(condition.Value, targetType);
-        if (constantValue is null && targetType.IsValueType && targetType != typeof(string))
-            return null;
-
-        ConstantExpression constant = Expression.Constant(constantValue, targetType);
-        Expression left = member;
-        if (member.Type != constant.Type)
+        if (condition.Operator == FilterOperation.Contains && member.Type != typeof(string))
         {
-            if (Nullable.GetUnderlyingType(member.Type) == constant.Type)
-            {
-                // ok
-            }
-            else
-            {
-                left = Expression.Convert(member, constant.Type);
-            }
+            Type elementType = ElementType(member.Type);
+            return Expression.Call(typeof(Enumerable), nameof(Enumerable.Contains), [elementType],
+                member, Constant(condition.Value, elementType));
         }
-
+        if (condition.Operator is FilterOperation.Contains or FilterOperation.StartsWith or FilterOperation.EndsWith)
+        {
+            if (member.Type != typeof(string)) throw new NotSupportedException("String operations require a string member.");
+            if (condition.Value is null) throw new ArgumentException("String operations require a non-null value.", nameof(condition));
+            return Expression.Call(member, condition.Operator.ToString(), Type.EmptyTypes,
+                Expression.Constant(condition.Value));
+        }
+        Expression value = Constant(condition.Value, member.Type);
+        if (member.Type.IsEnum && condition.Operator is FilterOperation.GreaterThan or FilterOperation.GreaterOrEqual or FilterOperation.LessThan or FilterOperation.LessOrEqual)
+        {
+            Type underlying = Enum.GetUnderlyingType(member.Type);
+            member = Expression.Convert(member, underlying);
+            value = Expression.Convert(value, underlying);
+        }
         return condition.Operator switch
         {
-            FilterOperation.Equals => Expression.Equal(left, PromoteNull(constant, left.Type)),
-            FilterOperation.NotEquals => Expression.NotEqual(left, PromoteNull(constant, left.Type)),
-            FilterOperation.GreaterThan => Expression.GreaterThan(left, constant),
-            FilterOperation.GreaterOrEqual => Expression.GreaterThanOrEqual(left, constant),
-            FilterOperation.LessThan => Expression.LessThan(left, constant),
-            FilterOperation.LessOrEqual => Expression.LessThanOrEqual(left, constant),
-            FilterOperation.Contains => StringMethod(member, nameof(string.Contains), condition.Value),
-            FilterOperation.StartsWith => StringMethod(member, nameof(string.StartsWith), condition.Value),
-            FilterOperation.EndsWith => StringMethod(member, nameof(string.EndsWith), condition.Value),
-            _ => null
+            FilterOperation.Equals => Expression.Equal(member, value),
+            FilterOperation.NotEquals => Expression.NotEqual(member, value),
+            FilterOperation.GreaterThan => Expression.GreaterThan(member, value),
+            FilterOperation.GreaterOrEqual => Expression.GreaterThanOrEqual(member, value),
+            FilterOperation.LessThan => Expression.LessThan(member, value),
+            FilterOperation.LessOrEqual => Expression.LessThanOrEqual(member, value),
+            _ => throw new NotSupportedException($"Condition operator '{condition.Operator}' is not supported.")
         };
     }
 
-    private static Expression? BuildCollectionCondition(FilterCollectionCondition condition, ParameterExpression parameter)
+    private static Expression BuildCollection(FilterCollectionCondition condition, ParameterExpression parameter)
     {
-        MemberExpression? collection = BuildMemberAccess(parameter, condition.Path);
-        if (collection is null) return null;
-        Type? elementType = GetElementType(collection.Type);
-        if (elementType is null) return null;
-
-        string? anyAllMethodName = condition.Operator switch
-        {
-            FilterOperation.HasElements => nameof(Enumerable.Any),
-            FilterOperation.Any => nameof(Enumerable.Any),
-            FilterOperation.All => nameof(Enumerable.All),
-            _ => null
-        };
-        if (anyAllMethodName is null) return null;
-
+        Expression collection = Member(parameter, condition.Path);
+        Type elementType = ElementType(collection.Type);
         if (condition.Operator == FilterOperation.HasElements)
         {
-            return Expression.Call(
-                typeof(Enumerable), anyAllMethodName, new[] { elementType }, collection);
+            if (condition.Predicate is not null) throw new ArgumentException("HasElements cannot have a predicate.", nameof(condition));
+            return Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), [elementType], collection);
         }
-
-        if (condition.Predicate is null) return null;
-        ParameterExpression elemParam = Expression.Parameter(elementType, "e");
-        Expression? inner = Build(condition.Predicate, elemParam);
-        if (inner is null) return null;
-        LambdaExpression lambda = Expression.Lambda(inner, elemParam);
-        return Expression.Call(
-            typeof(Enumerable), anyAllMethodName, new[] { elementType }, collection, lambda);
+        string method = condition.Operator switch
+        {
+            FilterOperation.Any => nameof(Enumerable.Any),
+            FilterOperation.All => nameof(Enumerable.All),
+            _ => throw new NotSupportedException($"Collection operator '{condition.Operator}' is not supported.")
+        };
+        if (condition.Predicate is null) throw new ArgumentException("Any and All require a predicate.", nameof(condition));
+        ParameterExpression element = Expression.Parameter(elementType, "element");
+        return Expression.Call(typeof(Enumerable), method, [elementType], collection,
+            Expression.Lambda(Build(condition.Predicate, element), element));
     }
 
-    private static Expression? StringMethod(Expression member, string method, string? arg)
+    private static Expression Member(Expression root, string path)
     {
-        if (member.Type != typeof(string)) return null;
-        MethodInfo mi = typeof(string).GetMethod(method, new[] { typeof(string) })!;
-        return Expression.Call(member, mi, Expression.Constant(arg ?? string.Empty));
-    }
-
-    private static MemberExpression? BuildMemberAccess(Expression root, string path)
-    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (path == "$") return root;
         Expression current = root;
         foreach (string segment in path.Split('.'))
         {
-            PropertyInfo? prop = current.Type.GetProperty(segment, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-            if (prop is not null)
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
+            PropertyInfo? property = current.Type.GetProperty(segment, flags);
+            if (property is not null && property.GetMethod is { IsPublic: true } && property.GetIndexParameters().Length == 0)
             {
-                current = Expression.Property(current, prop);
+                current = Expression.Property(current, property);
                 continue;
             }
-            FieldInfo? field = current.Type.GetField(segment, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-            if (field is not null)
-            {
-                current = Expression.Field(current, field);
-                continue;
-            }
-            return null;
+            FieldInfo? field = current.Type.GetField(segment, flags);
+            if (field is null) throw new ArgumentException($"Unknown filter path '{path}'.", nameof(path));
+            current = Expression.Field(current, field);
         }
-        return current as MemberExpression ?? (current.NodeType == ExpressionType.MemberAccess ? (MemberExpression)current : null);
+        return current;
     }
 
-    private static Type? GetElementType(Type type)
+    private static Type ElementType(Type type)
     {
-        if (type.IsArray) return type.GetElementType();
-        Type? ienum = type.GetInterfaces().Append(type)
-            .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-        return ienum?.GetGenericArguments()[0];
+        if (type == typeof(string)) throw new NotSupportedException("A string is not a collection filter target.");
+        Type? enumerable = type.GetInterfaces().Append(type)
+            .FirstOrDefault(candidate => candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        return enumerable?.GetGenericArguments()[0] ??
+            throw new NotSupportedException($"Type '{type}' is not a generic collection.");
     }
 
-    private static object? ConvertFromString(string? text, Type targetType)
+    private static Expression Constant(string? text, Type type)
     {
-        if (text is null) return targetType == typeof(string) ? string.Empty : null;
-        if (targetType == typeof(string)) return text;
-        if (targetType == typeof(Guid)) return Guid.TryParse(text, out Guid g) ? g : null;
-        if (targetType == typeof(bool)) return bool.TryParse(text, out bool b) ? b : null;
-        if (targetType == typeof(int)) return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) ? i : null;
-        if (targetType == typeof(long)) return long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l) ? l : null;
-        if (targetType == typeof(short)) return short.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out short s) ? s : null;
-        if (targetType == typeof(decimal)) return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal d) ? d : null;
-        if (targetType == typeof(double)) return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double dbl) ? dbl : null;
-        if (targetType == typeof(float)) return float.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out float f) ? f : null;
-        if (targetType == typeof(DateTime)) return DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTime dt) ? dt : null;
-        if (targetType.IsEnum) return Enum.TryParse(targetType, text, ignoreCase: true, out object? e) ? e : null;
-        return text;
+        Type target = Nullable.GetUnderlyingType(type) ?? type;
+        if (text is null)
+        {
+            if (type.IsValueType && Nullable.GetUnderlyingType(type) is null)
+                throw new ArgumentException($"Null cannot be compared with '{type}'.", nameof(text));
+            return Expression.Constant(null, type);
+        }
+        object value;
+        if (target == typeof(string)) value = text;
+        else if (target == typeof(Guid)) value = Guid.Parse(text);
+        else if (target == typeof(DateTime)) value = DateTime.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+        else if (target == typeof(DateTimeOffset)) value = DateTimeOffset.Parse(text, CultureInfo.InvariantCulture);
+        else if (target == typeof(DateOnly)) value = DateOnly.Parse(text, CultureInfo.InvariantCulture);
+        else if (target == typeof(TimeOnly)) value = TimeOnly.Parse(text, CultureInfo.InvariantCulture);
+        else if (target == typeof(TimeSpan)) value = TimeSpan.Parse(text, CultureInfo.InvariantCulture);
+        else if (target.IsEnum) value = Enum.Parse(target, text, ignoreCase: true);
+        else value = Convert.ChangeType(text, target, CultureInfo.InvariantCulture);
+        Expression constant = Expression.Constant(value, target);
+        return target == type ? constant : Expression.Convert(constant, type);
     }
-
-    private static Expression PromoteNull(Expression constant, Type targetType)
-        => constant.Type == targetType ? constant : Expression.Convert(constant, targetType);
 }

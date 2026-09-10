@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text;
+using System.Text.Json.Serialization;
 using VisionaryCoder.Framework.Proxy.Interceptors.Authentication.Jwt;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Authentication.Providers;
@@ -39,7 +41,8 @@ public class DefaultTokenProvider : ITokenProvider
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         tokenHandler = new JwtSecurityTokenHandler();
 
-        ConfigureHttpClient();
+        if (options.RequestTimeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(options), "Request timeout must be positive.");
     }
 
     /// <summary>
@@ -76,6 +79,7 @@ public class DefaultTokenProvider : ITokenProvider
     public async Task<TokenResult> GetTokenAsync(TokenRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!request.IsValid())
         {
@@ -97,6 +101,8 @@ public class DefaultTokenProvider : ITokenProvider
             {
                 Content = new FormUrlEncodedContent(requestData)
             };
+            httpRequest.Headers.UserAgent.ParseAdd("VisionaryCoder.Framework.Authentication/1.0");
+            httpRequest.Headers.Accept.ParseAdd("application/json");
 
             using HttpResponseMessage response = await httpClient.SendAsync(httpRequest, timeoutCts.Token);
             string responseContent = await response.Content.ReadAsStringAsync(timeoutCts.Token);
@@ -104,7 +110,7 @@ public class DefaultTokenProvider : ITokenProvider
             if (response.IsSuccessStatusCode)
             {
                 TokenResponse? tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent);
-                if (tokenResponse != null)
+                if (tokenResponse != null && !string.IsNullOrWhiteSpace(tokenResponse.AccessToken))
                 {
                     TokenResult result = MapToTokenResult(tokenResponse);
                     logger.LogDebug("Successfully acquired JWT token. Expires in {ExpiresIn}s", result.ExpiresIn);
@@ -112,8 +118,7 @@ public class DefaultTokenProvider : ITokenProvider
                 }
             }
 
-            logger.LogWarning("Token request failed with status {StatusCode}: {ResponseContent}",
-                response.StatusCode, responseContent);
+            logger.LogWarning("Token request failed with status {StatusCode}", response.StatusCode);
 
             return ParseErrorResponse(responseContent);
         }
@@ -136,31 +141,15 @@ public class DefaultTokenProvider : ITokenProvider
     /// <param name="token">The JWT token string to validate.</param>
     /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
     /// <returns>A task indicating whether the token is valid.</returns>
-    public async Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
+    public Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(token))
-            return false;
-
-        try
-        {
-            TokenValidationParameters validationParameters = await GetValidationParametersAsync(cancellationToken);
-            ClaimsPrincipal? principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken? validatedToken);
-
-            logger.LogDebug("JWT token validation successful for subject: {Subject}",
-                principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown");
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(ex, "JWT token validation failed");
-            return false;
-        }
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(ValidateToken(token));
     }
 
     /// <summary>
     /// Validates a JWT token synchronously for scenarios where async is not needed.
-    /// Performs basic format and expiration validation without signature verification.
+    /// Performs signature, issuer, audience, and lifetime validation using configured symmetric keys.
     /// </summary>
     /// <param name="token">The JWT token string to validate.</param>
     /// <returns>True if the token is valid; otherwise, false.</returns>
@@ -171,37 +160,7 @@ public class DefaultTokenProvider : ITokenProvider
 
         try
         {
-            JwtSecurityToken? jsonToken = tokenHandler.ReadJwtToken(token);
-
-            // Check expiration
-            if (options.ValidateLifetime && jsonToken.ValidTo < DateTime.UtcNow)
-            {
-                logger.LogDebug("JWT token is expired. Valid until: {ValidTo}", jsonToken.ValidTo);
-                return false;
-            }
-
-            // Check audience if configured
-            if (options.ValidateAudience && !string.IsNullOrEmpty(options.Audience))
-            {
-                if (!jsonToken.Audiences.Contains(options.Audience))
-                {
-                    logger.LogDebug("JWT token audience mismatch. Expected: {ExpectedAudience}, Actual: {ActualAudiences}",
-                        options.Audience, string.Join(", ", jsonToken.Audiences));
-                    return false;
-                }
-            }
-
-            // Check issuer if configured
-            if (options.ValidateIssuer && !string.IsNullOrEmpty(options.Issuer))
-            {
-                if (!string.Equals(jsonToken.Issuer, options.Issuer, StringComparison.OrdinalIgnoreCase))
-                {
-                    logger.LogDebug("JWT token issuer mismatch. Expected: {ExpectedIssuer}, Actual: {ActualIssuer}",
-                        options.Issuer, jsonToken.Issuer);
-                    return false;
-                }
-            }
-
+            tokenHandler.ValidateToken(token, GetValidationParameters(), out _);
             return true;
         }
         catch (Exception ex)
@@ -220,28 +179,19 @@ public class DefaultTokenProvider : ITokenProvider
     /// <returns>A task with the new token result, or null if refresh is not supported.</returns>
     public async Task<TokenResult?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(refreshToken))
             return null;
 
-        try
+        logger.LogDebug("Refreshing JWT token");
+        var refreshRequest = new TokenRequest
         {
-            logger.LogDebug("Refreshing JWT token");
-
-            var refreshRequest = new TokenRequest
-            {
-                GrantType = "refresh_token",
-                ClientId = options.ClientId,
-                ClientSecret = options.ClientSecret,
-                CustomParameters = { ["refresh_token"] = refreshToken }
-            };
-
-            return await GetTokenAsync(refreshRequest, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to refresh JWT token");
-            return TokenResult.Failure("refresh_error", ex.Message);
-        }
+            GrantType = "refresh_token",
+            ClientId = options.ClientId,
+            ClientSecret = options.ClientSecret,
+            CustomParameters = { ["refresh_token"] = refreshToken }
+        };
+        return await GetTokenAsync(refreshRequest, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -286,7 +236,7 @@ public class DefaultTokenProvider : ITokenProvider
             claims["iat"] = jsonToken.IssuedAt;
             claims["nbf"] = jsonToken.ValidFrom;
             claims["aud"] = jsonToken.Audiences.ToArray();
-            claims["iss"] = jsonToken.Issuer ?? string.Empty;
+            claims["iss"] = jsonToken.Issuer;
 
             logger.LogDebug("Extracted {ClaimCount} claims from JWT token", claims.Count);
         }
@@ -299,33 +249,18 @@ public class DefaultTokenProvider : ITokenProvider
     }
 
     /// <summary>
-    /// Configures the HTTP client for token requests.
-    /// </summary>
-    private void ConfigureHttpClient()
-    {
-        httpClient.Timeout = options.RequestTimeout;
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "VisionaryCoder.Framework.Authentication/1.0");
-
-        if (!httpClient.DefaultRequestHeaders.Contains("Accept"))
-        {
-            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        }
-    }
-
-    /// <summary>
     /// Gets the token endpoint URL for OAuth 2.0 requests.
     /// </summary>
     /// <returns>The token endpoint URL.</returns>
     private string GetTokenEndpoint()
     {
-        if (!string.IsNullOrEmpty(options.TokenEndpoint))
-        {
-            return options.TokenEndpoint;
-        }
-
-        // Construct from authority if not explicitly set
-        string authority = options.Authority.TrimEnd('/');
-        return $"{authority}/token";
+        string endpoint = string.IsNullOrEmpty(options.TokenEndpoint)
+            ? $"{options.Authority.TrimEnd('/')}/token"
+            : options.TokenEndpoint;
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps && (options.RequireHttpsMetadata || uri.Scheme != Uri.UriSchemeHttp)))
+            throw new InvalidOperationException("A valid HTTPS token endpoint is required unless HTTP is explicitly enabled.");
+        return endpoint;
     }
 
     /// <summary>
@@ -361,17 +296,14 @@ public class DefaultTokenProvider : ITokenProvider
         switch (request.GrantType.ToLowerInvariant())
         {
             case "password":
-                if (!string.IsNullOrEmpty(request.Username))
-                    data["username"] = request.Username;
-                if (!string.IsNullOrEmpty(request.Password))
-                    data["password"] = request.Password;
+                // IsValid already requires both fields for this grant.
+                data["username"] = request.Username!;
+                data["password"] = request.Password!;
                 break;
 
             case "authorization_code":
-                if (!string.IsNullOrEmpty(request.AuthorizationCode))
-                    data["code"] = request.AuthorizationCode;
-                if (!string.IsNullOrEmpty(request.RedirectUri))
-                    data["redirect_uri"] = request.RedirectUri;
+                data["code"] = request.AuthorizationCode!;
+                data["redirect_uri"] = request.RedirectUri!;
                 break;
         }
 
@@ -392,7 +324,7 @@ public class DefaultTokenProvider : ITokenProvider
     private static TokenResult MapToTokenResult(TokenResponse response)
     {
         var result = TokenResult.Success(
-            response.AccessToken ?? string.Empty,
+            response.AccessToken!,
             response.ExpiresIn,
             response.RefreshToken,
             response.Scope);
@@ -432,14 +364,9 @@ public class DefaultTokenProvider : ITokenProvider
     /// <summary>
     /// Gets token validation parameters for JWT validation.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Token validation parameters.</returns>
-    private async Task<TokenValidationParameters> GetValidationParametersAsync(CancellationToken cancellationToken)
+    private TokenValidationParameters GetValidationParameters()
     {
-        // This is a simplified implementation
-        // In a real-world scenario, you would fetch the signing keys from the JWKS endpoint
-        await Task.CompletedTask; // Placeholder for async operations
-
         return new TokenValidationParameters
         {
             ValidateIssuer = options.ValidateIssuer,
@@ -448,6 +375,9 @@ public class DefaultTokenProvider : ITokenProvider
             ValidAudience = options.Audience,
             ValidateLifetime = options.ValidateLifetime,
             ValidateIssuerSigningKey = options.ValidateIssuerSigningKey,
+            RequireSignedTokens = true,
+            IssuerSigningKey = string.IsNullOrEmpty(options.SigningKey) ? null : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SigningKey)),
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256, SecurityAlgorithms.HmacSha384, SecurityAlgorithms.HmacSha512],
             ClockSkew = options.ClockSkew
         };
     }
@@ -457,10 +387,15 @@ public class DefaultTokenProvider : ITokenProvider
     /// </summary>
     private class TokenResponse
     {
+        [JsonPropertyName("access_token")]
         public string? AccessToken { get; set; }
+        [JsonPropertyName("token_type")]
         public string? TokenType { get; set; }
+        [JsonPropertyName("expires_in")]
         public int ExpiresIn { get; set; }
+        [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
+        [JsonPropertyName("scope")]
         public string? Scope { get; set; }
     }
 
@@ -469,8 +404,11 @@ public class DefaultTokenProvider : ITokenProvider
     /// </summary>
     private class TokenErrorResponse
     {
+        [JsonPropertyName("error")]
         public string? Error { get; set; }
+        [JsonPropertyName("error_description")]
         public string? ErrorDescription { get; set; }
+        [JsonPropertyName("error_uri")]
         public string? ErrorUri { get; set; }
     }
 }

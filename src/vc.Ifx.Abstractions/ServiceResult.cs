@@ -25,21 +25,34 @@ public sealed class ServiceResult : ServiceResultBase
     /// Creates a failure result with an error message.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceResult Failure(string errorMessage) => new(false, errorMessage, null);
+    public static ServiceResult Failure(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new(false, errorMessage, null);
+    }
 
     /// <summary>
     /// Creates a failure result from an exception. The exception's message is used
     /// as the <see cref="ServiceResultBase.ErrorMessage"/>.
     /// </summary>
     /// <param name="exception">The exception that caused the failure.</param>
-    public static ServiceResult Failure(Exception exception) => new(false, exception.Message, exception);
+    public static ServiceResult Failure(Exception exception)
+    {
+        ValidateFailureException(exception);
+        return new(false, exception.Message, exception);
+    }
 
     /// <summary>
     /// Creates a failure result with both a custom message and the originating exception.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
     /// <param name="exception">The exception that caused the failure.</param>
-    public static ServiceResult Failure(string errorMessage, Exception exception) => new(false, errorMessage, exception);
+    public static ServiceResult Failure(string errorMessage, Exception exception)
+    {
+        ValidateFailureException(exception);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new(false, errorMessage, exception);
+    }
 
     /// <summary>
     /// Pattern-match the result: executes <paramref name="onSuccess"/> when successful,
@@ -49,6 +62,8 @@ public sealed class ServiceResult : ServiceResultBase
     /// <param name="onFailure">Action to execute when the result is a failure. Receives the error message and optional exception.</param>
     public void Match(Action onSuccess, Action<string, Exception?> onFailure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         if (IsSuccess)
             onSuccess();
         else
@@ -64,6 +79,8 @@ public sealed class ServiceResult : ServiceResultBase
 /// Encapsulates the success/failure state and, when successful, the resulting value.
 /// Provides helpers for mapping and transforming values in a safe manner that preserves
 /// failure metadata.
+/// Success is determined by IsSuccess, including legitimate null values. Mapping delegates
+/// receive those values; ordinary mapper exceptions become failures and cancellation propagates.
 /// </remarks>
 public sealed class ServiceResult<T> : ServiceResultBase
 {
@@ -81,38 +98,53 @@ public sealed class ServiceResult<T> : ServiceResultBase
     /// <summary>
     /// Creates a successful result containing the given <paramref name="value"/>.
     /// </summary>
-    /// <param name="value">The successful result value.</param>
+    /// <param name="value">The successful result value; null is legitimate when T permits it.</param>
     public static ServiceResult<T> Success(T value) => new(true, value, null, null);
 
     /// <summary>
     /// Creates a failure result with an error message.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceResult<T> Failure(string errorMessage) => new(false, default, errorMessage, null);
+    public static ServiceResult<T> Failure(string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new(false, default, errorMessage, null);
+    }
 
     /// <summary>
     /// Creates a failure result from an exception.
     /// </summary>
     /// <param name="exception">The exception that caused the failure.</param>
-    public static ServiceResult<T> Failure(Exception exception) => new(false, default, exception.Message, exception);
+    public static ServiceResult<T> Failure(Exception exception)
+    {
+        ValidateFailureException(exception);
+        return new(false, default, exception.Message, exception);
+    }
 
     /// <summary>
     /// Creates a failure result with both a custom message and the originating exception.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
     /// <param name="exception">The exception that caused the failure.</param>
-    public static ServiceResult<T> Failure(string errorMessage, Exception exception) => new(false, default, errorMessage, exception);
+    public static ServiceResult<T> Failure(string errorMessage, Exception exception)
+    {
+        ValidateFailureException(exception);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new(false, default, errorMessage, exception);
+    }
 
     /// <summary>
     /// Pattern-match the result: executes <paramref name="onSuccess"/> when successful,
     /// otherwise executes <paramref name="onFailure"/> with the error message and optional exception.
     /// </summary>
-    /// <param name="onSuccess">Action to execute when the result is successful. Receives the successful value.</param>
+    /// <param name="onSuccess">Required action receiving the successful value, including null when T permits it.</param>
     /// <param name="onFailure">Action to execute when the result is a failure. Receives the error message and optional exception.</param>
     public void Match(Action<T> onSuccess, Action<string, Exception?> onFailure)
     {
-        if (IsSuccess && Value is not null)
-            onSuccess(Value);
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
+        if (IsSuccess)
+            onSuccess(Value!);
         else
             onFailure(ErrorMessage ?? "Unknown error", Exception);
     }
@@ -122,20 +154,19 @@ public sealed class ServiceResult<T> : ServiceResultBase
     /// If the current result is a failure, the failure is propagated.
     /// </summary>
     /// <typeparam name="TNew">The type of the mapped value.</typeparam>
-    /// <param name="mapper">Function to transform the value.</param>
+    /// <param name="mapper">Required function to transform the value, including legitimate null success values.</param>
     /// <returns>A new <see cref="ServiceResult{TNew}"/> containing the mapped value or a propagated failure.</returns>
     public ServiceResult<TNew> Map<TNew>(Func<T, TNew> mapper)
     {
-        if (!IsSuccess || Value is null)
-            return Exception is null
-                ? ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null")
-                : ServiceResult<TNew>.Failure(ErrorMessage ?? Exception.Message, Exception);
+        ArgumentNullException.ThrowIfNull(mapper);
+        if (!IsSuccess)
+            return new ServiceResult<TNew>(false, default, ErrorMessage, Exception);
 
         try
         {
-            return ServiceResult<TNew>.Success(mapper(Value));
+            return ServiceResult<TNew>.Success(mapper(Value!));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return ServiceResult<TNew>.Failure(ex);
         }
@@ -146,21 +177,20 @@ public sealed class ServiceResult<T> : ServiceResultBase
     /// If the current result is a failure, the failure is propagated.
     /// </summary>
     /// <typeparam name="TNew">The type of the mapped value.</typeparam>
-    /// <param name="mapper">Asynchronous function to transform the value.</param>
+    /// <param name="mapper">Required asynchronous function; capture and forward cancellation to the underlying operation.</param>
     /// <returns>A task that produces a <see cref="ServiceResult{TNew}"/> containing the mapped value or a propagated failure.</returns>
     public async Task<ServiceResult<TNew>> MapAsync<TNew>(Func<T, Task<TNew>> mapper)
     {
-        if (!IsSuccess || Value is null)
-            return Exception is null
-                ? ServiceResult<TNew>.Failure(ErrorMessage ?? "Value is null")
-                : ServiceResult<TNew>.Failure(ErrorMessage ?? Exception.Message, Exception);
+        ArgumentNullException.ThrowIfNull(mapper);
+        if (!IsSuccess)
+            return new ServiceResult<TNew>(false, default, ErrorMessage, Exception);
 
         try
         {
-            TNew result = await mapper(Value);
+            TNew result = await mapper(Value!).ConfigureAwait(false);
             return ServiceResult<TNew>.Success(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return ServiceResult<TNew>.Failure(ex);
         }

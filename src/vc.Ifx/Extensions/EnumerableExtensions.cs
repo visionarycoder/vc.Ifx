@@ -16,13 +16,8 @@ public static class EnumerableExtensions
         {
             return false;
         }
-        var instance = collection.ToList();
-        if (instance.Count is 0 or 1)
-        {
-            return false;
-        }
-        HashSet<T> set = comparer == null ? [] : new HashSet<T>(comparer);
-        return instance.Any(item => !set.Add(item));
+        var seen = new HashSet<T>(comparer);
+        return collection.Any(item => !seen.Add(item));
     }
     /// Determines whether the sequence is null or empty.
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
@@ -76,14 +71,7 @@ public static class EnumerableExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(keySelector);
-        var seenKeys = new HashSet<TKey>();
-        foreach (TSource element in source)
-        {
-            if (seenKeys.Add(keySelector(element)))
-            {
-                yield return element;
-            }
-        }
+        return System.Linq.Enumerable.DistinctBy(source, keySelector);
     }
 
     /// <summary>
@@ -95,21 +83,9 @@ public static class EnumerableExtensions
     /// <returns>A sequence of batches, each containing at most the specified number of elements.</returns>
     public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int size)
     {
-        if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size), "Batch size must be greater than 0.");
-        using IEnumerator<T> enumerator = source.GetEnumerator();
-        while (enumerator.MoveNext())
-        {
-            yield return GetBatch(enumerator, size);
-        }
-
-        static IEnumerable<T> GetBatch(IEnumerator<T> enumerator, int size)
-        {
-            yield return enumerator.Current;
-            for (int i = 1; i < size && enumerator.MoveNext(); i++)
-            {
-                yield return enumerator.Current;
-            }
-        }
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
+        return source.Chunk(size);
     }
 
     /// <summary>
@@ -121,8 +97,11 @@ public static class EnumerableExtensions
     /// <returns>A sequence whose elements are randomly ordered.</returns>
     public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random random)
     {
+        ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(random);
-        return source.OrderBy(_ => random.Next());
+        T[] items = source.ToArray();
+        random.Shuffle(items);
+        return items;
     }
 
     /// <summary>
@@ -194,6 +173,7 @@ public static class EnumerableExtensions
     /// <returns>A string that consists of the elements in the sequence delimited by the separator string.</returns>
     public static string ToDelimitedString<T>(this IEnumerable<T> source, string separator = ", ")
     {
+        ArgumentNullException.ThrowIfNull(source);
         return string.Join(separator, source);
     }
 
@@ -205,6 +185,7 @@ public static class EnumerableExtensions
     /// <returns>A read-only collection containing the elements of the specified sequence.</returns>
     public static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this IEnumerable<T> source)
     {
+        ArgumentNullException.ThrowIfNull(source);
         return new ReadOnlyCollection<T>(source.ToList());
     }
 
@@ -216,6 +197,7 @@ public static class EnumerableExtensions
     /// <returns>A sequence of tuples containing each element and its index.</returns>
     public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
     {
+        ArgumentNullException.ThrowIfNull(source);
         return source.Select((item, index) => (item, index));
     }
 
@@ -228,6 +210,7 @@ public static class EnumerableExtensions
     /// <returns>A dictionary containing the key-value pairs.</returns>
     public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> source) where TKey : notnull
     {
+        ArgumentNullException.ThrowIfNull(source);
         return source.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 

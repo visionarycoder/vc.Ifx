@@ -86,31 +86,4 @@ public sealed class AuditingInterceptor(ILogger<AuditingInterceptor> logger, IEn
             }
         }
     }
-    private static Dictionary<string, object?> CreateMetadata(
-        ProxyContext context,
-        object? result = null,
-        Exception? exception = null)
-    {
-        var metadata = new Dictionary<string, object?>
-        {
-            ["ResultType"] = context.ResultType?.Name ?? "Unknown"
-        };
-        // Add context items (excluding sensitive data)
-        foreach (KeyValuePair<string, object?> item in context.Items.Where(kvp => !IsSensitiveKey(kvp.Key)))
-        {
-            metadata[$"Context.{item.Key}"] = item.Value;
-        }
-        if (exception != null)
-        {
-            metadata["Exception.Type"] = exception.GetType().Name;
-            metadata["Exception.StackTrace"] = exception.StackTrace;
-        }
-        return metadata;
-    }
-    private static bool IsSensitiveKey(string key)
-    {
-        string[] sensitiveKeys = ["Authorization", "Password", "Secret", "Token", "Key"];
-        return sensitiveKeys.Any(sensitive =>
-            key.Contains(sensitive, StringComparison.OrdinalIgnoreCase));
-    }
 }

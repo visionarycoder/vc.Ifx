@@ -202,8 +202,8 @@ public class AuthenticationServiceCollectionExtensionsTests
             // Missing Authority and Audience - invalid configuration
         });
 
-        act.Should().Throw<ArgumentException>()
-           .WithMessage("*JWT options configuration is invalid*");
+        act.Should().ThrowExactly<ArgumentException>()
+           .Which.ParamName.Should().Be("options");
     }
 
     #endregion

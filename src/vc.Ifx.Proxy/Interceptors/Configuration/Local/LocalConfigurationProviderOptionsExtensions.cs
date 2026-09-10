@@ -14,7 +14,7 @@ public static class LocalConfigurationProviderOptionsExtensions
         if (string.IsNullOrWhiteSpace(options.FilePath))
             throw new InvalidOperationException("FilePath cannot be null or empty.");
 
-        if (options.AdditionalFiles.Any(string.IsNullOrWhiteSpace))
+        if (options.AdditionalFiles is null || options.AdditionalFiles.Any(string.IsNullOrWhiteSpace))
             throw new InvalidOperationException("Additional file paths cannot be null or empty.");
 
         // Call shared validation

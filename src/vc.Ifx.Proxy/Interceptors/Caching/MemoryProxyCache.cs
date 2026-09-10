@@ -1,171 +1,105 @@
-// Copyright (c) 2025 VisionaryCoder. All rights reserved.
-// Licensed under the MIT License. See LICENSE file in the project root for license information.
-
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Caching;
 
-/// <summary>
-/// In-memory implementation of <see cref="IProxyCache"/> using <see cref="IMemoryCache"/>.
-/// Provides fast, local caching with automatic expiration and memory management.
-/// </summary>
+/// <summary>Best-effort, instance-isolated response caching over a caller-owned memory cache.</summary>
 public sealed class MemoryProxyCache(IMemoryCache cache, ILogger<MemoryProxyCache>? logger = null) : IProxyCache
 {
-
     private readonly IMemoryCache cache = cache ?? throw new ArgumentNullException(nameof(cache));
-    private readonly ILogger<MemoryProxyCache> logger = logger ?? new NullLogger<MemoryProxyCache>();
+    private readonly ILogger<MemoryProxyCache> logger = logger ?? NullLogger<MemoryProxyCache>.Instance;
+    private long generation;
 
-    /// <summary>
-    /// Gets a cached proxy response for the given key.
-    /// </summary>
-    /// <typeparam name="T">The type of the cached response data.</typeparam>
-    /// <param name="key">The unique cache key to lookup.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The cached proxy response, or null if not found or expired.</returns>
+    /// <inheritdoc />
     public Task<ProxyResponse<T>?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
-
         try
         {
-            if (cache.TryGetValue(key, out object? cachedValue) && cachedValue is ProxyResponse<T> typedResponse)
-            {
-                logger?.LogDebug("Cache hit for key: {CacheKey}", key);
-                return Task.FromResult<ProxyResponse<T>?>(typedResponse);
-            }
-
-            logger?.LogDebug("Cache miss for key: {CacheKey}", key);
-            return Task.FromResult<ProxyResponse<T>?>(null);
+            return Task.FromResult(cache.TryGetValue(Key(key), out object? value) && value is ProxyResponse<T> response
+                ? Copy(response)
+                : null);
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger?.LogError(ex, "Error retrieving cached item with key: {CacheKey}", key);
+            logger.LogWarning(exception, "Response cache read failed.");
             return Task.FromResult<ProxyResponse<T>?>(null);
         }
     }
 
-    /// <summary>
-    /// Sets a proxy response in the cache with the given key and expiration.
-    /// </summary>
-    /// <typeparam name="T">The type of the response data to cache.</typeparam>
-    /// <param name="key">The unique cache key for storage.</param>
-    /// <param name="proxyResponse">The proxy response to cache.</param>
-    /// <param name="expiration">The cache expiration duration.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A task representing the asynchronous cache operation.</returns>
+    /// <inheritdoc />
     public Task SetAsync<T>(string key, ProxyResponse<T> proxyResponse, TimeSpan expiration, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(proxyResponse);
         cancellationToken.ThrowIfCancellationRequested();
-
         if (expiration <= TimeSpan.Zero)
-        {
-            logger?.LogWarning("Attempted to cache item with non-positive expiration: {Expiration}. Skipping cache.", expiration);
             return Task.CompletedTask;
-        }
-
         try
         {
-            var options = new MemoryCacheEntryOptions
+            cache.Set(Key(key), Copy(proxyResponse), new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = expiration,
-                Priority = CacheItemPriority.Normal
-            };
-
-            // Add eviction callback for logging if logger is available
-            if (logger != null)
-            {
-                options.RegisterPostEvictionCallback(OnEviction);
-            }
-
-            cache.Set(key, proxyResponse, options);
-            logger?.LogDebug("Cached item with key: {CacheKey}, expiration: {Expiration}", key, expiration);
+                Size = 1
+            });
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger?.LogError(ex, "Error caching item with key: {CacheKey}", key);
+            logger.LogWarning(exception, "Response cache write failed.");
         }
-
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Removes a cached item with the specified key.
-    /// </summary>
-    /// <param name="key">The cache key to remove.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A task representing the asynchronous removal operation.</returns>
+    /// <inheritdoc />
     public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
-
         try
         {
-            cache.Remove(key);
-            logger?.LogDebug("Removed cached item with key: {CacheKey}", key);
+            cache.Remove(Key(key));
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger?.LogError(ex, "Error removing cached item with key: {CacheKey}", key);
+            logger.LogWarning(exception, "Response cache removal failed.");
         }
-
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Clears all cached items by disposing and recreating the cache if possible.
-    /// Note: This implementation cannot clear IMemoryCache entirely, this is a limitation.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A task representing the asynchronous clear operation.</returns>
+    /// <summary>Atomically invalidates this instance's entries without clearing other users of the shared cache.</summary>
     public Task ClearAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        logger?.LogWarning("ClearAsync called on MemoryProxyCache. IMemoryCache does not support clearing all entries.");
-
-        // IMemoryCache doesn't have a Clear method, so we can't implement this fully
-        // This would require tracking all keys or using a different cache implementation
+        // Old generations are unreachable immediately and are reclaimed by normal expiration.
+        Interlocked.Increment(ref generation);
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Checks if a key exists in the cache.
-    /// </summary>
-    /// <param name="key">The cache key to check.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>True if the key exists and is not expired; otherwise false.</returns>
+    /// <inheritdoc />
     public Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
-
         try
         {
-            bool exists = cache.TryGetValue(key, out _);
-            return Task.FromResult(exists);
+            return Task.FromResult(cache.TryGetValue(Key(key), out _));
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger?.LogError(ex, "Error checking existence of cached item with key: {CacheKey}", key);
+            logger.LogWarning(exception, "Response cache existence check failed.");
             return Task.FromResult(false);
         }
     }
 
-    /// <summary>
-    /// Callback invoked when cache items are evicted.
-    /// </summary>
-    /// <param name="key">The cache key that was evicted.</param>
-    /// <param name="value">The evicted value.</param>
-    /// <param name="reason">The reason for eviction.</param>
-    /// <param name="state">Additional state information.</param>
-    private void OnEviction(object key, object? value, EvictionReason reason, object? state)
+    private object Key(string key) => (this, Volatile.Read(ref generation), key);
+
+    private static ProxyResponse<T> Copy<T>(ProxyResponse<T> response) => new()
     {
-        logger?.LogDebug("Cache item evicted - Key: {CacheKey}, Reason: {EvictionReason}", key, reason);
-    }
+        Data = response.Data,
+        IsSuccess = response.IsSuccess,
+        ErrorMessage = response.ErrorMessage,
+        StatusCode = response.StatusCode
+    };
 }

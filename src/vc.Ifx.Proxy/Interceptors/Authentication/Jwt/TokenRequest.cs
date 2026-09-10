@@ -96,7 +96,7 @@ public class TokenRequest
     /// <returns>True if the request is valid for the specified grant type; otherwise, false.</returns>
     public bool IsValid()
     {
-        if (string.IsNullOrWhiteSpace(GrantType) || string.IsNullOrWhiteSpace(ClientId))
+        if (string.IsNullOrWhiteSpace(GrantType) || string.IsNullOrWhiteSpace(ClientId) || Scopes is null || CustomParameters is null)
             return false;
 
         return GrantType.ToLowerInvariant() switch
@@ -104,7 +104,7 @@ public class TokenRequest
             "client_credentials" => !string.IsNullOrWhiteSpace(ClientSecret),
             "password" => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password),
             "authorization_code" => !string.IsNullOrWhiteSpace(AuthorizationCode) && !string.IsNullOrWhiteSpace(RedirectUri),
-            "refresh_token" => true, // Refresh token is typically handled separately
+            "refresh_token" => CustomParameters.TryGetValue("refresh_token", out string? token) && !string.IsNullOrWhiteSpace(token),
             _ => true // Allow custom grant types
         };
     }

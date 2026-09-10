@@ -23,7 +23,8 @@ public sealed class DefaultProxyPipeline(IEnumerable<IProxyInterceptor> intercep
     {
         ArgumentNullException.ThrowIfNull(context);
         // Build the pipeline by wrapping interceptors around the transport
-        ProxyDelegate<T> terminal = (_, ct) => transport.SendCoreAsync<T>(context, ct);
+        cancellationToken.ThrowIfCancellationRequested();
+        ProxyDelegate<T> terminal = (ctx, ct) => transport.SendCoreAsync<T>(ctx, ct);
         // Wrap each interceptor around the previous delegate (reverse order for proper execution)
         foreach (IProxyInterceptor interceptor in orderedInterceptors.Reverse())
         {
@@ -36,7 +37,9 @@ public sealed class DefaultProxyPipeline(IEnumerable<IProxyInterceptor> intercep
     /// <param name="interceptors">The interceptors to order.</param>
     /// <returns>An ordered list of interceptors.</returns>
     private static IReadOnlyList<IProxyInterceptor> Order(IEnumerable<IProxyInterceptor> interceptors)
-    { int index = 0;
+    {
+        ArgumentNullException.ThrowIfNull(interceptors);
+        int index = 0;
 
         // DI preserves registration order—use index to keep stability for same order values
         return interceptors
@@ -55,7 +58,9 @@ public sealed class DefaultProxyPipeline(IEnumerable<IProxyInterceptor> intercep
     /// <param name="interceptor">The interceptor to get the order for.</param>
     /// <returns>The order value.</returns>
     private static int GetOrder(IProxyInterceptor interceptor)
-    {   // Interface-based order takes precedence over attribute
+    {
+        ArgumentNullException.ThrowIfNull(interceptor);
+        // Interface-based order takes precedence over attribute
         if (interceptor is IOrderedProxyInterceptor orderedInterceptor)
             return orderedInterceptor.Order;
         // Fall back to attribute-based order

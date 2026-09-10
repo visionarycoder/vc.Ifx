@@ -17,7 +17,7 @@ public readonly record struct EntityId<TEntity, TKey>(TKey Value) : IEntityId
         return new(value);
     }
     
-    public override string ToString() => Value?.ToString() ?? string.Empty;
+    public override string ToString() => Convert.ToString(Value, CultureInfo.InvariantCulture) ?? string.Empty;
 
     // Boxing for infra
     Type IEntityId.ValueType => typeof(TKey);

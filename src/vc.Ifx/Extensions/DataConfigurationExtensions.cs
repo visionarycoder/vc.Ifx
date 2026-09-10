@@ -18,6 +18,9 @@ public static class DataConfigurationExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddConnectionString(this IServiceCollection services, IConfiguration configuration, string connectionName)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
         string? connectionStringValue = configuration.GetConnectionString(connectionName);
 
         if (string.IsNullOrWhiteSpace(connectionStringValue))
@@ -41,6 +44,10 @@ public static class DataConfigurationExtensions
         string connectionName,
         string serviceName)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(serviceName);
         string? connectionStringValue = configuration.GetConnectionString(connectionName);
         if (string.IsNullOrWhiteSpace(connectionStringValue))
         {
@@ -54,6 +61,8 @@ public static class DataConfigurationExtensions
     /// <param name="secretName">The name of the secret containing the connection string.</param>
     public static IServiceCollection AddConnectionStringFromSecret(this IServiceCollection services, string secretName)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(secretName);
         services.AddSingleton<string>(provider =>
         {
             ISecretProvider secretProvider = provider.GetRequiredService<ISecretProvider>();

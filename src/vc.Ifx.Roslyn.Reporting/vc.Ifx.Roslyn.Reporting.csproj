@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>vc.Ifx.Roslyn.Reporting</PackageId>
+    <Description>Deterministic SARIF, exact coverage and Roslyn source-metric reporting for vc.Ifx.</Description>
+    <PackageTags>roslyn;reporting;sarif;coverage;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

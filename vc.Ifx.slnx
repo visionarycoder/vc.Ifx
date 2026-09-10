@@ -55,65 +55,7 @@
     <File Path=".nuget/NuGet/NuGet.config" />
   </Folder>
   <Folder Name="/docs/">
-    <File Path="docs/docs.csproj" />
-    <File Path="docs/index.md" />
-    <File Path="docs/LICENSE-INFO.md" />
-    <File Path="docs/onboarding/readme.md" />
-  </Folder>
-  <Folder Name="/docs/adr/">
-    <File Path="docs/adr/adr-0001.md" />
-    <File Path="docs/adr/adr-0002.md" />
-    <File Path="docs/adr/adr-0003.md" />
-    <File Path="docs/adr/adr-0004.md" />
-    <File Path="docs/adr/adr-template.md" />
-    <File Path="docs/adr/index.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/">
-    <File Path="docs/best-practices/radar.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/cloud-architecture/">
-    <File Path="docs/best-practices/cloud-architecture/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/data-analytics/">
-    <File Path="docs/best-practices/data-analytics/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/devops/">
-    <File Path="docs/best-practices/devops/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/integration/">
-    <File Path="docs/best-practices/integration/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/observability/">
-    <File Path="docs/best-practices/observability/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/security/">
-    <File Path="docs/best-practices/security/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/software-architecture/">
-    <File Path="docs/best-practices/software-architecture/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/best-practices/templates/">
-    <File Path="docs/best-practices/templates/ReadMe.md" />
-  </Folder>
-  <Folder Name="/docs/diagrams/">
-    <File Path="docs/diagrams/decision-workflow.mermaid" />
-    <File Path="docs/diagrams/framework.dgml" />
-    <File Path="docs/diagrams/goverance-map.mermaid" />
-    <File Path="docs/diagrams/quadrant-radar.mermaid" />
-  </Folder>
-  <Folder Name="/docs/diagrams/query-filtering/">
-    <File Path="docs/diagrams/query-filtering/query-filter-class-diagram.mmd" />
-    <File Path="docs/diagrams/query-filtering/query-filter-sequence-diagram.mmd" />
-  </Folder>
-  <Folder Name="/docs/filtering/">
-    <File Path="docs/filtering/collection-operations.md" />
-  </Folder>
-  <Folder Name="/docs/review/">
-    <File Path="docs/reviews/branching-strategy.md" />
-    <File Path="docs/reviews/quarterly-radar-review.md" />
-    <File Path="docs/reviews/readme.md" />
-    <File Path="docs/reviews/release-checklist.md" />
-    <File Path="docs/reviews/system-map.md" />
+    <Project Path="docs/docs.csproj" />
   </Folder>
   <Folder Name="/performance/">
     <Project Path="performance/vc.Ifx.Core.Benchmarks/vc.Ifx.Core.Benchmarks.csproj" />
@@ -150,6 +92,7 @@
     <Project Path="src/vc.Ifx.Proxy.Http/vc.Ifx.Proxy.Http.csproj" />
     <Project Path="src/vc.Ifx.Querying/vc.Ifx.Querying.csproj" />
     <Project Path="src/vc.Ifx.Roslyn/vc.Ifx.Roslyn.csproj" />
+    <Project Path="src/vc.Ifx.Roslyn.Reporting/vc.Ifx.Roslyn.Reporting.csproj" />
     <Project Path="src/vc.Ifx.Secrets.Abstractions/vc.Ifx.Secrets.Abstractions.csproj" />
     <Project Path="src/vc.Ifx.Secrets.Azure.KeyVault/vc.Ifx.Secrets.Azure.KeyVault.csproj" />
     <Project Path="src/vc.Ifx.Secrets.Local/vc.Ifx.Secrets.Local.csproj" />
@@ -163,5 +106,8 @@
   <Folder Name="/tests/">
     <Project Path="tests/integration/vc.Ifx.IntegrationTests/vc.Ifx.IntegrationTests.csproj" />
     <Project Path="tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/scripts/reporting/">
+    <Project Path="scripts/reporting/FrameworkReport.Host.csproj" />
   </Folder>
 </Solution>

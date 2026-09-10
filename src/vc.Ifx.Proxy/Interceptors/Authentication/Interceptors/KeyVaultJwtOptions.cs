@@ -49,20 +49,20 @@ public class KeyVaultJwtOptions
     /// Gets or sets whether to fail the request if token acquisition fails.
     /// When false, the request continues without authentication.
     /// </summary>
-    /// <value>True to fail on errors; otherwise, false. Defaults to false.</value>
-    public bool FailOnError { get; set; } = false;
+    /// <value>True to fail on errors; otherwise, false. Defaults to true.</value>
+    public bool FailOnError { get; set; } = true;
 
     /// <summary>
     /// Gets or sets whether to fail the request if token acquisition times out.
     /// </summary>
-    /// <value>True to fail on timeout; otherwise, false. Defaults to false.</value>
-    public bool FailOnTimeout { get; set; } = false;
+    /// <value>True to fail on timeout; otherwise, false. Defaults to true.</value>
+    public bool FailOnTimeout { get; set; } = true;
 
     /// <summary>
     /// Gets or sets whether to fail the request if the token is missing from Key Vault.
     /// </summary>
-    /// <value>True to fail on missing token; otherwise, false. Defaults to false.</value>
-    public bool FailOnMissingToken { get; set; } = false;
+    /// <value>True to fail on missing token; otherwise, false. Defaults to true.</value>
+    public bool FailOnMissingToken { get; set; } = true;
 
     /// <summary>
     /// Gets or sets whether to include metadata headers in the request.

@@ -1,238 +1,122 @@
-// Copyright (c) 2025 VisionaryCoder. All rights reserved.
-// Licensed under the MIT License. See LICENSE file in the project root for license information.
-
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Secrets;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Authentication.Interceptors;
 
-/// <summary>
-/// JWT interceptor specialized for Azure Key Vault authentication scenarios.
-/// Retrieves JWT tokens and certificates from Azure Key Vault and adds them to request headers.
-/// Provides secure token management with automatic refresh and comprehensive error handling.
-/// </summary>
+/// <summary>Attaches outbound tokens from a trusted secret provider with explicit failure policy.</summary>
 public class KeyVaultJwtInterceptor : IProxyInterceptor
 {
     private readonly ISecretProvider secretProvider;
     private readonly ILogger<KeyVaultJwtInterceptor> logger;
     private readonly KeyVaultJwtOptions options;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="KeyVaultJwtInterceptor"/> class.
-    /// </summary>
-    /// <param name="secretProvider">The secret provider for retrieving JWT tokens from Key Vault.</param>
-    /// <param name="logger">The logger for diagnostic information.</param>
-    /// <param name="options">The configuration options for Key Vault JWT handling.</param>
-    /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
-    public KeyVaultJwtInterceptor(
-        ISecretProvider secretProvider,
-        ILogger<KeyVaultJwtInterceptor> logger,
-        KeyVaultJwtOptions options)
+    /// <summary>Creates an interceptor; this does not retrieve secrets.</summary>
+    public KeyVaultJwtInterceptor(ISecretProvider secretProvider, ILogger<KeyVaultJwtInterceptor> logger, KeyVaultJwtOptions options)
     {
         this.secretProvider = secretProvider ?? throw new ArgumentNullException(nameof(secretProvider));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.options = options ?? throw new ArgumentNullException(nameof(options));
-
         if (!options.IsValid())
-        {
-            throw new ArgumentException("Key Vault JWT options configuration is invalid", nameof(options));
-        }
+            throw new ArgumentException("Key Vault JWT options are invalid.", nameof(options));
     }
 
-    /// <summary>
-    /// Intercepts the proxy call to add JWT authentication from Azure Key Vault.
-    /// Handles token retrieval, validation, refresh, and error scenarios.
-    /// </summary>
-    /// <typeparam name="T">The response type.</typeparam>
-    /// <param name="context">The proxy context containing request information.</param>
-    /// <param name="next">The next delegate in the pipeline.</param>
-    /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
-    /// <returns>A task representing the asynchronous operation with the proxy response.</returns>
+    /// <inheritdoc />
     public async Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
+        string? token;
         try
         {
-            logger.LogDebug("Retrieving JWT token from Key Vault for secret: {SecretName}", options.SecretName);
-
-            // Create timeout for Key Vault operations
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeoutCts.CancelAfter(options.RequestTimeout);
-
-            // Retrieve token from Key Vault
-            string? jwtToken = await secretProvider.GetAsync(options.SecretName, timeoutCts.Token);
-
-            if (!string.IsNullOrEmpty(jwtToken))
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(options.RequestTimeout);
+            token = await secretProvider.GetAsync(options.SecretName, timeout.Token).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(token) && options.ValidateToken && !IsTokenValid(token))
             {
-                // Validate token if validation is enabled
-                if (options.ValidateToken && !IsTokenValid(jwtToken))
-                {
-                    logger.LogWarning("JWT token from Key Vault is invalid or expired for secret: {SecretName}", options.SecretName);
-
-                    // Attempt to refresh token if configured
-                    if (options.AutoRefresh && !string.IsNullOrEmpty(options.RefreshSecretName))
-                    {
-                        jwtToken = await TryRefreshTokenAsync(timeoutCts.Token);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(jwtToken))
-                {
-                    // Format token based on header type
-                    string tokenValue = FormatTokenForHeader(jwtToken);
-                    context.Headers[options.HeaderName] = tokenValue;
-
-                    logger.LogDebug("JWT token added to {HeaderName} header from Key Vault secret: {SecretName}",
-                        options.HeaderName, options.SecretName);
-
-                    // Add additional metadata headers
-                    AddMetadataHeaders(context);
-                }
-                else
-                {
-                    logger.LogWarning("Failed to obtain valid JWT token from Key Vault for secret: {SecretName}", options.SecretName);
-                    HandleTokenFailure();
-                }
-            }
-            else
-            {
-                logger.LogWarning("JWT token not found or empty in Key Vault for secret: {SecretName}", options.SecretName);
-                HandleTokenFailure();
+                token = options.AutoRefresh && !string.IsNullOrEmpty(options.RefreshSecretName)
+                    ? await TryRefreshTokenAsync(timeout.Token).ConfigureAwait(false)
+                    : null;
+                if (token is not null && !IsTokenValid(token))
+                    token = null;
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogWarning("JWT token retrieval was cancelled for Key Vault secret: {SecretName}", options.SecretName);
             throw;
         }
-        catch (TimeoutException)
+        catch (Exception exception) when (exception is TimeoutException or OperationCanceledException)
         {
-            logger.LogError("JWT token retrieval timed out after {Timeout} for Key Vault secret: {SecretName}",
-                options.RequestTimeout, options.SecretName);
-
+            logger.LogWarning(exception, "Secret token retrieval timed out.");
             if (options.FailOnTimeout)
-            {
-                throw;
-            }
+                throw new TimeoutException("Secret token retrieval timed out.", exception);
+            return await next(context, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogError(ex, "Failed to retrieve JWT token from Key Vault for secret: {SecretName}", options.SecretName);
-
+            logger.LogWarning(exception, "Secret token retrieval failed.");
             if (options.FailOnError)
-            {
                 throw;
-            }
+            return await next(context, cancellationToken).ConfigureAwait(false);
         }
 
-        return await next(context, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(token))
+            HandleTokenFailure();
+        else
+        {
+            ProxyHeaders.Set(context, options.HeaderName, FormatTokenForHeader(token));
+            AddMetadataHeaders(context);
+        }
+        return await next(context, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Validates a JWT token for basic format and expiration.
-    /// </summary>
-    /// <param name="token">The JWT token to validate.</param>
-    /// <returns>True if the token appears valid; otherwise, false.</returns>
+    /// <summary>Checks encoding and lifetime only; trust is supplied by the secret store, not this inspection.</summary>
     protected virtual bool IsTokenValid(string token)
     {
         try
         {
-            // Basic JWT format validation (should have 3 parts separated by dots)
-            string[] parts = token.Split('.');
-            if (parts.Length != 3)
-            {
-                logger.LogDebug("JWT token has invalid format - expected 3 parts, got {PartCount}", parts.Length);
-                return false;
-            }
-
-            // Additional validation can be added here (expiration check, signature validation, etc.)
-            // For now, we assume the token is valid if it has the correct format
-            return true;
+            string raw = token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? token[7..] : token;
+            JwtSecurityToken jwt = new JwtSecurityTokenHandler().ReadJwtToken(raw);
+            DateTime now = DateTime.UtcNow;
+            return jwt.ValidTo > now && jwt.ValidFrom <= now;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogDebug(ex, "JWT token validation failed");
+            logger.LogDebug(exception, "Stored token inspection failed.");
             return false;
         }
     }
 
-    /// <summary>
-    /// Attempts to refresh the JWT token using a refresh token from Key Vault.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The refreshed JWT token, or null if refresh failed.</returns>
-    protected virtual async Task<string?> TryRefreshTokenAsync(CancellationToken cancellationToken)
+    /// <summary>Override with a real issuer refresh flow. The default never pretends a secret is a refreshed token.</summary>
+    protected virtual Task<string?> TryRefreshTokenAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(options.RefreshSecretName))
-                return null;
-
-            logger.LogDebug("Attempting to refresh JWT token using refresh secret: {RefreshSecretName}", options.RefreshSecretName);
-
-            string? refreshToken = await secretProvider.GetAsync(options.RefreshSecretName, cancellationToken);
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                logger.LogWarning("Refresh token not found in Key Vault for secret: {RefreshSecretName}", options.RefreshSecretName);
-                return null;
-            }
-
-            // In a real implementation, this would call a token endpoint to refresh the token
-            // For now, we return null to indicate refresh is not implemented
-            logger.LogWarning("JWT token refresh is not yet implemented for Key Vault secrets");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to refresh JWT token from Key Vault");
-            return null;
-        }
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult<string?>(null);
     }
 
-    /// <summary>
-    /// Formats the JWT token appropriately for the specified header.
-    /// </summary>
-    /// <param name="token">The raw JWT token.</param>
-    /// <returns>The formatted token value for the header.</returns>
+    /// <summary>Formats the outbound token without duplicating a Bearer prefix.</summary>
     protected virtual string FormatTokenForHeader(string token)
-    {
-        // For Authorization header, ensure Bearer prefix
-        if (options.HeaderName.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
-        {
-            return token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-                ? token
-                : $"Bearer {token}";
-        }
+        => options.HeaderName.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+            && !token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? $"Bearer {token}" : token;
 
-        // For other headers, use token as-is
-        return token;
-    }
-
-    /// <summary>
-    /// Adds metadata headers to the request context.
-    /// </summary>
-    /// <param name="context">The proxy context.</param>
+    /// <summary>Adds explicitly opted-in metadata headers.</summary>
     protected virtual void AddMetadataHeaders(ProxyContext context)
     {
         if (options.IncludeMetadata)
         {
-            context.Headers["X-Token-Source"] = "KeyVault";
-            context.Headers["X-Token-Secret"] = options.SecretName;
-
+            ProxyHeaders.Set(context, "X-Token-Source", "KeyVault");
+            ProxyHeaders.Set(context, "X-Token-Secret", options.SecretName);
             if (!string.IsNullOrEmpty(options.CorrelationId))
-            {
-                context.Headers["X-Correlation-ID"] = options.CorrelationId;
-            }
+                ProxyHeaders.Set(context, "X-Correlation-ID", options.CorrelationId);
         }
     }
 
-    /// <summary>
-    /// Handles token acquisition failure based on configuration.
-    /// </summary>
+    /// <summary>Applies the missing/invalid-token policy outside the retrieval exception handler.</summary>
     protected virtual void HandleTokenFailure()
     {
         if (options.FailOnMissingToken)
-        {
-            throw new InvalidOperationException($"Required JWT token not available from Key Vault secret: {options.SecretName}");
-        }
+            throw new InvalidOperationException("A required secret token is unavailable or invalid.");
     }
 }

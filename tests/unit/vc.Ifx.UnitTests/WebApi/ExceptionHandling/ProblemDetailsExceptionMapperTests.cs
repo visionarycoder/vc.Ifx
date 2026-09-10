@@ -21,10 +21,10 @@ public sealed class ProblemDetailsExceptionMapperTests
         var problemDetails = mapper.Map(httpContext, new Exception("hidden"));
 
         problemDetails.Status.Should().Be(StatusCodes.Status500InternalServerError);
-        problemDetails.Title.Should().Be("An unexpected error occurred.");
-        problemDetails.Type.Should().Be("https://httpstatuses.com/500");
+        problemDetails.Title.Should().Be("Internal Server Error");
+        problemDetails.Type.Should().Be("https://www.rfc-editor.org/rfc/rfc9110.html#section-15.6.1");
         problemDetails.Instance.Should().Be("/orders/42");
-        problemDetails.Detail.Should().BeNull();
+        problemDetails.Detail.Should().Be("An unexpected error prevented processing the request.");
         problemDetails.Extensions["traceId"].Should().Be("trace-123");
         problemDetails.Extensions.Should().NotContainKey("exceptionType");
     }

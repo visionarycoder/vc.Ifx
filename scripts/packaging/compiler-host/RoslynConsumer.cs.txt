@@ -1,0 +1,8 @@
+using Microsoft.CodeAnalysis;
+using vc.Ifx.Roslyn;
+
+public static class SharedContractConsumer
+{
+    public static string SuppressionId => DiagnosticIdentifiers.DiagnosticSuppressionRequiresJustification;
+    public static DiagnosticSeverity Severity => DiagnosticSeverity.Warning;
+}

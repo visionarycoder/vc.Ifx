@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using VisionaryCoder.Framework.Proxy.Interceptors.Auditing;
 using VisionaryCoder.Framework.Proxy.Interceptors.Caching;
+using VisionaryCoder.Framework.Proxy.Interceptors.Caching.Providers;
 using VisionaryCoder.Framework.Proxy.Interceptors.Correlation;
 using VisionaryCoder.Framework.Proxy.Interceptors.Logging;
 using VisionaryCoder.Framework.Proxy.Interceptors.Resilience;
@@ -31,6 +32,7 @@ public static class ProxyInterceptorExtensions
         this IServiceCollection services,
         Action<ProxyOptions>? configureOptions = null)
     {
+        Infrastructure(services);
         // Configure options
         if (configureOptions != null)
         {
@@ -53,27 +55,29 @@ public static class ProxyInterceptorExtensions
             .AddLoggingInterceptor()
             .AddCachingInterceptor()
             .AddResilienceInterceptor()
-            .AddRetryInterceptor()
             .AddAuditingInterceptor();
     }
     /// Adds the security interceptor (order -200).
     public static IServiceCollection AddSecurityInterceptor(this IServiceCollection services)
     {
-        services.TryAddTransient<IOrderedProxyInterceptor, SecurityInterceptor>();
+        Infrastructure(services);
+        AddOrdered<SecurityInterceptor>(services);
         return services;
     }
     /// Adds security enrichers and authorization policies.
     public static IServiceCollection AddSecurityEnricher<TEnricher>(this IServiceCollection services)
         where TEnricher : class, IProxySecurityEnricher
     {
-        services.TryAddTransient<IProxySecurityEnricher, TEnricher>();
+        Infrastructure(services);
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IProxySecurityEnricher, TEnricher>());
         return services;
     }
     /// Adds an authorization policy.
     public static IServiceCollection AddAuthorizationPolicy<TPolicy>(this IServiceCollection services)
         where TPolicy : class, IProxyAuthorizationPolicy
     {
-        services.TryAddTransient<IProxyAuthorizationPolicy, TPolicy>();
+        Infrastructure(services);
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IProxyAuthorizationPolicy, TPolicy>());
         return services;
     }
     /// Adds JWT Bearer enricher with a token provider.
@@ -81,71 +85,105 @@ public static class ProxyInterceptorExtensions
         this IServiceCollection services,
         Func<IServiceProvider, Task<string?>> tokenProvider)
     {
-        services.TryAddTransient<IProxySecurityEnricher>(provider =>
+        Infrastructure(services);
+        ArgumentNullException.ThrowIfNull(tokenProvider);
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(JwtBearerEnricher)))
+            return services;
+        services.TryAddScoped<JwtBearerEnricher>(provider =>
         {
             ILogger<JwtBearerEnricher> logger = provider.GetRequiredService<ILogger<JwtBearerEnricher>>();
             return new JwtBearerEnricher(logger, () => tokenProvider(provider));
         });
+        services.AddScoped<IProxySecurityEnricher>(provider => provider.GetRequiredService<JwtBearerEnricher>());
         return services;
     }
-    /// Adds the telemetry interceptor (order -50).
+    /// Adds the telemetry interceptor with its core-defined order.
     public static IServiceCollection AddTelemetryInterceptor(this IServiceCollection services)
     {
-        services.TryAddSingleton(new ActivitySource("VisionaryCoder.Framework.Proxy"));
-        services.TryAddTransient<IOrderedProxyInterceptor, TelemetryInterceptor>();
+        services.TryAddSingleton(provider => new ActivitySource("VisionaryCoder.Framework.Proxy"));
+        Infrastructure(services);
+        AddOrdered<TelemetryInterceptor>(services);
         return services;
     }
-    /// Adds the correlation interceptor (order 0).
+    /// Adds the correlation interceptor with its core-defined order.
     public static IServiceCollection AddCorrelationInterceptor(this IServiceCollection services)
     {
         services.TryAddSingleton<ICorrelationContext, DefaultCorrelationContext>();
         services.TryAddSingleton<ICorrelationIdGenerator, GuidCorrelationIdGenerator>();
-        services.TryAddTransient<IOrderedProxyInterceptor, CorrelationInterceptor>();
+        Infrastructure(services);
+        AddOrdered<CorrelationInterceptor>(services);
         return services;
     }
-    /// Adds the logging interceptor (order 100).
+    /// Adds the logging interceptor with its core-defined order.
     public static IServiceCollection AddLoggingInterceptor(this IServiceCollection services)
     {
-        services.TryAddTransient<IOrderedProxyInterceptor, LoggingInterceptor>();
+        Infrastructure(services);
+        AddOrdered<LoggingInterceptor>(services);
         return services;
     }
-    /// Adds the caching interceptor (order 150).
+    /// Adds the caching interceptor with its core-defined order.
     public static IServiceCollection AddCachingInterceptor(this IServiceCollection services)
     {
-        services.TryAddTransient<IOrderedProxyInterceptor, CachingInterceptor>();
+        Infrastructure(services);
+        services.TryAddSingleton<IProxyCache, NullProxyCache>();
+        services.TryAddSingleton<ICacheKeyProvider, NullCacheKeyProvider>();
+        services.TryAddSingleton<ICachePolicyProvider, NullCachePolicyProvider>();
+        services.TryAddTransient(provider => new CachingInterceptor(
+            provider.GetRequiredService<ILogger<CachingInterceptor>>(), provider.GetRequiredService<IProxyCache>(),
+            provider.GetRequiredService<ICacheKeyProvider>(), provider.GetRequiredService<ICachePolicyProvider>()));
+        AddOrdered<CachingInterceptor>(services);
         return services;
     }
     /// Adds a proxy cache implementation.
     public static IServiceCollection AddProxyCache<TCache>(this IServiceCollection services)
         where TCache : class, IProxyCache
     {
+        Infrastructure(services);
         services.TryAddSingleton<IProxyCache, TCache>();
         return services;
     }
-    /// Adds the resilience interceptor (order 180).
+    /// Adds the resilience interceptor with its core-defined order.
     public static IServiceCollection AddResilienceInterceptor(this IServiceCollection services)
     {
-        services.TryAddTransient<IOrderedProxyInterceptor, ResilienceInterceptor>();
+        Infrastructure(services);
+        AddOrdered<ResilienceInterceptor>(services);
         return services;
     }
-    /// Adds the retry interceptor (order 200).
+    /// Adds the retry interceptor with its core-defined order.
     public static IServiceCollection AddRetryInterceptor(this IServiceCollection services)
     {
-        services.TryAddTransient<IOrderedProxyInterceptor, RetryInterceptor>();
+        Infrastructure(services);
+        AddOrdered<RetryInterceptor>(services);
         return services;
     }
-    /// Adds the auditing interceptor (order 300).
+    /// Adds the auditing interceptor with its core-defined order.
     public static IServiceCollection AddAuditingInterceptor(this IServiceCollection services)
     {
         services.TryAddTransient<IAuditSink, LoggingAuditSink>();
-        services.TryAddTransient<IOrderedProxyInterceptor, AuditingInterceptor>();
+        Infrastructure(services);
+        AddOrdered<AuditingInterceptor>(services);
         return services;
     }
     /// Adds an audit sink.
     public static IServiceCollection AddAuditSink<TSink>(this IServiceCollection services)
         where TSink : class, IAuditSink
     {
-        services.TryAddTransient<IAuditSink, TSink>();
+        Infrastructure(services);
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IAuditSink, TSink>());
         return services;
+    }
+    private static void AddOrdered<T>(IServiceCollection services) where T : class, IOrderedProxyInterceptor
+    {
+        services.TryAddTransient<T>();
+        Func<IServiceProvider, T> factory = provider => provider.GetRequiredService<T>();
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IOrderedProxyInterceptor>(factory));
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IProxyInterceptor>(factory));
+    }
+
+    private static void Infrastructure(IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddLogging();
+        services.AddOptions<ProxyOptions>();
     }
 }

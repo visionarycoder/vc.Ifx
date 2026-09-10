@@ -25,7 +25,7 @@ public class TenantContextEnricher(ITenantContextProvider tenantProvider) : IPro
         if (tenantContext != null && !string.IsNullOrWhiteSpace(tenantContext.TenantId))
         {
             context.Metadata["TenantId"] = tenantContext.TenantId;
-            context.Headers["X-Tenant-ID"] = tenantContext.TenantId;
+            ProxyHeaders.Set(context, "X-Tenant-ID", tenantContext.TenantId);
 
             if (!string.IsNullOrWhiteSpace(tenantContext.TenantName))
             {

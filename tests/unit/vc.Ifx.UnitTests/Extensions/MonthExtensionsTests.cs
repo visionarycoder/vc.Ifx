@@ -100,12 +100,11 @@ public class MonthExtensionsTests
         Month result = month.Previous();
 
         // Assert
-        // NOTE: Bug in implementation - January.Previous() returns Unknown (Ordinal 0) instead of December (Ordinal 12)
-        result.Name.Should().Be(Month.Unknown.Name);
+        result.Name.Should().Be(Month.December.Name);
     }
 
     [TestMethod]
-    public void Previous_WithUnknown_ShouldReturnDecember()
+    public void Previous_WithUnknown_ShouldRemainUnknown()
     {
         // Arrange
         var month = new Month(Month.Unknown);
@@ -114,7 +113,7 @@ public class MonthExtensionsTests
         Month result = month.Previous();
 
         // Assert
-        result.Name.Should().Be(Month.December.Name);
+        result.Name.Should().Be(Month.Unknown.Name);
     }
 
     [TestMethod]
@@ -668,11 +667,10 @@ public class MonthExtensionsTests
         december.IsInQuarter(4).Should().BeTrue();
 
         Month january = december.Next();
-        // NOTE: Bug in implementation - December.Next() returns Unknown instead of January
-        january.Name.Should().Be(Month.Unknown.Name);
-        january.GetQuarter().Should().Be(0);
+        january.Name.Should().Be(Month.January.Name);
+        january.GetQuarter().Should().Be(1);
 
-        // Test year boundary backward - using February since January.Previous() is broken
+        january.Previous().Name.Should().Be(Month.December.Name);
         var february = new Month(Month.February);
         Month january2 = february.Previous();
         january2.Name.Should().Be(Month.January.Name);

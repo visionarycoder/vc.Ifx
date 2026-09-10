@@ -25,7 +25,6 @@
     <!-- Repository Information -->
     <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryBranch>main</RepositoryBranch>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Data\Azure\NewFolder\**" />

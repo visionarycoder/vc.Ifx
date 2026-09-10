@@ -32,6 +32,7 @@ public static class CollectionExtensions
     public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
     {
         ArgumentNullException.ThrowIfNull(collection);
+        ArgumentNullException.ThrowIfNull(items);
         foreach (T item in items)
         {
             collection.Add(item);
@@ -47,6 +48,7 @@ public static class CollectionExtensions
     /// <returns>True if the element was found; otherwise, false.</returns>
     public static bool TryGetElement<T>(this ICollection<T> collection, int index, out T? value)
     {
+        ArgumentNullException.ThrowIfNull(collection);
         if (index >= 0 && index < collection.Count)
         {
             value = collection.ElementAt(index);

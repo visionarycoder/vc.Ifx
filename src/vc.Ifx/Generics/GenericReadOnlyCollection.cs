@@ -17,7 +17,11 @@ public class GenericReadOnlyCollection<T> : IReadOnlyCollection<T>
     /// <param name="item">The item to add.</param>
     public void Add(T item) => items.Add(item);
 
-    public void AddRange(ICollection<T> collection) => items.ToList().ForEach(Add);
+    public void AddRange(ICollection<T> collection)
+    {
+        ArgumentNullException.ThrowIfNull(collection);
+        items.AddRange(collection);
+    }
 
     public IEnumerator<T> GetEnumerator() => items.GetEnumerator();
     

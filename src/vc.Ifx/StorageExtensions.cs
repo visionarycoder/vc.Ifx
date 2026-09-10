@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Data.Azure.Table;
 using VisionaryCoder.Framework.Messaging.Azure.Queue;
 using VisionaryCoder.Framework.Storage.Azure.Blob;
@@ -34,8 +35,8 @@ public static class StorageExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(options);
-        services.TryAddSingleton(options);
-        services.TryAddKeyedTransient<IStorageProvider, LocalStorageProvider>(name);
+        services.TryAddKeyedTransient<IStorageProvider>(name,
+            (provider, key) => new LocalStorageProvider(options, provider.GetRequiredService<ILogger<LocalStorageProvider>>()));
         return services;
     }
 
@@ -59,8 +60,8 @@ public static class StorageExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(options);
-        services.TryAddSingleton(options);
-        services.TryAddKeyedTransient<IStorageProvider, FtpStorageProvider>(name);
+        services.TryAddKeyedTransient<IStorageProvider>(name,
+            (provider, key) => new FtpStorageProvider(options, provider.GetRequiredService<ILogger<FtpStorageProvider>>()));
         return services;
     }
 
@@ -69,6 +70,8 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddAzureBlobStorage(this IServiceCollection services, AzureBlobStorageOptions options)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
         services.TryAddSingleton(options);
         services.TryAddTransient<IStorageProvider, AzureBlobStorageProvider>();
         return services;
@@ -79,8 +82,11 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddNamedAzureBlobStorage(this IServiceCollection services, string name, AzureBlobStorageOptions options)
     {
-        services.TryAddSingleton(options);
-        services.TryAddKeyedTransient<IStorageProvider, AzureBlobStorageProvider>(name);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
+        services.TryAddKeyedTransient<IStorageProvider>(name,
+            (provider, key) => new AzureBlobStorageProvider(options, provider.GetRequiredService<ILogger<AzureBlobStorageProvider>>()));
         return services;
     }
 
@@ -89,6 +95,8 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddAzureQueueStorage(this IServiceCollection services, AzureQueueStorageOptions options)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
         services.TryAddSingleton(options);
         services.TryAddTransient<IQueueStorageProvider, AzureQueueStorageProvider>();
         return services;
@@ -99,8 +107,11 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddNamedAzureQueueStorage(this IServiceCollection services, string name, AzureQueueStorageOptions options)
     {
-        services.TryAddSingleton(options);
-        services.TryAddKeyedTransient<IQueueStorageProvider, AzureQueueStorageProvider>(name);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
+        services.TryAddKeyedTransient<IQueueStorageProvider>(name,
+            (provider, key) => new AzureQueueStorageProvider(options, provider.GetRequiredService<ILogger<AzureQueueStorageProvider>>()));
         return services;
     }
 
@@ -109,6 +120,8 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddAzureTableStorage(this IServiceCollection services, AzureTableStorageOptions options)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
         services.TryAddSingleton(options);
         services.TryAddTransient<ITableStorageProvider, AzureTableStorageProvider>();
         return services;
@@ -119,8 +132,11 @@ public static class StorageExtensions
     /// </summary>
     public static IServiceCollection AddNamedAzureTableStorage(this IServiceCollection services, string name, AzureTableStorageOptions options)
     {
-        services.TryAddSingleton(options);
-        services.TryAddKeyedTransient<ITableStorageProvider, AzureTableStorageProvider>(name);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
+        services.TryAddKeyedTransient<ITableStorageProvider>(name,
+            (provider, key) => new AzureTableStorageProvider(options, provider.GetRequiredService<ILogger<AzureTableStorageProvider>>()));
         return services;
     }
 

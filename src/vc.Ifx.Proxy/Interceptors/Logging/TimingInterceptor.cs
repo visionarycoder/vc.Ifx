@@ -89,7 +89,7 @@ public sealed class TimingInterceptor(ILogger<TimingInterceptor> logger) : IOrde
         }
         else if (elapsedMs >= SlowOperationThresholdMs)
         {
-            logger.LogWarning("Slow performance: Proxy operation '{OperationName}' {Status} in {ElapsedMs}ms (>= {Threshold}ms). Correlation ID: '{CorrelationId}'",
+            logger.LogWarning("Slow proxy operation '{OperationName}' {Status} in {ElapsedMs}ms (>= {Threshold}ms). Correlation ID: '{CorrelationId}'",
                 operationName, statusMessage, elapsedMs, SlowOperationThresholdMs, correlationId);
         }
         else

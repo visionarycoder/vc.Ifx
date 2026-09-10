@@ -23,6 +23,7 @@ public static class LoggingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddLogging(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         // Register NULL OBJECT implementation as fallback (SOLID principle)
         // This will be used if no explicit logging interceptors are registered
         services.TryAddSingleton<IOrderedProxyInterceptor, NullLoggingInterceptor>();
@@ -38,7 +39,8 @@ public static class LoggingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddLoggingInterceptor(this IServiceCollection services)
     {
-        services.TryAddSingleton<IOrderedProxyInterceptor, LoggingInterceptor>();
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IOrderedProxyInterceptor, LoggingInterceptor>());
         return services;
     }
 
@@ -52,7 +54,8 @@ public static class LoggingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddTimingInterceptor(this IServiceCollection services, long slowThresholdMs = 1000, long criticalThresholdMs = 5000)
     {
-        services.TryAddSingleton<IOrderedProxyInterceptor>(provider =>
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IOrderedProxyInterceptor, TimingInterceptor>(provider =>
         {
             ILogger<TimingInterceptor> logger = provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TimingInterceptor>>();
             return new TimingInterceptor(logger)
@@ -60,7 +63,7 @@ public static class LoggingExtensions
                 SlowOperationThresholdMs = slowThresholdMs,
                 CriticalOperationThresholdMs = criticalThresholdMs
             };
-        });
+        }));
 
         return services;
     }
@@ -73,6 +76,7 @@ public static class LoggingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddNullLogging(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IOrderedProxyInterceptor, NullLoggingInterceptor>();
         return services;
     }
@@ -86,7 +90,8 @@ public static class LoggingExtensions
     public static IServiceCollection AddLogging<TLoggingInterceptor>(this IServiceCollection services)
         where TLoggingInterceptor : class, IOrderedProxyInterceptor
     {
-        services.TryAddSingleton<IOrderedProxyInterceptor, TLoggingInterceptor>();
+        ArgumentNullException.ThrowIfNull(services);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IOrderedProxyInterceptor, TLoggingInterceptor>());
         return services;
     }
 
@@ -98,25 +103,19 @@ public static class LoggingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddLogging(this IServiceCollection services, Action<LoggingOptions> configureOptions)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configureOptions);
         var options = new LoggingOptions();
         configureOptions(options);
 
         if (options.EnableStandardLogging)
         {
-            services.TryAddSingleton<IOrderedProxyInterceptor, LoggingInterceptor>();
+            services.AddLoggingInterceptor();
         }
 
         if (options.EnableTiming)
         {
-            services.TryAddSingleton<IOrderedProxyInterceptor>(provider =>
-            {
-                ILogger<TimingInterceptor> logger = provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TimingInterceptor>>();
-                return new TimingInterceptor(logger)
-                {
-                    SlowOperationThresholdMs = options.SlowOperationThresholdMs,
-                    CriticalOperationThresholdMs = options.CriticalOperationThresholdMs
-                };
-            });
+            services.AddTimingInterceptor(options.SlowOperationThresholdMs, options.CriticalOperationThresholdMs);
         }
 
         return services;
@@ -125,8 +124,7 @@ public static class LoggingExtensions
     // SOLID Principle - Explicit Interceptor Registration Methods
 
     /// <summary>
-    /// Explicitly registers a logging interceptor to replace null implementation (SOLID principle).
-    /// Replaces any existing null logging with explicit intent, no automatic defaults.
+    /// Explicitly appends a logging interceptor. Existing registrations are retained.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <returns>The service collection for method chaining.</returns>
@@ -142,8 +140,7 @@ public static class LoggingExtensions
     }
 
     /// <summary>
-    /// Explicitly registers a timing interceptor to replace null implementation (SOLID principle).
-    /// Replaces any existing null logging with explicit intent, no automatic defaults.
+    /// Explicitly appends a timing interceptor. Existing registrations are retained.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <param name="slowThresholdMs">Threshold for slow operation warnings.</param>
@@ -173,7 +170,7 @@ public static class LoggingExtensions
 
     /// <summary>
     /// Convenience method to register default logging interceptors explicitly.
-    /// This method demonstrates how to replace null object interceptors with functional implementations.
+    /// Existing interceptors, including null implementations, remain registered.
     /// </summary>
     /// <param name="services">The service collection to add services to.</param>
     /// <returns>The service collection for method chaining.</returns>

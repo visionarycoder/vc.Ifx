@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
+    <Compile Include="../BenchmarkProgram.cs" Link="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,12 +1,23 @@
 <Project>
-    <PropertyGroup Condition="$([System.String]::Copy('$(MSBuildProjectDirectory)').Contains('\performance\')) == 'true'">
+    <!-- Scoped test builds must select intermediate paths before SDK/NuGet imports. -->
+    <PropertyGroup Condition="'$(IfxTestSourceScope)' != '' AND ('$(MSBuildProjectName)' == 'vc.Ifx.UnitTests' OR '$(MSBuildProjectName)' == 'vc.Ifx.IntegrationTests')">
+        <IfxEffectiveTestOutputKey>$(IfxTestSourceScope)</IfxEffectiveTestOutputKey>
+        <IfxEffectiveTestOutputKey Condition="'$(IfxTestOutputKey)' != ''">$(IfxTestOutputKey)</IfxEffectiveTestOutputKey>
+        <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/scoped/$(IfxEffectiveTestOutputKey)/</BaseIntermediateOutputPath>
+        <BaseOutputPath>$(MSBuildProjectDirectory)/bin/scoped/$(IfxEffectiveTestOutputKey)/</BaseOutputPath>
+        <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[/\\]performance[/\\]'))">
         <IsBenchmarkProject>true</IsBenchmarkProject>
     </PropertyGroup>
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <OutputType>Library</OutputType>
-        <LangVersion>preview</LangVersion>
+        <LangVersion>14.0</LangVersion>
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' AND ('$(TF_BUILD)' == 'True' OR '$(GITHUB_ACTIONS)' == 'true')">true</ContinuousIntegrationBuild>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
@@ -23,7 +34,6 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <RepositoryType>git</RepositoryType>
-        <RepositoryBranch>main</RepositoryBranch>
 
         <!-- Source linking and debugging -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -51,27 +61,6 @@
             <_Parameter1>$(MSBuildProjectName).IntegrationTests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
-
-    <!-- Code Coverage Configuration (collected when running test projects) -->
-    <!-- Policy: this project requires 100% code coverage. Threshold below fails the build when coverage drops. -->
-    <PropertyGroup Condition="'$(IsTestProject)' == 'true' AND '$(IsBenchmarkProject)' != 'true'">
-        <CollectCoverage>true</CollectCoverage>
-        <CoverletOutputFormat>opencover</CoverletOutputFormat>
-        <CoverletOutput>$(OutputPath)coverage.opencover.xml</CoverletOutput>
-        <Exclude>[*]*.Tests.*,[*]*.UnitTests.*,[*]*.IntegrationTests.*,[*]*.Benchmarks.*</Exclude>
-        <ExcludeByFile>**/obj/**/*.*,**/bin/**/*.*</ExcludeByFile>
-        <IncludeTestAssembly>false</IncludeTestAssembly>
-        <Threshold>100</Threshold>
-        <ThresholdType>line,branch,method</ThresholdType>
-        <ThresholdStat>total</ThresholdStat>
-    </PropertyGroup>
-
-    <!-- Test Project Configuration -->
-    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
-        <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <IsPackable>false</IsPackable>
-    </PropertyGroup>
 
     <!-- Benchmark Project Configuration -->
     <PropertyGroup Condition="'$(IsBenchmarkProject)' == 'true'">

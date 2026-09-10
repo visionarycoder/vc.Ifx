@@ -1,107 +1,69 @@
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
 namespace VisionaryCoder.Framework.Storage.Azure.Blob;
 
-/// <summary>
-/// Configuration options for Azure Blob Storage operations.
-/// </summary>
+/// <summary>Azure Blob endpoint, container and SDK transfer settings.</summary>
 public sealed class AzureBlobStorageOptions
 {
-    /// <summary>
-    /// Gets or sets the Azure Storage account connection string.
-    /// </summary>
+    /// <summary>SDK connection string, required unless credential-chain authentication is selected.</summary>
     public string? ConnectionString { get; init; }
-
-    /// <summary>
-    /// Gets or sets the Azure Storage account URI (when using managed identity).
-    /// </summary>
+    /// <summary>HTTPS account endpoint for credential-chain authentication.</summary>
     public string? StorageAccountUri { get; init; }
-
-    /// <summary>
-    /// Gets or sets the default container name for blob operations.
-    /// </summary>
+    /// <summary>Lowercase ASCII container name, 3-63 characters.</summary>
     public required string ContainerName { get; init; }
-
-    /// <summary>
-    /// Gets or sets whether to use managed identity for authentication.
-    /// When true, StorageAccountUri must be provided. When false, ConnectionString must be provided.
-    /// </summary>
-    public bool UseManagedIdentity { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets the default blob access tier.
-    /// </summary>
+    /// <summary>Use DefaultAzureCredential, which includes managed identity but also development credentials.</summary>
+    public bool UseManagedIdentity { get; init; }
+    /// <summary>Access tier applied to block blob uploads.</summary>
     public AccessTier DefaultAccessTier { get; init; } = AccessTier.Hot;
-
-    /// <summary>
-    /// Gets or sets whether to create the container if it doesn't exist.
-    /// </summary>
+    /// <summary>Create the container before writes, never during construction or reads.</summary>
     public bool CreateContainerIfNotExists { get; init; } = true;
-
-    /// <summary>
-    /// Gets or sets the public access level for the container when creating it.
-    /// </summary>
+    /// <summary>Public access used only when a container is created; defaults to private.</summary>
     public PublicAccessType ContainerPublicAccess { get; init; } = PublicAccessType.None;
-
-    /// <summary>
-    /// Gets or sets the timeout for blob operations in milliseconds.
-    /// </summary>
+    /// <summary>SDK network timeout per attempt, not a whole-operation deadline.</summary>
     public int TimeoutMilliseconds { get; init; } = 30000;
+    /// <summary>Initial and maximum SDK transfer chunk size; also used by legacy byte reads.</summary>
+    public int BufferSize { get; init; } = 4 * 1024 * 1024;
+    /// <summary>Maximum SDK retries after the first attempt. Zero disables retries.</summary>
+    public int MaxRetries { get; init; } = 3;
+    /// <summary>Initial exponential retry delay in milliseconds.</summary>
+    public int RetryDelayMilliseconds { get; init; } = 800;
+    /// <summary>Maximum exponential retry delay in milliseconds.</summary>
+    public int MaxRetryDelayMilliseconds { get; init; } = 8000;
 
-    /// <summary>
-    /// Gets or sets the buffer size for blob transfers.
-    /// </summary>
-    public int BufferSize { get; init; } = 4 * 1024 * 1024; // 4MB default
-
-    /// <summary>
-    /// Validates the configuration and throws exceptions for invalid settings.
-    /// </summary>
+    /// <summary>Validate behavior and the active authentication configuration without network I/O.</summary>
     public void Validate()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ContainerName);
-
+        ValidateBehavior();
         if (UseManagedIdentity)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(StorageAccountUri);
-            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out _))
-            {
-                throw new ArgumentException("StorageAccountUri must be a valid absolute URI.", nameof(StorageAccountUri));
-            }
+            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out Uri? endpoint) ||
+                endpoint.Scheme != Uri.UriSchemeHttps || endpoint.UserInfo.Length != 0 ||
+                endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0 || endpoint.AbsolutePath != "/")
+                throw new ArgumentException("StorageAccountUri must be an HTTPS account endpoint without credentials, query, fragment or container path.", nameof(StorageAccountUri));
         }
         else
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(ConnectionString);
-        }
-
-        if (TimeoutMilliseconds <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(TimeoutMilliseconds), "Timeout must be greater than 0");
-        }
-
-        if (BufferSize <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(BufferSize), "Buffer size must be greater than 0");
-        }
-
-        // Validate container name according to Azure naming rules
-        if (!IsValidContainerName(ContainerName))
-        {
-            throw new ArgumentException("Container name must be 3-63 characters long, contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen.", nameof(ContainerName));
+            // Reuse the SDK parser; constructing a client does not contact Azure.
+            new BlobServiceClient(ConnectionString);
         }
     }
 
-    private static bool IsValidContainerName(string containerName)
+    internal void ValidateBehavior()
     {
-        if (string.IsNullOrWhiteSpace(containerName) ||
-            containerName.Length < 3 ||
-            containerName.Length > 63 ||
-            containerName.StartsWith('-') ||
-            containerName.EndsWith('-') ||
-            containerName.Contains("--"))
-        {
-            return false;
-        }
-
-        return containerName.All(c => char.IsLower(c) || char.IsDigit(c) || c == '-');
+        ArgumentException.ThrowIfNullOrWhiteSpace(ContainerName);
+        if (ContainerName.Length is < 3 or > 63 || ContainerName.StartsWith('-') || ContainerName.EndsWith('-') ||
+            ContainerName.Contains("--", StringComparison.Ordinal) || !ContainerName.All(character => character is >= 'a' and <= 'z' or >= '0' and <= '9' or '-'))
+            throw new ArgumentException("ContainerName must be 3-63 lowercase ASCII letters, digits or single interior hyphens.", nameof(ContainerName));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(TimeoutMilliseconds);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(BufferSize);
+        ArgumentOutOfRangeException.ThrowIfNegative(MaxRetries);
+        ArgumentOutOfRangeException.ThrowIfNegative(RetryDelayMilliseconds);
+        ArgumentOutOfRangeException.ThrowIfLessThan(MaxRetryDelayMilliseconds, RetryDelayMilliseconds);
+        if (!Enum.IsDefined(ContainerPublicAccess)) throw new ArgumentOutOfRangeException(nameof(ContainerPublicAccess));
+        if (DefaultAccessTier != AccessTier.Hot && DefaultAccessTier != AccessTier.Cool && DefaultAccessTier != AccessTier.Cold && DefaultAccessTier != AccessTier.Archive)
+            throw new ArgumentException("Use a standard block blob access tier.", nameof(DefaultAccessTier));
     }
 }

@@ -1,444 +1,284 @@
-using Azure;
 using Azure.Identity;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
+using System.Xml;
 
 namespace VisionaryCoder.Framework.Messaging.Azure.Queue;
 
-/// <summary>
-/// Provides Azure Queue Storage-based message queue operations implementation.
-/// This service wraps Azure Queue Storage operations with logging, error handling, and async support.
-/// Supports both connection string and managed identity authentication.
-/// </summary>
+/// <summary>Queue transport over the virtual Azure SDK client, without application-level retries or acknowledgements.</summary>
 public sealed class AzureQueueStorageProvider : ServiceBase<AzureQueueStorageProvider>, IQueueStorageProvider
 {
-    private static readonly Encoding defaultEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
+    private static readonly Encoding messageEncoding = new UTF8Encoding(false, true);
     private readonly AzureQueueStorageOptions options;
-    private readonly QueueServiceClient queueServiceClient;
     private readonly QueueClient queueClient;
+    private readonly SemaphoreSlim initialization = new(1, 1);
+    private bool initialized;
 
     public AzureQueueStorageProvider(AzureQueueStorageOptions options, ILogger<AzureQueueStorageProvider> logger)
+        : this(options, logger, CreateClient(options)) { }
+
+    /// <summary>Uses a borrowed SDK client, configured by the caller with matching encoding and retry settings.</summary>
+    public AzureQueueStorageProvider(AzureQueueStorageOptions options, ILogger<AzureQueueStorageProvider> logger, QueueClient queueClient)
         : base(logger)
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-        this.options.Validate();
-
-        try
-        {
-            // Create queue service client based on authentication method
-            if (options.UseManagedIdentity)
-            {
-                queueServiceClient = new QueueServiceClient(new Uri(options.StorageAccountUri!), new DefaultAzureCredential());
-            }
-            else
-            {
-                queueServiceClient = new QueueServiceClient(options.ConnectionString);
-            }
-
-            var clientOptions = new QueueClientOptions
-            {
-                MessageEncoding = options.EncodeMessages ? QueueMessageEncoding.Base64 : QueueMessageEncoding.None
-            };
-
-            queueClient = queueServiceClient.GetQueueClient(options.QueueName);
-
-            // Create queue if it doesn't exist and option is enabled
-            if (options.CreateQueueIfNotExists)
-            {
-                queueClient.CreateIfNotExists();
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to initialize Azure Queue Storage client");
-            throw;
-        }
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        this.options = options;
+        this.queueClient = queueClient ?? throw new ArgumentNullException(nameof(queueClient));
     }
 
-    /// <summary>
-    /// Checks if the queue exists.
-    /// </summary>
     public bool QueueExists()
     {
-        try
-        {
-            Response<bool> response = queueClient.Exists();
-            Logger.LogTrace("Queue existence check for '{QueueName}': {Exists}", options.QueueName, response.Value);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking queue existence for '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        return queueClient.Exists().Value;
     }
 
-    /// <summary>
-    /// Checks if the queue exists asynchronously.
-    /// </summary>
     public async Task<bool> QueueExistsAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            Response<bool> response = await queueClient.ExistsAsync(cancellationToken);
-            Logger.LogTrace("Queue existence check async for '{QueueName}': {Exists}", options.QueueName, response.Value);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking queue existence async for '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await queueClient.ExistsAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result.Value;
     }
 
-    /// <summary>
-    /// Sends a text message to the queue.
-    /// </summary>
     public void SendMessage(string messageText)
     {
+        ThrowIfDisposed();
         ArgumentException.ThrowIfNullOrWhiteSpace(messageText);
-
-        try
-        {
-            Logger.LogDebug("Sending message to queue '{QueueName}'", options.QueueName);
-
-            TimeSpan? timeToLive = options.MessageTimeToLiveSeconds == -1
-                ? null
-                : TimeSpan.FromSeconds(options.MessageTimeToLiveSeconds);
-
-            queueClient.SendMessage(messageText, timeToLive: timeToLive);
-            Logger.LogTrace("Successfully sent message to queue '{QueueName}'", options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error sending message to queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ValidatePayload(messageText);
+        Initialize();
+        queueClient.SendMessage(messageText, timeToLive: TimeSpan.FromSeconds(options.MessageTimeToLiveSeconds));
     }
 
-    /// <summary>
-    /// Sends a text message to the queue asynchronously.
-    /// </summary>
     public async Task SendMessageAsync(string messageText, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentException.ThrowIfNullOrWhiteSpace(messageText);
-
-        try
-        {
-            Logger.LogDebug("Sending message async to queue '{QueueName}'", options.QueueName);
-
-            TimeSpan? timeToLive = options.MessageTimeToLiveSeconds == -1
-                ? null
-                : TimeSpan.FromSeconds(options.MessageTimeToLiveSeconds);
-
-            await queueClient.SendMessageAsync(messageText, timeToLive: timeToLive, cancellationToken: cancellationToken);
-            Logger.LogTrace("Successfully sent message async to queue '{QueueName}'", options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error sending message async to queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ValidatePayload(messageText);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        await queueClient.SendMessageAsync(messageText, timeToLive: TimeSpan.FromSeconds(options.MessageTimeToLiveSeconds), cancellationToken: cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
-    /// <summary>
-    /// Sends an object as a JSON message to the queue.
-    /// </summary>
     public void SendMessage<T>(T messageObject) where T : class
     {
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(messageObject);
-
-        try
-        {
-            string messageText = JsonSerializer.Serialize(messageObject);
-            SendMessage(messageText);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error serializing and sending message to queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        SendMessage(JsonSerializer.Serialize(messageObject));
     }
 
-    /// <summary>
-    /// Sends an object as a JSON message to the queue asynchronously.
-    /// </summary>
     public async Task SendMessageAsync<T>(T messageObject, CancellationToken cancellationToken = default) where T : class
     {
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(messageObject);
-
-        try
-        {
-            string messageText = JsonSerializer.Serialize(messageObject);
-            await SendMessageAsync(messageText, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error serializing and sending message async to queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        await SendMessageAsync(JsonSerializer.Serialize(messageObject), cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Receives messages from the queue.
-    /// </summary>
     public QueueMessage[] ReceiveMessages(int? maxMessages = null)
     {
-        try
-        {
-            int messageCount = maxMessages ?? options.MaxMessagesToRetrieve;
-            var visibilityTimeout = TimeSpan.FromSeconds(options.VisibilityTimeoutSeconds);
-
-            Logger.LogDebug("Receiving up to {MaxMessages} messages from queue '{QueueName}'", messageCount, options.QueueName);
-
-            Response<QueueMessage[]> response = queueClient.ReceiveMessages(messageCount, visibilityTimeout);
-
-            Logger.LogTrace("Received {Count} messages from queue '{QueueName}'", response.Value.Length, options.QueueName);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error receiving messages from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        int count = MessageCount(maxMessages);
+        Initialize();
+        return queueClient.ReceiveMessages(count, TimeSpan.FromSeconds(options.VisibilityTimeoutSeconds)).Value;
     }
 
-    /// <summary>
-    /// Receives messages from the queue asynchronously.
-    /// </summary>
     public async Task<QueueMessage[]> ReceiveMessagesAsync(int? maxMessages = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            int messageCount = maxMessages ?? options.MaxMessagesToRetrieve;
-            var visibilityTimeout = TimeSpan.FromSeconds(options.VisibilityTimeoutSeconds);
-
-            Logger.LogDebug("Receiving up to {MaxMessages} messages async from queue '{QueueName}'", messageCount, options.QueueName);
-
-            Response<QueueMessage[]> response = await queueClient.ReceiveMessagesAsync(messageCount, visibilityTimeout, cancellationToken);
-
-            Logger.LogTrace("Received {Count} messages async from queue '{QueueName}'", response.Value.Length, options.QueueName);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error receiving messages async from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        int count = MessageCount(maxMessages);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        var result = await queueClient.ReceiveMessagesAsync(count, TimeSpan.FromSeconds(options.VisibilityTimeoutSeconds), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result.Value;
     }
 
-    /// <summary>
-    /// Peeks at messages without removing them from the queue.
-    /// </summary>
     public PeekedMessage[] PeekMessages(int? maxMessages = null)
     {
-        try
-        {
-            int messageCount = maxMessages ?? options.MaxMessagesToRetrieve;
-
-            Logger.LogDebug("Peeking at up to {MaxMessages} messages from queue '{QueueName}'", messageCount, options.QueueName);
-
-            Response<PeekedMessage[]> response = queueClient.PeekMessages(messageCount);
-
-            Logger.LogTrace("Peeked at {Count} messages from queue '{QueueName}'", response.Value.Length, options.QueueName);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error peeking at messages from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        int count = MessageCount(maxMessages);
+        Initialize();
+        return queueClient.PeekMessages(count).Value;
     }
 
-    /// <summary>
-    /// Peeks at messages without removing them from the queue asynchronously.
-    /// </summary>
     public async Task<PeekedMessage[]> PeekMessagesAsync(int? maxMessages = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            int messageCount = maxMessages ?? options.MaxMessagesToRetrieve;
-
-            Logger.LogDebug("Peeking at up to {MaxMessages} messages async from queue '{QueueName}'", messageCount, options.QueueName);
-
-            Response<PeekedMessage[]> response = await queueClient.PeekMessagesAsync(messageCount, cancellationToken);
-
-            Logger.LogTrace("Peeked at {Count} messages async from queue '{QueueName}'", response.Value.Length, options.QueueName);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error peeking at messages async from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        int count = MessageCount(maxMessages);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        var result = await queueClient.PeekMessagesAsync(count, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result.Value;
     }
 
-    /// <summary>
-    /// Deletes a message from the queue.
-    /// </summary>
     public void DeleteMessage(string messageId, string popReceipt)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(popReceipt);
-
-        try
-        {
-            Logger.LogDebug("Deleting message '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-            queueClient.DeleteMessage(messageId, popReceipt);
-            Logger.LogTrace("Successfully deleted message '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting message '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        ValidateReceipt(messageId, popReceipt);
+        Initialize();
+        queueClient.DeleteMessage(messageId, popReceipt);
     }
 
-    /// <summary>
-    /// Deletes a message from the queue asynchronously.
-    /// </summary>
     public async Task DeleteMessageAsync(string messageId, string popReceipt, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(popReceipt);
-
-        try
-        {
-            Logger.LogDebug("Deleting message async '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-            await queueClient.DeleteMessageAsync(messageId, popReceipt, cancellationToken);
-            Logger.LogTrace("Successfully deleted message async '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting message async '{MessageId}' from queue '{QueueName}'", messageId, options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateReceipt(messageId, popReceipt);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        await queueClient.DeleteMessageAsync(messageId, popReceipt, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
-    /// <summary>
-    /// Updates the visibility timeout of a message.
-    /// </summary>
+    /// <summary>Legacy update discards the renewed receipt. Prefer UpdateMessageWithReceipt before subsequent acknowledgement.</summary>
     public void UpdateMessage(string messageId, string popReceipt, string? messageText = null, TimeSpan? visibilityTimeout = null)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(popReceipt);
+        => UpdateMessageWithReceipt(messageId, popReceipt, messageText, visibilityTimeout);
 
-        try
-        {
-            Logger.LogDebug("Updating message '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-            queueClient.UpdateMessage(messageId, popReceipt, messageText, visibilityTimeout ?? TimeSpan.Zero);
-            Logger.LogTrace("Successfully updated message '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error updating message '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Updates the visibility timeout of a message asynchronously.
-    /// </summary>
+    /// <summary>Legacy update discards the renewed receipt. Prefer UpdateMessageWithReceiptAsync.</summary>
     public async Task UpdateMessageAsync(string messageId, string popReceipt, string? messageText = null, TimeSpan? visibilityTimeout = null, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(popReceipt);
+        => await UpdateMessageWithReceiptAsync(messageId, popReceipt, messageText, visibilityTimeout, cancellationToken).ConfigureAwait(false);
 
-        try
-        {
-            Logger.LogDebug("Updating message async '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-            await queueClient.UpdateMessageAsync(messageId, popReceipt, messageText, visibilityTimeout ?? TimeSpan.Zero, cancellationToken);
-            Logger.LogTrace("Successfully updated message async '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error updating message async '{MessageId}' in queue '{QueueName}'", messageId, options.QueueName);
-            throw;
-        }
+    /// <summary>Returns the renewed receipt. Null text preserves the body; empty text replaces it with an empty body.</summary>
+    public UpdateReceipt UpdateMessageWithReceipt(string messageId, string popReceipt, string? messageText = null, TimeSpan? visibilityTimeout = null)
+    {
+        ThrowIfDisposed();
+        var visibility = ValidateUpdate(messageId, popReceipt, messageText, visibilityTimeout);
+        Initialize();
+        return queueClient.UpdateMessage(messageId, popReceipt, messageText, visibility).Value;
     }
 
-    /// <summary>
-    /// Gets the approximate number of messages in the queue.
-    /// </summary>
+    public async Task<UpdateReceipt> UpdateMessageWithReceiptAsync(string messageId, string popReceipt, string? messageText = null, TimeSpan? visibilityTimeout = null, CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        var visibility = ValidateUpdate(messageId, popReceipt, messageText, visibilityTimeout);
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        var result = await queueClient.UpdateMessageAsync(messageId, popReceipt, messageText, visibility, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result.Value;
+    }
+
     public int GetMessageCount()
     {
-        try
-        {
-            Logger.LogDebug("Getting message count for queue '{QueueName}'", options.QueueName);
-
-            QueueProperties properties = queueClient.GetProperties();
-            int count = properties.ApproximateMessagesCount;
-
-            Logger.LogTrace("Queue '{QueueName}' has approximately {Count} messages", options.QueueName, count);
-            return count;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error getting message count for queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        Initialize();
+        return queueClient.GetProperties().Value.ApproximateMessagesCount;
     }
 
-    /// <summary>
-    /// Gets the approximate number of messages in the queue asynchronously.
-    /// </summary>
     public async Task<int> GetMessageCountAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            Logger.LogDebug("Getting message count async for queue '{QueueName}'", options.QueueName);
-
-            Response<QueueProperties> response = await queueClient.GetPropertiesAsync(cancellationToken);
-            int count = response.Value.ApproximateMessagesCount;
-
-            Logger.LogTrace("Queue '{QueueName}' has approximately {Count} messages", options.QueueName, count);
-            return count;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error getting message count async for queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        var result = await queueClient.GetPropertiesAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result.Value.ApproximateMessagesCount;
     }
 
-    /// <summary>
-    /// Clears all messages from the queue.
-    /// </summary>
     public void ClearMessages()
     {
-        try
-        {
-            Logger.LogDebug("Clearing all messages from queue '{QueueName}'", options.QueueName);
-            queueClient.ClearMessages();
-            Logger.LogTrace("Successfully cleared all messages from queue '{QueueName}'", options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error clearing messages from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        Initialize();
+        queueClient.ClearMessages();
     }
 
-    /// <summary>
-    /// Clears all messages from the queue asynchronously.
-    /// </summary>
     public async Task ClearMessagesAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            Logger.LogDebug("Clearing all messages async from queue '{QueueName}'", options.QueueName);
-            await queueClient.ClearMessagesAsync(cancellationToken);
-            Logger.LogTrace("Successfully cleared all messages async from queue '{QueueName}'", options.QueueName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error clearing messages async from queue '{QueueName}'", options.QueueName);
-            throw;
-        }
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        await queueClient.ClearMessagesAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        // The sealed provider has no finalizer; callers quiesce operations before disposal.
+        initialization.Dispose();
+        base.Dispose(disposing);
+    }
+
+    private static QueueClient CreateClient(AzureQueueStorageOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        var clientOptions = options.CreateClientOptions();
+        return options.UseManagedIdentity
+            ? new QueueServiceClient(new Uri(options.StorageAccountUri!), new DefaultAzureCredential(), clientOptions).GetQueueClient(options.QueueName)
+            : new QueueClient(options.ConnectionString, options.QueueName, clientOptions);
+    }
+
+    private void Initialize()
+    {
+        if (!options.CreateQueueIfNotExists)
+            return;
+        initialization.Wait();
+        try
+        {
+            if (!initialized)
+            {
+                queueClient.CreateIfNotExists();
+                initialized = true;
+            }
+        }
+        finally { initialization.Release(); }
+    }
+
+    private async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        if (!options.CreateQueueIfNotExists)
+            return;
+        await initialization.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!initialized)
+            {
+                await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                initialized = true;
+            }
+        }
+        finally { initialization.Release(); }
+    }
+
+    private int MessageCount(int? maxMessages)
+    {
+        int count = maxMessages ?? options.MaxMessagesToRetrieve;
+        if (count is < 1 or > 32)
+            throw new ArgumentOutOfRangeException(nameof(maxMessages), "Message count must be between 1 and 32.");
+        return count;
+    }
+
+    private static void ValidateReceipt(string messageId, string popReceipt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(popReceipt);
+    }
+
+    private TimeSpan ValidateUpdate(string messageId, string popReceipt, string? messageText, TimeSpan? visibilityTimeout)
+    {
+        ValidateReceipt(messageId, popReceipt);
+        var visibility = visibilityTimeout ?? TimeSpan.Zero;
+        if (visibility < TimeSpan.Zero || visibility > TimeSpan.FromDays(7))
+            throw new ArgumentOutOfRangeException(nameof(visibilityTimeout));
+        if (messageText is not null)
+            ValidatePayload(messageText);
+        return visibility;
+    }
+
+    private void ValidatePayload(string messageText)
+    {
+        long bytes = messageEncoding.GetByteCount(messageText);
+        long encodedBytes = options.EncodeMessages ? 4 * ((bytes + 2) / 3) : bytes;
+        if (encodedBytes > 65536)
+            throw new ArgumentException("Encoded message content exceeds the 64 KiB queue limit.", nameof(messageText));
+        if (!options.EncodeMessages)
+            XmlConvert.VerifyXmlChars(messageText);
+    }
 }

@@ -21,6 +21,7 @@ public static class DictionaryExtensions
         /// <returns>The value associated with the key or the default value.</returns>
         public TValue GetValueOrDefault(TKey key, TValue defaultValue = default!)
     {
+        ArgumentNullException.ThrowIfNull(dictionary);
         return dictionary.TryGetValue(key, out TValue? value) ? value : defaultValue;
     }
 
@@ -53,6 +54,7 @@ public static class DictionaryExtensions
     /// <returns>The new value in the dictionary.</returns>
     public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
     {
+        ArgumentNullException.ThrowIfNull(dictionary);
         ArgumentNullException.ThrowIfNull(updateValueFactory);
         if (dictionary.TryGetValue(key, out TValue? existingValue))
         {
@@ -75,9 +77,14 @@ public static class DictionaryExtensions
     public TValue AddOrUpdate(TKey key, Func<TKey, TValue> addValueFactory,
         Func<TKey, TValue, TValue> updateValueFactory)
     {
+        ArgumentNullException.ThrowIfNull(dictionary);
         ArgumentNullException.ThrowIfNull(addValueFactory);
-        TValue addValue = addValueFactory(key);
-        return AddOrUpdate(dictionary, key, addValue, updateValueFactory);
+        ArgumentNullException.ThrowIfNull(updateValueFactory);
+        TValue value = dictionary.TryGetValue(key, out TValue? existingValue)
+            ? updateValueFactory(key, existingValue)
+            : addValueFactory(key);
+        dictionary[key] = value;
+        return value;
     }
 }
 
@@ -91,6 +98,7 @@ extension<TKey, TValue>(IDictionary<TKey, TValue> dictionary) where TKey : notnu
         /// <returns>An immutable version of the dictionary</returns>
         public IImmutableDictionary<TKey, TValue> ToImmutableDictionary()
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     return dictionary.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value);
 }
 
@@ -98,6 +106,7 @@ extension<TKey, TValue>(IDictionary<TKey, TValue> dictionary) where TKey : notnu
 /// <returns>A read-only version of the dictionary</returns>
 public ReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionary()
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     return new ReadOnlyDictionary<TKey, TValue>(dictionary);
 }
 
@@ -139,6 +148,7 @@ public Dictionary<TKey, TValue> Merge(IDictionary<TKey, TValue> second, Func<TKe
 /// <returns>A new dictionary with the same keys but transformed values.</returns>
 public Dictionary<TKey, TResult> TransformValues<TResult>(Func<TValue, TResult> valueSelector)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     ArgumentNullException.ThrowIfNull(valueSelector);
     var result = new Dictionary<TKey, TResult>(dictionary.Count);
     foreach (KeyValuePair<TKey, TValue> kvp in dictionary)
@@ -153,6 +163,7 @@ public Dictionary<TKey, TResult> TransformValues<TResult>(Func<TValue, TResult> 
 /// <returns>A new dictionary containing only the elements that satisfy the condition</returns>
 public Dictionary<TKey, TValue> Where(Func<TKey, TValue, bool> predicate)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     ArgumentNullException.ThrowIfNull(predicate);
     return dictionary
         .Where(kvp => predicate(kvp.Key, kvp.Value))
@@ -172,7 +183,10 @@ public Dictionary<TKey, TValue> Where(Func<TKey, TValue, bool> predicate)
     PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
     foreach (PropertyInfo property in properties)
     {
-        dictionary[property.Name] = property.GetValue(obj);
+        if (property.GetMethod is { IsPublic: true } && property.GetIndexParameters().Length == 0)
+        {
+            dictionary[property.Name] = property.GetValue(obj);
+        }
     }
     return dictionary;
 }
@@ -197,6 +211,7 @@ extension<TKey, TValue>(IDictionary < TKey, TValue > dictionary)
         /// <returns>The number of elements removed.</returns>
         public int RemoveRange(IEnumerable<TKey> keys)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     ArgumentNullException.ThrowIfNull(keys);
     int count = 0;
     foreach (TKey key in keys)
@@ -217,6 +232,7 @@ extension<TKey, TValue>(IDictionary < TKey, TValue > dictionary)
 /// <returns>True if the key was found and removed; otherwise, false.</returns>
 public bool TryRemove(TKey key, [MaybeNullWhen(false)] out TValue value)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     if (dictionary.TryGetValue(key, out value))
     {
         return dictionary.Remove(key);
@@ -233,6 +249,7 @@ public bool TryRemove(TKey key, [MaybeNullWhen(false)] out TValue value)
 /// <returns>True if the key was found and updated; otherwise, false.</returns>
 public bool TryUpdate(TKey key, TValue newValue)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     if (!dictionary.ContainsKey(key))
     {
         return false;
@@ -245,6 +262,7 @@ public bool TryUpdate(TKey key, TValue newValue)
 /// <param name="action">The action to perform on each element</param>
 public void ForEach(Action<TKey, TValue> action)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     ArgumentNullException.ThrowIfNull(action);
     foreach (KeyValuePair<TKey, TValue> kvp in dictionary)
     {
@@ -263,6 +281,7 @@ public void ForEach(Action<TKey, TValue> action)
         where TKey : notnull
         where TValue : notnull
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     var result = new Dictionary<TValue, TKey>(dictionary.Count);
     foreach (KeyValuePair<TKey, TValue> kvp in dictionary)
     {
@@ -284,6 +303,7 @@ public void ForEach(Action<TKey, TValue> action)
 /// <returns>The new value after incrementing.</returns>
 public static int IncrementValue<TKey>(this IDictionary<TKey, int> dictionary, TKey key, int increment = 1)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     if (dictionary.TryGetValue(key, out int currentValue))
     {
         int newValue = currentValue + increment;
@@ -303,6 +323,7 @@ public static int IncrementValue<TKey>(this IDictionary<TKey, int> dictionary, T
 /// <param name="item">The item to add to the list.</param>
 public static void AddToList<TKey, TListItem>(this IDictionary<TKey, List<TListItem>> dictionary, TKey key, TListItem item)
 {
+    ArgumentNullException.ThrowIfNull(dictionary);
     if (!dictionary.TryGetValue(key, out List<TListItem>? list))
     {
         list = [];

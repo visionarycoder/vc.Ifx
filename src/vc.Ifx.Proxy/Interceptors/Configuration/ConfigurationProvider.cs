@@ -62,10 +62,11 @@ public abstract class ConfigurationProvider
     /// <inheritdoc/>
     public IDictionary<string, object?> GetAllValues()
     {
+        ThrowIfDisposed();
         try
         {
             var result = new Dictionary<string, object?>();
-            string keyPrefix = options.KeyPrefix ?? string.Empty;
+            string keyPrefix = options.KeyPrefix?.TrimEnd(':') ?? string.Empty;
             bool hasPrefix = !string.IsNullOrEmpty(keyPrefix);
             int prefixLength = hasPrefix ? keyPrefix.Length : 0;
 
@@ -74,7 +75,8 @@ public abstract class ConfigurationProvider
                 if (string.IsNullOrEmpty(kvp.Key))
                     continue;
 
-                if (hasPrefix && !kvp.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase))
+                if (hasPrefix && !kvp.Key.Equals(keyPrefix, StringComparison.OrdinalIgnoreCase)
+                    && !kvp.Key.StartsWith(keyPrefix + ":", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -99,12 +101,14 @@ public abstract class ConfigurationProvider
     /// <inheritdoc/>
     public async Task<IDictionary<string, object?>> GetAllValuesAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         return await Task.FromResult(GetAllValues());
     }
 
     /// <inheritdoc/>
     public virtual bool Refresh()
     {
+        ThrowIfDisposed();
         // Default refresh behavior simply clears cache and updates timestamp
         try
         {

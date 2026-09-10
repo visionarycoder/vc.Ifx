@@ -1,57 +1,110 @@
 using Azure;
+using Azure.Core;
 using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace VisionaryCoder.Framework.Storage.Azure.Blob;
 
-/// <summary>
-/// Provides Azure Blob Storage-based storage operations implementation following Microsoft I/O patterns.
-/// This service wraps Azure Blob Storage operations with logging, error handling, and async support.
-/// Supports both connection string and managed identity authentication.
-/// </summary>
-public sealed class AzureBlobStorageProvider : ServiceBase<AzureBlobStorageProvider>, IStorageProvider
+/// <summary>Block blob storage with SDK-owned retries and caller-owned streams.</summary>
+public sealed class AzureBlobStorageProvider : ServiceBase<AzureBlobStorageProvider>, IStorageProvider, IObjectStorageProvider
 {
-
-    private static readonly Encoding defaultEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
     private readonly AzureBlobStorageOptions options;
-    private readonly BlobServiceClient blobServiceClient;
     private readonly BlobContainerClient containerClient;
 
+    /// <summary>Constructs SDK clients without network I/O. Optional container creation is deferred to writes.</summary>
     public AzureBlobStorageProvider(AzureBlobStorageOptions options, ILogger<AzureBlobStorageProvider> logger)
+        : this(options, logger, CreateContainerClient(options)) { }
+
+    /// <summary>Uses an externally configured, reusable SDK client. Endpoint credentials and retries belong to that client.</summary>
+    public AzureBlobStorageProvider(AzureBlobStorageOptions options, ILogger<AzureBlobStorageProvider> logger, BlobContainerClient containerClient)
         : base(logger)
     {
         this.options = options ?? throw new ArgumentNullException(nameof(options));
-        this.options.Validate();
+        options.ValidateBehavior();
+        this.containerClient = containerClient ?? throw new ArgumentNullException(nameof(containerClient));
+        if (containerClient.Name != options.ContainerName) throw new ArgumentException("The injected client must target ContainerName.", nameof(containerClient));
+    }
 
+    /// <inheritdoc />
+    public StorageCapabilities Capabilities => StorageCapabilities.Read | StorageCapabilities.Write | StorageCapabilities.Delete | StorageCapabilities.Metadata | StorageCapabilities.List | StorageCapabilities.CreateOnly;
+
+    /// <inheritdoc />
+    public async Task<Stream> OpenReadAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        string name = ObjectName(request.Path);
+        Response<BlobDownloadStreamingResult> response = await ExecuteAsync(() => containerClient.GetBlobClient(name).DownloadStreamingAsync(null, cancellationToken), cancellationToken).ConfigureAwait(false);
+        Stream content = response.Value.Content;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            content.Dispose();
+            throw new OperationCanceledException(cancellationToken);
+        }
+        return content;
+    }
+
+    /// <inheritdoc />
+    public async Task<StorageObjectMetadata> WriteAsync(StorageWriteRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        string name = ObjectName(request.Path);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (options.CreateContainerIfNotExists)
+            await ExecuteAsync(() => containerClient.CreateIfNotExistsAsync(options.ContainerPublicAccess, null, null, cancellationToken), cancellationToken).ConfigureAwait(false);
+        var upload = new BlobUploadOptions
+        {
+            AccessTier = options.DefaultAccessTier,
+            Conditions = request.Overwrite ? null : new BlobRequestConditions { IfNoneMatch = ETag.All },
+            TransferOptions = new StorageTransferOptions { InitialTransferSize = options.BufferSize, MaximumTransferSize = options.BufferSize, MaximumConcurrency = 1 }
+        };
+        Response<BlobContentInfo> response = await ExecuteAsync(() => containerClient.GetBlobClient(name).UploadAsync(request.Content, upload, cancellationToken), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return new StorageObjectMetadata(name, lastModified: response.Value.LastModified, version: response.Value.ETag.ToString());
+    }
+
+    /// <inheritdoc />
+    public async Task<StorageObjectMetadata?> GetMetadataAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        string name = ObjectName(request.Path);
         try
         {
-            // Create blob service client based on authentication method
-            if (options.UseManagedIdentity)
-            {
-                blobServiceClient = new BlobServiceClient(new Uri(options.StorageAccountUri!), new DefaultAzureCredential());
-            }
-            else
-            {
-                blobServiceClient = new BlobServiceClient(options.ConnectionString);
-            }
-
-            containerClient = blobServiceClient.GetBlobContainerClient(options.ContainerName);
-
-            // Create container if it doesn't exist and option is enabled
-            if (options.CreateContainerIfNotExists)
-            {
-                containerClient.CreateIfNotExists(options.ContainerPublicAccess);
-            }
+            Response<BlobProperties> response = await ExecuteAsync(() => containerClient.GetBlobClient(name).GetPropertiesAsync(null, cancellationToken), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            BlobProperties value = response.Value;
+            return new StorageObjectMetadata(name, value.ContentLength, value.LastModified, value.ContentType, value.ETag.ToString());
         }
-        catch (Exception ex)
+        catch (FileNotFoundException) { return null; }
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        string name = ObjectName(request.Path);
+        try
         {
-            Logger.LogError(ex, "Failed to initialize Azure Blob Storage client");
-            throw;
+            await ExecuteAsync(() => containerClient.GetBlobClient(name).DeleteIfExistsAsync(DeleteSnapshotsOption.None, null, cancellationToken), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        catch (FileNotFoundException) { }
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<StorageObjectMetadata> ListAsync(StorageListRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ValidatePrefix(request.Prefix);
+        await foreach (BlobItem item in ReadItemsAsync(request.Prefix, cancellationToken).ConfigureAwait(false))
+        {
+            BlobItemProperties value = item.Properties;
+            yield return new StorageObjectMetadata(item.Name, value.ContentLength, value.LastModified, value.ContentType, value.ETag?.ToString());
         }
     }
 
@@ -60,524 +113,186 @@ public sealed class AzureBlobStorageProvider : ServiceBase<AzureBlobStorageProvi
         ArgumentNullException.ThrowIfNull(fileInfo);
         return FileExists(fileInfo.FullName);
     }
-
-    public bool FileExists(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-            Response<bool>? response = blobClient.Exists();
-
-            Logger.LogTrace("Blob existence check for '{BlobName}': {Exists}", blobName, response.Value);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking blob existence for '{Path}'", path);
-            throw;
-        }
-    }
-
-    public string ReadAllText(string path)
-    {
-        byte[] bytes = ReadAllBytes(path);
-        return defaultEncoding.GetString(bytes);
-    }
-
+    public bool FileExists(string path) => GetMetadataAsync(new(LegacyName(path))).GetAwaiter().GetResult() is not null;
+    public string ReadAllText(string path) => ReadAllTextAsync(path).GetAwaiter().GetResult();
     public async Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
-    {
-        byte[] bytes = await ReadAllBytesAsync(path, cancellationToken);
-        return defaultEncoding.GetString(bytes);
-    }
-
-    public byte[] ReadAllBytes(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Reading all bytes from blob '{BlobName}'", blobName);
-
-            if (!blobClient.Exists())
-            {
-                throw new FileNotFoundException($"The blob '{blobName}' does not exist in container '{options.ContainerName}'.", path);
-            }
-
-            using var memoryStream = new MemoryStream();
-            blobClient.DownloadTo(memoryStream);
-            byte[] bytes = memoryStream.ToArray();
-
-            Logger.LogTrace("Successfully read {Length} bytes from blob '{BlobName}'", bytes.Length, blobName);
-            return bytes;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error reading bytes from blob '{Path}'", path);
-            throw;
-        }
-    }
-
+        => Encoding.UTF8.GetString(await ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false));
+    public byte[] ReadAllBytes(string path) => ReadAllBytesAsync(path).GetAwaiter().GetResult();
     public async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Reading all bytes async from blob '{BlobName}'", blobName);
-
-            Response<bool>? existsResponse = await blobClient.ExistsAsync(cancellationToken);
-            if (!existsResponse.Value)
-            {
-                throw new FileNotFoundException($"The blob '{blobName}' does not exist in container '{options.ContainerName}'.", path);
-            }
-
-            using var memoryStream = new MemoryStream();
-            await blobClient.DownloadToAsync(memoryStream, cancellationToken);
-            byte[] bytes = memoryStream.ToArray();
-
-            Logger.LogTrace("Successfully read {Length} bytes async from blob '{BlobName}'", bytes.Length, blobName);
-            return bytes;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error reading bytes async from blob '{Path}'", path);
-            throw;
-        }
+        using Stream content = await OpenReadAsync(new(LegacyName(path)), cancellationToken).ConfigureAwait(false);
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, options.BufferSize, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return buffer.ToArray();
     }
-
-    public void WriteAllText(string path, string content)
+    public void WriteAllText(string path, string content) => WriteAllTextAsync(path, content).GetAwaiter().GetResult();
+    public Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(content);
-        WriteAllBytes(path, defaultEncoding.GetBytes(content));
+        return WriteAllBytesAsync(path, Encoding.UTF8.GetBytes(content), cancellationToken);
     }
-
-    public async Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentNullException.ThrowIfNull(content);
-        await WriteAllBytesAsync(path, defaultEncoding.GetBytes(content), cancellationToken);
-    }
-
-    public void WriteAllBytes(string path, byte[] bytes)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentNullException.ThrowIfNull(bytes);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Writing {Length} bytes to blob '{BlobName}'", bytes.Length, blobName);
-
-            using var memoryStream = new MemoryStream(bytes);
-            var uploadOptions = new BlobUploadOptions
-            {
-                AccessTier = options.DefaultAccessTier
-            };
-
-            blobClient.Upload(memoryStream, uploadOptions);
-            Logger.LogTrace("Successfully wrote bytes to blob '{BlobName}'", blobName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error writing bytes to blob '{Path}'", path);
-            throw;
-        }
-    }
-
+    public void WriteAllBytes(string path, byte[] bytes) => WriteAllBytesAsync(path, bytes).GetAwaiter().GetResult();
     public async Task WriteAllBytesAsync(string path, byte[] bytes, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(bytes);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Writing {Length} bytes async to blob '{BlobName}'", bytes.Length, blobName);
-
-            using var memoryStream = new MemoryStream(bytes);
-            var uploadOptions = new BlobUploadOptions
-            {
-                AccessTier = options.DefaultAccessTier
-            };
-
-            await blobClient.UploadAsync(memoryStream, uploadOptions, cancellationToken);
-            Logger.LogTrace("Successfully wrote bytes async to blob '{BlobName}'", blobName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error writing bytes async to blob '{Path}'", path);
-            throw;
-        }
+        using var content = new MemoryStream(bytes, writable: false);
+        await WriteAsync(new(LegacyName(path), content), cancellationToken).ConfigureAwait(false);
     }
-
-    public void DeleteFile(string path)
+    public void DeleteFile(string path) => DeleteFileAsync(path).GetAwaiter().GetResult();
+    public Task DeleteFileAsync(string path, CancellationToken cancellationToken = default) => DeleteAsync(new(LegacyName(path)), cancellationToken);
+    public bool DirectoryExists(string path) => DirectoryExistsAsync(DirectoryPrefix(path)).GetAwaiter().GetResult();
+    private async Task<bool> DirectoryExistsAsync(string prefix)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Deleting blob '{BlobName}'", blobName);
-            blobClient.DeleteIfExists();
-            Logger.LogTrace("Successfully deleted blob '{BlobName}'", blobName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting blob '{Path}'", path);
-            throw;
-        }
+        await foreach (BlobItem item in ReadItemsAsync(prefix, default).ConfigureAwait(false)) return true;
+        return false;
     }
-
-    public async Task DeleteFileAsync(string path, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            Logger.LogDebug("Deleting blob async '{BlobName}'", blobName);
-            await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
-            Logger.LogTrace("Successfully deleted blob async '{BlobName}'", blobName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting blob async '{Path}'", path);
-            throw;
-        }
-    }
-
-    public bool DirectoryExists(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string prefix = NormalizeDirectoryPrefix(path);
-            Logger.LogTrace("Checking directory existence for prefix '{Prefix}'", prefix);
-
-            // In blob storage, directories are virtual - check if any blobs start with the prefix
-            IEnumerable<BlobItem> blobs = containerClient.GetBlobs(prefix: prefix).Take(1);
-            bool exists = blobs.Any();
-
-            Logger.LogTrace("Directory existence check for '{Path}': {Exists}", path, exists);
-            return exists;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking directory existence for '{Path}'", path);
-            throw;
-        }
-    }
-
-    public DirectoryInfo CreateDirectory(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            Logger.LogDebug("Creating directory '{Path}'", path);
-
-            // In blob storage, directories are virtual and created implicitly when blobs are added
-            // We'll create a placeholder blob to represent the directory
-            string directoryMarkerPath = Path.Combine(path, ".directory");
-            string blobName = NormalizeBlobName(directoryMarkerPath);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            using var emptyStream = new MemoryStream([]);
-            blobClient.Upload(emptyStream, overwrite: true);
-
-            Logger.LogTrace("Successfully created directory '{Path}'", path);
-            return new DirectoryInfo(path);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error creating directory '{Path}'", path);
-            throw;
-        }
-    }
-
+    public DirectoryInfo CreateDirectory(string path) => CreateDirectoryAsync(path).GetAwaiter().GetResult();
     public async Task<DirectoryInfo> CreateDirectoryAsync(string path, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            Logger.LogDebug("Creating directory async '{Path}'", path);
-
-            // Create directory marker blob
-            string directoryMarkerPath = Path.Combine(path, ".directory");
-            string blobName = NormalizeBlobName(directoryMarkerPath);
-            BlobClient? blobClient = containerClient.GetBlobClient(blobName);
-
-            using var emptyStream = new MemoryStream([]);
-            await blobClient.UploadAsync(emptyStream, overwrite: true, cancellationToken: cancellationToken);
-
-            Logger.LogTrace("Successfully created directory async '{Path}'", path);
-            return new DirectoryInfo(path);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error creating directory async '{Path}'", path);
-            throw;
-        }
+        string prefix = DirectoryPrefix(path);
+        var result = new DirectoryInfo(path);
+        await WriteAllBytesAsync(prefix + ".directory", [], cancellationToken).ConfigureAwait(false);
+        return result;
     }
-
-    public void DeleteDirectory(string path, bool recursive = true)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string prefix = NormalizeDirectoryPrefix(path);
-            Logger.LogDebug("Deleting directory '{Path}' (recursive: {Recursive})", path, recursive);
-
-            var blobs = containerClient.GetBlobs(prefix: prefix).ToList();
-
-            if (!recursive && blobs.Count > 1)
-            {
-                // Check if there are any blobs other than the directory marker
-                var nonMarkerBlobs = blobs.Where(b => !b.Name.EndsWith("/.directory")).ToList();
-                if (nonMarkerBlobs.Any())
-                {
-                    throw new IOException($"The directory '{path}' is not empty.");
-                }
-            }
-
-            foreach (BlobItem? blob in blobs)
-            {
-                BlobClient? blobClient = containerClient.GetBlobClient(blob.Name);
-                blobClient.DeleteIfExists();
-            }
-
-            Logger.LogTrace("Successfully deleted directory '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting directory '{Path}' (recursive: {Recursive})", path, recursive);
-            throw;
-        }
-    }
-
+    public void DeleteDirectory(string path, bool recursive = true) => DeleteDirectoryAsync(path, recursive).GetAwaiter().GetResult();
     public async Task DeleteDirectoryAsync(string path, bool recursive = true, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
+        string prefix = DirectoryPrefix(path);
+        var names = new List<string>();
+        await foreach (BlobItem item in ReadItemsAsync(prefix, cancellationToken).ConfigureAwait(false)) names.Add(item.Name);
+        if (!recursive && names.Any(name => name != prefix + ".directory")) throw new IOException("The virtual directory is not empty.");
+        foreach (string name in names) await DeleteAsync(new(name), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+    }
+    public string[] GetFiles(string path, string searchPattern = "*") => NamesAsync(path, searchPattern, false).GetAwaiter().GetResult();
+    public string[] GetDirectories(string path, string searchPattern = "*") => NamesAsync(path, searchPattern, true).GetAwaiter().GetResult();
+    private async Task<string[]> NamesAsync(string path, string pattern, bool directories)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+        string prefix = DirectoryPrefix(path);
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        await foreach (BlobItem item in ReadItemsAsync(prefix, default).ConfigureAwait(false))
         {
-            string prefix = NormalizeDirectoryPrefix(path);
-            Logger.LogDebug("Deleting directory async '{Path}' (recursive: {Recursive})", path, recursive);
-
-            var blobs = new List<BlobItem>();
-            await foreach (BlobItem? blob in containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken))
+            if (directories)
             {
-                blobs.Add(blob);
-            }
-
-            if (!recursive && blobs.Count > 1)
-            {
-                var nonMarkerBlobs = blobs.Where(b => !b.Name.EndsWith("/.directory")).ToList();
-                if (nonMarkerBlobs.Any())
+                int separator = item.Name.IndexOf('/', prefix.Length);
+                if (separator >= 0)
                 {
-                    throw new IOException($"The directory '{path}' is not empty.");
+                    string directory = item.Name[..separator];
+                    if (MatchesPattern(GetFileName(directory), pattern)) names.Add(directory);
                 }
             }
-
-            foreach (BlobItem blob in blobs)
-            {
-                BlobClient? blobClient = containerClient.GetBlobClient(blob.Name);
-                await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
-            }
-
-            Logger.LogTrace("Successfully deleted directory async '{Path}'", path);
+            else if (!IsMarker(item.Name) && MatchesPattern(GetFileName(item.Name), pattern)) names.Add(item.Name);
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error deleting directory async '{Path}' (recursive: {Recursive})", path, recursive);
-            throw;
-        }
+        return names.ToArray();
     }
-
-    public string[] GetFiles(string path, string searchPattern = "*")
+    public async IAsyncEnumerable<string> EnumerateFilesAsync(string path, string searchPattern = "*", [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-
-        try
-        {
-            string prefix = NormalizeDirectoryPrefix(path);
-            Logger.LogDebug("Getting files from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-
-            string[] blobs = containerClient.GetBlobs(prefix: prefix)
-                .Where(b => !b.Name.EndsWith("/.directory"))
-                .Where(b => MatchesPattern(Path.GetFileName(b.Name), searchPattern))
-                .Select(b => b.Name)
-                .ToArray();
-
-            Logger.LogTrace("Found {Count} files in '{Path}'", blobs.Length, path);
-            return blobs;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error getting files from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            throw;
-        }
+        await foreach (BlobItem item in ReadItemsAsync(DirectoryPrefix(path), cancellationToken).ConfigureAwait(false))
+            if (!IsMarker(item.Name) && MatchesPattern(GetFileName(item.Name), searchPattern)) yield return item.Name;
     }
-
-    public string[] GetDirectories(string path, string searchPattern = "*")
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-
-        try
-        {
-            string prefix = NormalizeDirectoryPrefix(path);
-            Logger.LogDebug("Getting directories from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-
-            string[] directories = containerClient.GetBlobsByHierarchy(prefix: prefix, delimiter: "/")
-                .Where(item => item.IsPrefix)
-                .Select(item => item.Prefix.TrimEnd('/'))
-                .Where(dir => MatchesPattern(Path.GetFileName(dir), searchPattern))
-                .ToArray();
-
-            Logger.LogTrace("Found {Count} directories in '{Path}'", directories.Length, path);
-            return directories;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error getting directories from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            throw;
-        }
-    }
-
-    public async IAsyncEnumerable<string> EnumerateFilesAsync(string path, string searchPattern = "*",
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-
-        Logger.LogDebug("Enumerating files async from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-
-        string prefix = NormalizeDirectoryPrefix(path);
-
-        await foreach (BlobItem? blob in containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (!blob.Name.EndsWith("/.directory") && MatchesPattern(Path.GetFileName(blob.Name), searchPattern))
-            {
-                yield return blob.Name;
-            }
-        }
-    }
-
     public string GetFullPath(string path)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string blobName = NormalizeBlobName(path);
-            string fullUri = containerClient.GetBlobClient(blobName).Uri.ToString();
-            Logger.LogTrace("Resolved full path for '{Path}': '{FullPath}'", path, fullUri);
-            return fullUri;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error resolving full path for '{Path}'", path);
-            throw;
-        }
+        string name = LegacyName(path);
+        // Do not leak SAS credentials through a descriptive legacy path result.
+        return containerClient.GetBlobClient(name).Uri.GetLeftPart(UriPartial.Path);
     }
-
     public string? GetDirectoryName(string path)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-        try
-        {
-            string normalized = NormalizeBlobName(path);
-            string? directory = Path.GetDirectoryName(normalized);
-            Logger.LogTrace("Resolved directory name for '{Path}': '{DirectoryName}'", path, directory ?? "<null>");
-            return directory?.Replace('\\', '/');
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error resolving directory name for '{Path}'", path);
-            throw;
-        }
+        string name = LegacyName(path);
+        int separator = name.LastIndexOf('/');
+        return separator < 0 ? null : name[..separator];
     }
-
     public string GetFileName(string path)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        string name = LegacyName(path);
+        return name[(name.LastIndexOf('/') + 1)..];
+    }
 
+    internal static BlobContainerClient CreateContainerClient(AzureBlobStorageOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        BlobClientOptions clientOptions = CreateClientOptions(options);
+        BlobServiceClient service = options.UseManagedIdentity
+            ? new BlobServiceClient(new Uri(options.StorageAccountUri!), new DefaultAzureCredential(), clientOptions)
+            : new BlobServiceClient(options.ConnectionString, clientOptions);
+        return service.GetBlobContainerClient(options.ContainerName);
+    }
+
+    internal static BlobClientOptions CreateClientOptions(AzureBlobStorageOptions options)
+    {
+        var result = new BlobClientOptions();
+        result.Retry.Mode = RetryMode.Exponential;
+        result.Retry.MaxRetries = options.MaxRetries;
+        result.Retry.Delay = TimeSpan.FromMilliseconds(options.RetryDelayMilliseconds);
+        result.Retry.MaxDelay = TimeSpan.FromMilliseconds(options.MaxRetryDelayMilliseconds);
+        result.Retry.NetworkTimeout = TimeSpan.FromMilliseconds(options.TimeoutMilliseconds);
+        return result;
+    }
+
+    private async Task<T> ExecuteAsync<T>(Func<Task<T>> action, CancellationToken token)
+    {
+        ThrowIfDisposed();
+        token.ThrowIfCancellationRequested();
+        try { return await action().ConfigureAwait(false); }
+        catch (RequestFailedException exception) when (exception.Status == 404 && exception.ErrorCode is "BlobNotFound" or "ContainerNotFound")
+        { throw new FileNotFoundException("The blob or container does not exist.", exception); }
+        catch (RequestFailedException exception) when (exception.Status is 401 or 403)
+        { throw new UnauthorizedAccessException("Azure Blob access was denied.", exception); }
+        catch (RequestFailedException exception) { throw new IOException("Azure Blob operation failed.", exception); }
+        catch (AuthenticationFailedException exception) { throw new UnauthorizedAccessException("Azure credential authentication failed.", exception); }
+        catch (AggregateException exception) { throw new IOException("Azure Blob transfer failed.", exception); }
+    }
+
+    private async IAsyncEnumerable<BlobItem> ReadItemsAsync(string prefix, [EnumeratorCancellation] CancellationToken token)
+    {
+        AsyncPageable<BlobItem> pageable = await ExecuteAsync(() => Task.FromResult(containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, token)), token).ConfigureAwait(false);
+        await using IAsyncEnumerator<BlobItem> iterator = pageable.GetAsyncEnumerator(token);
+        while (await MoveNextAsync(iterator, token).ConfigureAwait(false))
+        {
+            if (iterator.Current.Name.StartsWith(prefix, StringComparison.Ordinal)) yield return iterator.Current;
+        }
+    }
+
+    private async Task<bool> MoveNextAsync(IAsyncEnumerator<BlobItem> iterator, CancellationToken token)
+    {
         try
         {
-            string normalized = NormalizeBlobName(path);
-            string fileName = Path.GetFileName(normalized);
-            Logger.LogTrace("Resolved file name for '{Path}': '{FileName}'", path, fileName);
-            return fileName;
+            bool found = await ExecuteAsync(() => iterator.MoveNextAsync().AsTask(), token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+            return found;
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error resolving file name for '{Path}'", path);
-            throw;
-        }
+        catch (FileNotFoundException) { return false; }
     }
 
-    private static string NormalizeBlobName(string path)
+    private string ObjectName(string name)
     {
-        if (string.IsNullOrWhiteSpace(path))
-            throw new ArgumentException("Path cannot be null or whitespace.", nameof(path));
-
-        // Replace backslashes with forward slashes and remove leading slashes
-        string normalized = path.Replace('\\', '/').TrimStart('/');
-
-        // Remove duplicate slashes
-        while (normalized.Contains("//"))
-        {
-            normalized = normalized.Replace("//", "/");
-        }
-
-        return normalized;
+        ThrowIfDisposed();
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ValidatePrefix(name);
+        if (name.Split('/').Any(segment => segment is "." or "..")) throw new ArgumentException("Dot path segments are not supported.", nameof(name));
+        return name;
     }
-
-    private static string NormalizeDirectoryPrefix(string path)
+    private void ValidatePrefix(string prefix)
     {
-        string normalized = NormalizeBlobName(path);
-        return normalized.EndsWith('/') ? normalized : normalized + "/";
+        ThrowIfDisposed();
+        if (prefix.Length > 1024 || prefix.StartsWith('/') || prefix.Contains('\\') || prefix.Any(char.IsControl))
+            throw new ArgumentException("Use a container-relative blob name/prefix up to 1024 characters without backslashes or controls.", nameof(prefix));
     }
-
-    private static bool MatchesPattern(string value, string pattern)
+    private string LegacyName(string path)
     {
-        if (string.IsNullOrWhiteSpace(pattern) || pattern == "*")
-        {
-            return true;
-        }
-
-        // Simple pattern matching for * and ? wildcards
-        string regexPattern = "^" + pattern
-            .Replace(".", "\\.")
-            .Replace("*", ".*")
-            .Replace("?", ".") + "$";
-
-        return System.Text.RegularExpressions.Regex.IsMatch(value, regexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        ThrowIfDisposed();
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        string name = path.Replace('\\', '/').TrimStart('/');
+        while (name.Contains("//", StringComparison.Ordinal)) name = name.Replace("//", "/", StringComparison.Ordinal);
+        return ObjectName(name);
     }
+    private string DirectoryPrefix(string path) => LegacyName(path).TrimEnd('/') + "/";
+    private static bool IsMarker(string name) => name.EndsWith("/.directory", StringComparison.Ordinal);
+    private static bool MatchesPattern(string value, string pattern) => Regex.IsMatch(value,
+        "\\A" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "\\z",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
 }

@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using Polly;
+using VisionaryCoder.Framework.Proxy.Exceptions;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Resilience;
 
@@ -28,6 +29,9 @@ public sealed class ResilienceInterceptor(ILogger<ResilienceInterceptor> logger,
     /// <returns>A task representing the asynchronous operation with the response.</returns>
     public async Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
         string operationName = context.OperationName ?? "Unknown";
         string correlationId = context.CorrelationId ?? "Undefined";
         try
@@ -53,6 +57,7 @@ public sealed class ResilienceInterceptor(ILogger<ResilienceInterceptor> logger,
         return new ResiliencePipelineBuilder()
             .AddRetry(new()
             {
+                ShouldHandle = new PredicateBuilder().Handle<RetryableTransportException>(),
                 MaxRetryAttempts = 3,
                 Delay = TimeSpan.FromSeconds(1),
                 BackoffType = DelayBackoffType.Exponential,
@@ -60,6 +65,7 @@ public sealed class ResilienceInterceptor(ILogger<ResilienceInterceptor> logger,
             })
             .AddCircuitBreaker(new()
             {
+                ShouldHandle = new PredicateBuilder().Handle<RetryableTransportException>(),
                 FailureRatio = 0.5,
                 SamplingDuration = TimeSpan.FromSeconds(30),
                 MinimumThroughput = 5,

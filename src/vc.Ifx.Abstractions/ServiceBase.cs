@@ -8,23 +8,12 @@ namespace VisionaryCoder.Framework;
 /// <typeparam name="T">The concrete service type for typed logging.</typeparam>
 public abstract class ServiceBase<T>(ILogger<T> logger) : IDisposable where T : class
 {
-
-    private bool disposed = false;
+    private bool disposed;
 
     /// <summary>
     /// Gets the logger instance for this service.
     /// </summary>
     protected ILogger<T> Logger { get; } = logger ?? throw new ArgumentNullException(nameof(logger));
-
-
-    /// <summary>
-    /// Finalizer for ServiceBase.
-    /// </summary>
-    ~ServiceBase()
-    {
-        Dispose(false);
-    }
-
     /// <summary>
     /// Releases all resources used by the ServiceBase.
     /// </summary>
@@ -35,22 +24,12 @@ public abstract class ServiceBase<T>(ILogger<T> logger) : IDisposable where T : 
     }
 
     /// <summary>
-    /// Releases the unmanaged resources used by the ServiceBase and optionally releases the managed resources.
+    /// Marks the service disposed. Derived classes release their own resources and call this base hook.
     /// </summary>
     /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-
-        if (!disposed)
-        {
-            if (disposing)
-            {
-                // Dispose managed resources here
-                // Derived classes can override this method to dispose their resources
-            }
-            disposed = true;
-        }
-
+        disposed = true;
     }
 
     /// <summary>

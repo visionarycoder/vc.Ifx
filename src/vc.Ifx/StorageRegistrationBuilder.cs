@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Data.Azure.Table;
 using VisionaryCoder.Framework.Messaging.Azure.Queue;
 using VisionaryCoder.Framework.Storage.Azure.Blob;
@@ -19,6 +20,7 @@ namespace VisionaryCoder.Framework.Storage;
 /// </remarks>
 public sealed class StorageRegistrationBuilder(IServiceCollection services)
 {
+    private readonly IServiceCollection services = services ?? throw new ArgumentNullException(nameof(services));
 
     /// <summary>
     /// Adds a local file system storage implementation to the factory.
@@ -31,6 +33,8 @@ public sealed class StorageRegistrationBuilder(IServiceCollection services)
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         services.Configure<StorageFactoryOptions>(options => options.RegisterImplementation(name, typeof(LocalStorageProvider)));
         services.TryAddTransient<LocalStorageProvider>();
+        services.AddKeyedTransient<LocalStorageProvider>(name,
+            (provider, key) => ActivatorUtilities.CreateInstance<LocalStorageProvider>(provider));
         return this;
     }
 
@@ -44,8 +48,11 @@ public sealed class StorageRegistrationBuilder(IServiceCollection services)
     public StorageRegistrationBuilder AddFtp(string name, FtpStorageOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
         services.Configure<StorageFactoryOptions>(factoryOptions => factoryOptions.RegisterImplementation(name, typeof(FtpStorageProvider), options));
-        services.TryAddTransient<FtpStorageProvider>();
+        services.TryAddTransient(provider => new FtpStorageProvider(options, provider.GetRequiredService<ILogger<FtpStorageProvider>>()));
+        services.AddKeyedTransient<FtpStorageProvider>(name,
+            (provider, key) => new FtpStorageProvider(options, provider.GetRequiredService<ILogger<FtpStorageProvider>>()));
         return this;
     }
 
@@ -59,8 +66,11 @@ public sealed class StorageRegistrationBuilder(IServiceCollection services)
     public StorageRegistrationBuilder AddBlob(string name, AzureBlobStorageOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
         services.Configure<StorageFactoryOptions>(factoryOptions => factoryOptions.RegisterImplementation(name, typeof(AzureBlobStorageProvider), options));
-        services.TryAddTransient<AzureBlobStorageProvider>();
+        services.TryAddTransient(provider => new AzureBlobStorageProvider(options, provider.GetRequiredService<ILogger<AzureBlobStorageProvider>>()));
+        services.AddKeyedTransient<AzureBlobStorageProvider>(name,
+            (provider, key) => new AzureBlobStorageProvider(options, provider.GetRequiredService<ILogger<AzureBlobStorageProvider>>()));
         return this;
     }
 
@@ -74,9 +84,12 @@ public sealed class StorageRegistrationBuilder(IServiceCollection services)
     public StorageRegistrationBuilder AddQueue(string name, AzureQueueStorageOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
         services.Configure<StorageFactoryOptions>(factoryOptions => factoryOptions.RegisterImplementation(name, typeof(AzureQueueStorageProvider), options));
-        services.TryAddTransient<AzureQueueStorageProvider>();
-        services.TryAddTransient<IQueueStorageProvider, AzureQueueStorageProvider>();
+        services.TryAddTransient(provider => new AzureQueueStorageProvider(options, provider.GetRequiredService<ILogger<AzureQueueStorageProvider>>()));
+        services.TryAddTransient<IQueueStorageProvider>(provider => provider.GetRequiredService<AzureQueueStorageProvider>());
+        services.AddKeyedTransient<AzureQueueStorageProvider>(name,
+            (provider, key) => new AzureQueueStorageProvider(options, provider.GetRequiredService<ILogger<AzureQueueStorageProvider>>()));
         return this;
     }
 
@@ -90,9 +103,12 @@ public sealed class StorageRegistrationBuilder(IServiceCollection services)
     public StorageRegistrationBuilder AddTable(string name, AzureTableStorageOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(options);
         services.Configure<StorageFactoryOptions>(factoryOptions => factoryOptions.RegisterImplementation(name, typeof(AzureTableStorageProvider), options));
-        services.TryAddTransient<AzureTableStorageProvider>();
-        services.TryAddTransient<ITableStorageProvider, AzureTableStorageProvider>();
+        services.TryAddTransient(provider => new AzureTableStorageProvider(options, provider.GetRequiredService<ILogger<AzureTableStorageProvider>>()));
+        services.TryAddTransient<ITableStorageProvider>(provider => provider.GetRequiredService<AzureTableStorageProvider>());
+        services.AddKeyedTransient<AzureTableStorageProvider>(name,
+            (provider, key) => new AzureTableStorageProvider(options, provider.GetRequiredService<ILogger<AzureTableStorageProvider>>()));
         return this;
     }
 }

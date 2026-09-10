@@ -453,9 +453,13 @@ public class UserContextTests
             int index = i;
             tasks.Add(Task.Run(() =>
             {
-                context.Roles.Add($"Role{index}");
-                context.Permissions.Add($"permission{index}");
-                context.Claims[$"claim{index}"] = index;
+                // These public mutable collections are caller-owned, not concurrent collections.
+                lock (context)
+                {
+                    context.Roles.Add($"Role{index}");
+                    context.Permissions.Add($"permission{index}");
+                    context.Claims[$"claim{index}"] = index;
+                }
             }));
         }
 

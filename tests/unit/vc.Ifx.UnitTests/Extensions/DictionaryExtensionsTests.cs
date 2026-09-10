@@ -290,7 +290,7 @@ public class DictionaryExtensionsTests
 
         // Act & Assert
         ArgumentNullException? exception = Assert.ThrowsExactly<ArgumentNullException>(() => first!.Merge(second));
-        exception.ParamName.Should().Be("first");
+        exception.ParamName.Should().Be("dictionary");
     }
 
     [TestMethod]

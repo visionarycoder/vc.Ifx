@@ -52,6 +52,7 @@ public class RoleBasedAuthorizationPolicy : IAuthorizationPolicy
     /// <returns>A task with detailed authorization result including failure reasons.</returns>
     public Task<AuthorizationResult> EvaluateAsync(object context, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (context is not ProxyContext proxyContext)
         {
             return Task.FromResult(AuthorizationResult.Failure("Invalid authorization context type"));
@@ -68,7 +69,7 @@ public class RoleBasedAuthorizationPolicy : IAuthorizationPolicy
             return Task.FromResult(result);
         }
 
-        var failureResult = AuthorizationResult.Failure(evaluation.FailureReason ?? "Authorization failed");
+        var failureResult = AuthorizationResult.Failure(evaluation.FailureReason!);
         failureResult.Context["UserRoles"] = evaluation.UserRoles;
         failureResult.Context["RequiredRoles"] = requiredRoles;
         failureResult.Context["PolicyName"] = PolicyName;

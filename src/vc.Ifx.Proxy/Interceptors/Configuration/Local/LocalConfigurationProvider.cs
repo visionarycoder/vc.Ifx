@@ -1,303 +1,124 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Configuration.Local;
 
-/// <summary>
-/// Provides local file-based configuration operations following Microsoft configuration patterns.
-/// This service wraps local JSON configuration files with logging, error handling, caching, and async support.
-/// Supports file watching for automatic reloading and multiple configuration file sources.
-/// </summary>
-public sealed class LocalConfigurationProvider
-    : ConfigurationProvider, IConfigurationProvider
+/// <summary>Read-only JSON configuration with owned reload notifications and explicit refresh.</summary>
+public sealed class LocalConfigurationProvider : ConfigurationProvider, IConfigurationProvider
 {
+    private readonly LocalConfigurationProviderOptions localOptions;
+    private readonly IConfigurationRoot root;
+    private readonly IDisposable? reloadRegistration;
+    private readonly string fullPath;
 
-    private new readonly LocalConfigurationProviderOptions options;
-    private readonly FileSystemWatcher? fileWatcher;
-
+    /// <summary>Loads the main JSON file, optional overlays, then environment overrides.</summary>
     public LocalConfigurationProvider(LocalConfigurationProviderOptions options, ILogger<LocalConfigurationProvider> logger)
         : base(options, logger)
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-        this.options.Validate();
-        configuration = BuildConfiguration();
-
-        // Set up file watcher if reload on change is enabled
+        options.Validate();
+        localOptions = options;
+        string basePath = Path.GetFullPath(options.BasePath ?? Directory.GetCurrentDirectory());
+        fullPath = Path.GetFullPath(options.FilePath, basePath);
+        var builder = new ConfigurationBuilder().SetBasePath(basePath)
+            .AddJsonFile(options.FilePath, options.Optional, options.ReloadOnChange);
+        foreach (string file in options.AdditionalFiles)
+            builder.AddJsonFile(file, optional: true, reloadOnChange: options.ReloadOnChange);
+        root = builder.AddEnvironmentVariables().Build();
+        configuration = root;
         if (options.ReloadOnChange)
-        {
-            fileWatcher = SetupFileWatcher();
-        }
-        Logger.LogInformation("Local App Configuration provider initialized for file {FilePath} with {AdditionalFileCount} additional files", options.FilePath, options.AdditionalFiles.Count());
+            reloadRegistration = ChangeToken.OnChange(root.GetReloadToken, ClearCache);
     }
 
+    /// <inheritdoc />
     public override string ProviderName => "Local";
 
-    public bool IsAvailable
-    {
-        get
-        {
-            try
-            {
-                bool mainFileExists = File.Exists(GetFullPath(options.FilePath));
-                return options.Optional || mainFileExists;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Local configuration health check failed");
-                return false;
-            }
-        }
-    }
+    /// <summary>Indicates whether this provider's required main file exists.</summary>
+    public bool IsAvailable => !isDisposed && (localOptions.Optional || File.Exists(fullPath));
 
+    /// <inheritdoc />
     public override bool Refresh()
     {
-        try
-        {
-            if (refreshSemaphore.Wait(TimeSpan.FromSeconds(5)))
-            {
-                try
-                {
-                    // Clear cache to force refresh
-                    if (options.EnableCaching)
-                    {
-                        ClearCache();
-                    }
-
-                    lastRefresh = DateTimeOffset.UtcNow;
-
-                    Logger.LogDebug("Configuration refreshed successfully");
-                    return true;
-                }
-                finally
-                {
-                    refreshSemaphore.Release();
-                }
-            }
-            Logger.LogWarning("Configuration refresh timeout - another refresh operation is in progress");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to refresh configuration");
-            return false;
-        }
+        ThrowIfDisposed();
+        refreshSemaphore.Wait();
+        try { return Reload(); }
+        finally { refreshSemaphore.Release(); }
     }
 
+    /// <inheritdoc />
     public override async Task<bool> RefreshAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
+        await refreshSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try { return Reload(); }
+        finally { refreshSemaphore.Release(); }
+    }
+
+    private bool Reload()
+    {
         try
         {
-            if (await refreshSemaphore.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken))
-            {
-                try
-                {
-                    // Clear cache to force refresh
-                    if (options.EnableCaching)
-                    {
-                        ClearCache();
-                    }
-
-                    lastRefresh = DateTimeOffset.UtcNow;
-
-                    Logger.LogDebug("Configuration refreshed successfully");
-                    return true;
-                }
-                finally
-                {
-                    refreshSemaphore.Release();
-                }
-            }
-            Logger.LogWarning("Configuration refresh timeout - another refresh operation is in progress");
-            return false;
+            root.Reload();
+            ClearCache();
+            lastRefresh = DateTimeOffset.UtcNow;
+            return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Logger.LogError(ex, "Failed to refresh configuration");
+            Logger.LogError(exception, "Local configuration reload failed.");
             return false;
         }
     }
 
+    /// <inheritdoc />
     public override T GetValue<T>(string key, T defaultValue)
     {
-        try
-        {
-            string fullKey = GetFullKey(key);
-
-            if (options.EnableCaching && TryGetFromCache(fullKey, out T cachedValue))
-            {
-                Logger.LogTrace("Cache hit for key '{Key}'", key);
-                return cachedValue;
-            }
-
-            string? stringValue = configuration[fullKey];
-            if (string.IsNullOrEmpty(stringValue))
-            {
-                Logger.LogWarning("Configuration key '{Key}' not found. Returning default value.", key);
-                return defaultValue;
-            }
-
-            T value = ConfigurationHelper.ConvertValue(stringValue, defaultValue);
-            if (options.EnableCaching)
-            {
-                AddToCache(fullKey, value);
-                Logger.LogTrace("Cached value for key '{Key}'", key);
-            }
-            return value;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error retrieving configuration value for key '{Key}'. Returning default value.", key);
+        ThrowIfDisposed();
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        string fullKey = GetFullKey(key);
+        if (localOptions.EnableCaching && TryGetFromCache(fullKey, out T cached))
+            return cached;
+        string? text = configuration[fullKey];
+        if (text is null)
             return defaultValue;
-        }
+        T value = ConfigurationHelper.ConvertValue(text, defaultValue);
+        if (localOptions.EnableCaching)
+            AddToCache(fullKey, value);
+        return value;
     }
 
+    /// <inheritdoc />
     public override T GetSection<T>(string sectionName)
     {
+        ThrowIfDisposed();
         ArgumentException.ThrowIfNullOrWhiteSpace(sectionName);
-        try
-        {
-            string fullSectionName = GetFullKey(sectionName);
-            IConfigurationSection section = configuration.GetSection(fullSectionName);
-
-            if (!section.Exists())
-            {
-                Logger.LogDebug("Configuration section {SectionName} not found, returning new instance", sectionName);
-                return new T();
-            }
-
-            T result = section.Get<T>() ?? new T();
-            Logger.LogTrace("Configuration section retrieved for {SectionName}", sectionName);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to get configuration section {SectionName}", sectionName);
-            return new T();
-        }
+        return configuration.GetSection(GetFullKey(sectionName)).Get<T>() ?? new T();
     }
 
+    /// <inheritdoc />
     public override bool SetValue<T>(string key, T value)
-    {
-        Logger.LogWarning("SetValue operation not supported by Local App Configuration provider. Modify the configuration files directly.");
-        throw new NotSupportedException("Local App Configuration provider is read-only. Modify the configuration files directly.");
-    }
+        => throw new NotSupportedException("Local configuration is read-only. Modify its source files.");
 
+    /// <summary>Rejects writes because this provider is read-only.</summary>
     public bool UpdateSection<T>(string sectionName, T value)
-    {
-        Logger.LogWarning("UpdateSection operation not supported by Local App Configuration provider. Modify the configuration files directly.");
-        throw new NotSupportedException("Local App Configuration provider is read-only. Modify the configuration files directly.");
-    }
+        => throw new NotSupportedException("Local configuration is read-only. Modify its source files.");
 
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
-        if (!isDisposed && disposing)
+        // This sealed provider has no finalizer; only managed disposal is exposed.
+        if (!isDisposed)
         {
-            fileWatcher?.Dispose();
-            refreshSemaphore?.Dispose();
+            reloadRegistration?.Dispose();
+            ((IDisposable)root).Dispose();
+            refreshSemaphore.Dispose();
             ClearCache();
             isDisposed = true;
         }
         base.Dispose(disposing);
     }
 
-    private string GetFullKey(string key)
-    {
-        if (string.IsNullOrEmpty(options.KeyPrefix))
-            return key;
-
-        return $"{options.KeyPrefix}:{key}";
-    }
-
-    private string GetFullPath(string filePath)
-    {
-        if (Path.IsPathRooted(filePath))
-            return filePath;
-
-        if (!string.IsNullOrEmpty(options.BasePath))
-            return Path.Combine(options.BasePath, filePath);
-
-        return Path.Combine(Directory.GetCurrentDirectory(), filePath);
-    }
-
-    private void OnConfigurationFileChanged(object sender, FileSystemEventArgs e)
-    {
-        Logger.LogDebug("Configuration file {FilePath} changed, clearing cache", e.FullPath);
-
-        // Clear cache when file changes
-        if (options.EnableCaching)
-        {
-            ClearCache();
-        }
-
-        lastRefresh = DateTimeOffset.UtcNow;
-    }
-
-    private IConfiguration BuildConfiguration()
-    {
-        var builder = new ConfigurationBuilder();
-
-        // Set base path if provided
-        if (!string.IsNullOrEmpty(options.BasePath))
-        {
-            builder.SetBasePath(options.BasePath);
-        }
-
-        try
-        {
-            // Add main configuration file
-            builder.AddJsonFile(options.FilePath, optional: options.Optional, reloadOnChange: options.ReloadOnChange);
-
-            // Add additional configuration files
-            foreach (string additionalFile in options.AdditionalFiles)
-            {
-                builder.AddJsonFile(additionalFile, optional: true, reloadOnChange: options.ReloadOnChange);
-            }
-
-            // Add environment variables as fallback
-            builder.AddEnvironmentVariables();
-
-            return builder.Build();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to build local configuration");
-            throw new InvalidOperationException("Failed to initialize Local App Configuration provider", ex);
-        }
-    }
-
-    private FileSystemWatcher? SetupFileWatcher()
-    {
-        try
-        {
-            string filePath = GetFullPath(options.FilePath);
-            string? directory = Path.GetDirectoryName(filePath);
-            string fileName = Path.GetFileName(filePath);
-
-            if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
-                return null;
-
-            if (!Directory.Exists(directory))
-            {
-                Logger.LogWarning("Directory {Directory} does not exist, file watcher will not be set up", directory);
-                return null;
-            }
-
-            var watcher = new FileSystemWatcher(directory, fileName)
-            {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
-                EnableRaisingEvents = true
-            };
-
-            watcher.Changed += OnConfigurationFileChanged;
-
-            Logger.LogDebug("File watcher set up for {FilePath}", filePath);
-            return watcher;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to set up file watcher for {FilePath}", options.FilePath);
-            return null;
-        }
-    }
-
+    private string GetFullKey(string key) => string.IsNullOrEmpty(localOptions.KeyPrefix)
+        ? key
+        : $"{localOptions.KeyPrefix.TrimEnd(':')}:{key}";
 }

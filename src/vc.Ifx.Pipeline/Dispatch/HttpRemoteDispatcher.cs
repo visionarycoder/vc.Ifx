@@ -5,33 +5,36 @@ using VisionaryCoder.Framework.Pipeline.Dispatch.Abstractions;
 
 namespace VisionaryCoder.Framework.Pipeline.Dispatch;
 
+/// <summary>Sends JSON requests using an externally owned HttpClient.</summary>
 public sealed class HttpRemoteDispatcher(HttpClient http, ISerializer serializer) : IRemoteDispatcher
 {
-    public async Task<TResponse> DispatchAsync<TRequest, TResponse>(
-        TRequest request, EndpointResolution endpoint)
+    private readonly HttpClient http = http ?? throw new ArgumentNullException(nameof(http));
+    private readonly ISerializer serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+
+    /// <inheritdoc />
+    public Task<TResponse> DispatchAsync<TRequest, TResponse>(TRequest request, EndpointResolution endpoint)
+        where TRequest : IRequest<TResponse> => DispatchAsync<TRequest, TResponse>(request, endpoint, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResponse> DispatchAsync<TRequest, TResponse>(TRequest request, EndpointResolution endpoint, CancellationToken cancellationToken)
         where TRequest : IRequest<TResponse>
     {
-        string payload = serializer.Serialize(request);
-        using var msg = new HttpRequestMessage(HttpMethod.Post, endpoint.Uri)
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(endpoint);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (endpoint.IsLocal)
+            throw new ArgumentException("A remote endpoint is required.", nameof(endpoint));
+        Uri uri = PipelineGuard.HttpUri(endpoint.Uri!);
+        using var message = new HttpRequestMessage(HttpMethod.Post, uri)
         {
-            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            Content = new StringContent(serializer.Serialize(request), Encoding.UTF8, "application/json")
         };
-
-        // Propagate current Activity context
-        Activity? activity = Activity.Current;
-        if (activity is not null)
-        {
-            // System.Net.Http instrumentation will also do this, but explicit is ok
-            msg.Headers.TryAddWithoutValidation("traceparent", activity.Id);
-            foreach ((string key, string? value) in activity.Baggage)
-                msg.Headers.TryAddWithoutValidation($"baggage-{key}", value);
-        }
-
-        using HttpResponseMessage resp = await http.SendAsync(msg);
-        resp.EnsureSuccessStatusCode();
-        string json = await resp.Content.ReadAsStringAsync();
+        DistributedContextPropagator.Current.Inject(Activity.Current, message,
+            static (carrier, name, value) => ((HttpRequestMessage)carrier!).Headers.TryAddWithoutValidation(name, value));
+        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        string json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         return serializer.Deserialize<TResponse>(json);
     }
 }
-
-// Example generic gRPC client stub

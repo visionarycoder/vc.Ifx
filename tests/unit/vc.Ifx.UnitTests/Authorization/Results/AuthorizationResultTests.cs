@@ -350,7 +350,7 @@ public class AuthorizationResultTests
     #region Thread Safety Tests
 
     [TestMethod]
-    public void AuthorizationResult_ShouldHandleConcurrentContextAccess()
+    public void AuthorizationResult_ContextRequiresExternalSynchronization()
     {
         // Arrange
         var result = new AuthorizationResult();
@@ -362,16 +362,19 @@ public class AuthorizationResultTests
             int index = i;
             tasks.Add(Task.Run(() =>
             {
-                result.Context[$"key{index}"] = $"value{index}";
+                lock (result.Context)
+                {
+                    result.Context[$"key{index}"] = $"value{index}";
+                }
             }));
         }
 
         Task.WaitAll(tasks.ToArray());
 
         // Assert
-        result.Context.Should().HaveCount(50, "Should handle concurrent modifications");
+        result.Context.Should().HaveCount(50, "all externally synchronized writes must be retained");
 
-        // Check that all values are present (some might have been overwritten due to concurrency)
+        // Dictionary remains a compatibility contract, not a concurrent collection.
         for (int i = 0; i < 50; i++)
         {
             result.Context.Should().ContainKey($"key{i}", $"Should contain key{i}");

@@ -1,3 +1,7 @@
+using Azure.Core;
+using Azure.Data.Tables;
+using System.Text.RegularExpressions;
+
 namespace VisionaryCoder.Framework.Data.Azure.Table;
 
 /// <summary>
@@ -71,9 +75,11 @@ public sealed class AzureTableStorageOptions
         if (UseManagedIdentity)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(StorageAccountUri);
-            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out _))
+            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out var uri) ||
+                uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length != 0 ||
+                uri.Query.Length != 0 || uri.Fragment.Length != 0)
             {
-                throw new ArgumentException("StorageAccountUri must be a valid absolute URI.", nameof(StorageAccountUri));
+                throw new ArgumentException("StorageAccountUri must be an absolute HTTPS URI without credentials, query or fragment.", nameof(StorageAccountUri));
             }
         }
         else
@@ -107,22 +113,22 @@ public sealed class AzureTableStorageOptions
         }
 
         // Validate table name according to Azure naming rules
-        if (!IsValidTableName(TableName))
+        if (!Regex.IsMatch(TableName, "\\A[A-Za-z][A-Za-z0-9]{2,62}\\z", RegexOptions.CultureInvariant) ||
+            string.Equals(TableName, "Tables", StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException("Table name must be 3-63 characters long, start with a letter, and contain only alphanumeric characters.", nameof(TableName));
         }
     }
 
-    private static bool IsValidTableName(string tableName)
+    /// <summary>Creates SDK-owned retry settings; the timeout applies per network operation.</summary>
+    public TableClientOptions CreateClientOptions()
     {
-        if (string.IsNullOrWhiteSpace(tableName) ||
-            tableName.Length < 3 ||
-            tableName.Length > 63 ||
-            !char.IsLetter(tableName[0]))
-        {
-            return false;
-        }
-
-        return tableName.All(c => char.IsLetterOrDigit(c));
+        Validate();
+        var clientOptions = new TableClientOptions();
+        clientOptions.Retry.Mode = RetryMode.Exponential;
+        clientOptions.Retry.MaxRetries = MaxRetryAttempts;
+        clientOptions.Retry.Delay = TimeSpan.FromMilliseconds(RetryDelayMilliseconds);
+        clientOptions.Retry.NetworkTimeout = TimeSpan.FromMilliseconds(TimeoutMilliseconds);
+        return clientOptions;
     }
 }

@@ -20,7 +20,7 @@ public sealed class FilterBuilder<T>
         {
             0 => new FilterGroup(FilterCombination.And, new List<FilterNode>()),
             1 => roots[0],
-            _ => new FilterGroup(FilterCombination.And, roots)
+            _ => new FilterGroup(FilterCombination.And, roots.ToArray())
         };
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -8,101 +7,46 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using vc.Ifx.Analyzers.Models;
 
-namespace vc.Ifx.Analyzers.Rules.Framework
+namespace vc.Ifx.Analyzers.Rules.Framework;
+
+public static class Ifx006SingleClassPerFile
 {
+    public static readonly DiagnosticDescriptor Rule = new(
+        id: DiagnosticIds.Ifx006SingleClassPerFile,
+        title: "Multiple top-level classes in single file",
+        messageFormat: "File contains {0} top-level classes (only 1 allowed, nested classes are exempt)",
+        category: "Design",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Each file should contain at most one top-level class to improve maintainability and discoverability. Nested classes are permitted.",
+        helpLinkUri: "https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#legacy-ifx-inventory");
 
-    public static class Ifx006SingleClassPerFile
+    public static void Initialize(AnalysisContext context)
     {
-        public static readonly DiagnosticDescriptor Rule = new(
-            id: DiagnosticIds.Ifx006SingleClassPerFile,
-            title: "Multiple top-level classes in single file",
-            messageFormat: "File contains {0} top-level classes (only 1 allowed, nested classes are exempt)",
-            category: "Design",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Each file should contain at most one top-level class to improve maintainability and discoverability. Nested classes are permitted.",
-            helpLinkUri: "Docs/Framework/ifx006.md");
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.RegisterSyntaxTreeAction(Analyze);
+    }
 
-        public static void Initialize(AnalysisContext context)
+    private static void Analyze(SyntaxTreeAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var root = (CompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken);
+
+        var topLevelClasses = root.DescendantNodes(node => node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
+            .OfType<ClassDeclarationSyntax>().ToList();
+
+        if (topLevelClasses.Count <= 1)
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterSyntaxTreeAction(Analyze);
+            return;
         }
 
-        private static void Analyze(SyntaxTreeAnalysisContext context)
+        foreach (var classDecl in topLevelClasses.Skip(1))
         {
-            var root = context.Tree.GetRoot(context.CancellationToken) as CompilationUnitSyntax;
-            if (root is null)
-            {
-                return;
-            }
-
-            var topLevelClasses = GetTopLevelClasses(root);
-
-            if (topLevelClasses.Count <= 1)
-            {
-                return;
-            }
-
-            foreach (var classDecl in topLevelClasses.Skip(1))
-            {
-                var diagnostic = Diagnostic.Create(Rule, classDecl.Identifier.GetLocation(), topLevelClasses.Count);
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
-
-        private static List<ClassDeclarationSyntax> GetTopLevelClasses(CompilationUnitSyntax root)
-        {
-            var classes = new List<ClassDeclarationSyntax>();
-
-            foreach (var member in root.Members)
-            {
-                if (member is ClassDeclarationSyntax classDecl)
-                {
-                    classes.Add(classDecl);
-                }
-                else if (member is NamespaceDeclarationSyntax namespaceDecl)
-                {
-                    classes.AddRange(GetClassesInNamespace(namespaceDecl));
-                }
-                else if (member is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
-                {
-                    classes.AddRange(GetClassesInFileScopedNamespace(fileScopedNamespace));
-                }
-            }
-
-            return classes;
-        }
-
-        private static List<ClassDeclarationSyntax> GetClassesInNamespace(NamespaceDeclarationSyntax namespaceDecl)
-        {
-            var classes = new List<ClassDeclarationSyntax>();
-
-            foreach (var member in namespaceDecl.Members)
-            {
-                if (member is ClassDeclarationSyntax classDecl)
-                {
-                    classes.Add(classDecl);
-                }
-            }
-
-            return classes;
-        }
-
-        private static List<ClassDeclarationSyntax> GetClassesInFileScopedNamespace(FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
-        {
-            var classes = new List<ClassDeclarationSyntax>();
-
-            foreach (var member in fileScopedNamespace.Members)
-            {
-                if (member is ClassDeclarationSyntax classDecl)
-                {
-                    classes.Add(classDecl);
-                }
-            }
-
-            return classes;
+            context.CancellationToken.ThrowIfCancellationRequested();
+            var diagnostic = Diagnostic.Create(Rule, classDecl.Identifier.GetLocation(), topLevelClasses.Count);
+            context.ReportDiagnostic(diagnostic);
         }
     }
+
 }

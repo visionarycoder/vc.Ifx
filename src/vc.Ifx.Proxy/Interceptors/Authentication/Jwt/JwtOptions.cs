@@ -37,7 +37,7 @@ public class JwtOptions
 
     /// <summary>
     /// Gets or sets the signing key for JWT token validation.
-    /// This can be a symmetric key or public key for asymmetric validation.
+    /// DefaultTokenProvider interprets this as a UTF-8 HMAC key. Asymmetric validation requires a host ITokenProvider.
     /// </summary>
     /// <value>The signing key. Defaults to an empty string.</value>
     public string SigningKey { get; set; } = string.Empty;
@@ -153,7 +153,7 @@ public class JwtOptions
         if (!string.IsNullOrWhiteSpace(TokenEndpoint) && !Uri.IsWellFormedUriString(TokenEndpoint, UriKind.Absolute))
             return false;
 
-        if (!string.IsNullOrWhiteSpace(Authority) && !Uri.IsWellFormedUriString(Authority, UriKind.Absolute))
+        if (!Uri.IsWellFormedUriString(Authority, UriKind.Absolute))
             return false;
 
         return RequestTimeout > TimeSpan.Zero;

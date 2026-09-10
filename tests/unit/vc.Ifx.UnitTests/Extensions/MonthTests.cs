@@ -226,32 +226,32 @@ public class MonthTests
     public void Constants_ShouldHaveCorrectValues()
     {
         // Assert - Test all month constants
-        Month.Unknown.Should().Be("???");
-        Month.January.Should().Be("January");
-        Month.February.Should().Be("February");
-        Month.March.Should().Be("March");
-        Month.April.Should().Be("April");
-        Month.May.Should().Be("May");
-        Month.June.Should().Be("June");
-        Month.July.Should().Be("July");
-        Month.August.Should().Be("August");
-        Month.September.Should().Be("September");
-        Month.October.Should().Be("October");
-        Month.November.Should().Be("November");
-        Month.December.Should().Be("December");
+        Month.Unknown.Name.Should().Be("Unknown");
+        Month.January.Name.Should().Be("January");
+        Month.February.Name.Should().Be("February");
+        Month.March.Name.Should().Be("March");
+        Month.April.Name.Should().Be("April");
+        Month.May.Name.Should().Be("May");
+        Month.June.Name.Should().Be("June");
+        Month.July.Name.Should().Be("July");
+        Month.August.Name.Should().Be("August");
+        Month.September.Name.Should().Be("September");
+        Month.October.Name.Should().Be("October");
+        Month.November.Name.Should().Be("November");
+        Month.December.Name.Should().Be("December");
 
         // Short month constants
-        Month.Jan.Should().Be("Jan");
-        Month.Feb.Should().Be("Feb");
-        Month.Mar.Should().Be("Mar");
-        Month.Apr.Should().Be("Apr");
-        Month.Jun.Should().Be("Jun");
-        Month.Jul.Should().Be("Jul");
-        Month.Aug.Should().Be("Aug");
-        Month.Sep.Should().Be("Sep");
-        Month.Oct.Should().Be("Oct");
-        Month.Nov.Should().Be("Nov");
-        Month.Dec.Should().Be("Dec");
+        Month.Jan.Abbrv.Should().Be("Jan");
+        Month.Feb.Abbrv.Should().Be("Feb");
+        Month.Mar.Abbrv.Should().Be("Mar");
+        Month.Apr.Abbrv.Should().Be("Apr");
+        Month.Jun.Abbrv.Should().Be("Jun");
+        Month.Jul.Abbrv.Should().Be("Jul");
+        Month.Aug.Abbrv.Should().Be("Aug");
+        Month.Sep.Abbrv.Should().Be("Sep");
+        Month.Oct.Abbrv.Should().Be("Oct");
+        Month.Nov.Abbrv.Should().Be("Nov");
+        Month.Dec.Abbrv.Should().Be("Dec");
     }
 
     #endregion

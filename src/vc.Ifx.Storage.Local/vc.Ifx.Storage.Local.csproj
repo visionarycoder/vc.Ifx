@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>vc.Ifx.Storage.Local</PackageId>
+    <Description>Local file-system storage provider for vc.Ifx.</Description>
+    <PackageTags>filesystem;storage;local;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -7,5 +12,8 @@
   <ItemGroup>
     <ProjectReference Include="..\vc.Ifx.Storage.Abstractions\vc.Ifx.Storage.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

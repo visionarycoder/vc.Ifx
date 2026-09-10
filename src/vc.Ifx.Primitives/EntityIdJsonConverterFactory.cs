@@ -3,82 +3,47 @@ using System.Text.Json.Serialization;
 
 namespace VisionaryCoder.Framework.Primitives;
 
+/// <summary>Serializes supported typed identifiers as scalar JSON values.</summary>
 public sealed class EntityIdJsonConverterFactory : JsonConverterFactory
 {
+    private static readonly Type[] SupportedKeys = [typeof(Guid), typeof(string), typeof(int), typeof(long), typeof(short)];
 
-    public override bool CanConvert(Type typeToConvert) => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(EntityId<,>);
+    /// <inheritdoc />
+    public override bool CanConvert(Type typeToConvert)
+    {
+        ArgumentNullException.ThrowIfNull(typeToConvert);
+        return typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() == typeof(EntityId<,>)
+            && !typeToConvert.ContainsGenericParameters;
+    }
 
+    /// <inheritdoc />
     public override JsonConverter CreateConverter(Type type, JsonSerializerOptions options)
     {
-        Type[] args = type.GetGenericArguments(); // [TEntity, TKey]
-        Type convType = typeof(EntityIdJsonConverter<,>).MakeGenericType(args[0], args[1]);
-        return (JsonConverter) Activator.CreateInstance(convType)!;
+        ArgumentNullException.ThrowIfNull(options);
+        if (!CanConvert(type))
+            throw new ArgumentException("A closed EntityId type is required.", nameof(type));
+
+        Type[] arguments = type.GetGenericArguments();
+        if (!SupportedKeys.Contains(arguments[1]))
+            throw new NotSupportedException($"EntityId JSON keys of type {arguments[1]} are not supported.");
+
+        Type converter = typeof(EntityIdJsonConverter<,>).MakeGenericType(arguments);
+        return (JsonConverter)Activator.CreateInstance(converter)!;
     }
 
     private sealed class EntityIdJsonConverter<TEntity, TKey> : JsonConverter<EntityId<TEntity, TKey>>
         where TEntity : class
         where TKey : notnull
     {
-
         public override EntityId<TEntity, TKey> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-
-            if (typeof(TKey) == typeof(Guid))
-            {
-                return new((TKey)(object)reader.GetGuid());
-            }
-            
-            if (typeof(TKey) == typeof(string))
-                return new((TKey)(object)(reader.GetString() ?? string.Empty));
-            if (typeof(TKey) == typeof(int))
-                return new((TKey)(object)reader.GetInt32());
-            if (typeof(TKey) == typeof(long))
-                return new((TKey)(object)reader.GetInt64());
-            if (typeof(TKey) == typeof(short))
-                return new((TKey)(object)reader.GetInt16());
-
-            // Fallback: read as string then Parse
-            string str = reader.GetString() ?? throw new JsonException("Null ID.");
-            return EntityId<TEntity, TKey>.Parse(str);
-
+            TKey? value = JsonSerializer.Deserialize<TKey>(ref reader, options);
+            // Preserve the legacy null-string representation; numeric/Guid nulls are rejected by their converters.
+            return new(value is null ? (TKey)(object)string.Empty : value);
         }
 
         public override void Write(Utf8JsonWriter writer, EntityId<TEntity, TKey> value, JsonSerializerOptions options)
-        {
-
-            if (typeof(TKey) == typeof(Guid))
-            {
-                writer.WriteStringValue((Guid)(object)value.Value);
-                return;
-            }
-
-            if (typeof(TKey) == typeof(string))
-            {
-                writer.WriteStringValue((string)(object)value.Value);
-                return;
-            }
-
-            if (typeof(TKey) == typeof(int))
-            {
-                writer.WriteNumberValue((int)(object)value.Value);
-                return;
-            }
-
-            if (typeof(TKey) == typeof(long))
-            {
-                writer.WriteNumberValue((long)(object)value.Value);
-                return;
-            }
-
-            if (typeof(TKey) == typeof(short))
-            {
-                writer.WriteNumberValue((short)(object)value.Value);
-                return;
-            }
-
-            writer.WriteStringValue(value.ToString());
-        }
-
+            => JsonSerializer.Serialize(writer, value.Value, options);
     }
-
 }

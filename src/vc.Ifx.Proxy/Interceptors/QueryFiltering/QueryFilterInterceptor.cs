@@ -12,6 +12,9 @@ public sealed class QueryFilterInterceptor : IProxyInterceptor
         ProxyDelegate<T> next,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
         // Example: assume filters are passed in context.Body as JSON
         if (context.Body is string json)
         {
@@ -23,8 +26,8 @@ public sealed class QueryFilterInterceptor : IProxyInterceptor
             }
 
             // Deserialize and rehydrate
-            FilterNode? node = QueryFilterSerializer.Deserialize(json);
-            if (node != null && typeof(T).IsGenericType &&
+            FilterNode node = QueryFilterSerializer.Deserialize(json)!;
+            if (typeof(T).IsGenericType &&
                 typeof(T).GetGenericTypeDefinition() == typeof(QueryFilter<>))
             {
                 // Rehydrate into QueryFilter<TInner>

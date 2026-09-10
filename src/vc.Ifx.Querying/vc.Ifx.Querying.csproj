@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>vc.Ifx.Querying</PackageId>
+    <Description>Filter query serialization and schema resources for vc.Ifx.</Description>
+    <PackageTags>querying;serialization;json-schema;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,9 +15,15 @@
     <None Remove="Sample\**" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\vc.Ifx.Filtering\vc.Ifx.Filtering.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="..\..\.json\schemas\queryfilter.schema.json">
       <Link>Schemas\queryfilter.schema.json</Link>
       <LogicalName>VisionaryCoder.Framework.Schemas.queryfilter.schema.json</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

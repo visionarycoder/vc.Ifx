@@ -1,95 +1,91 @@
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using vc.Ifx.Analyzers.Helpers;
 using vc.Ifx.Analyzers.Models;
 
-namespace vc.Ifx.Analyzers.Rules.Volatility
+namespace vc.Ifx.Analyzers.Rules.Volatility;
+
+public static class Vbd500ContractImmutableRule
 {
+    public static readonly DiagnosticDescriptor Rule = new(DiagnosticIds.Vbd500ContractImmutable, "Contracts must be immutable", "Contract '{0}' contains mutable members", "Architecture", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#legacy-vbd-policy");
 
-    public static class Vbd500ContractImmutableRule
+    public static void Initialize(AnalysisContext context)
     {
-        public static readonly DiagnosticDescriptor Rule = new(DiagnosticIds.Vbd500ContractImmutable, "Contracts must be immutable", "Contract '{0}' contains mutable members", "Architecture", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "Docs/Volatility/vbd500.md");
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.RegisterSymbolAction(AnalyzeContract, SymbolKind.NamedType);
+    }
 
-        public static void Initialize(AnalysisContext context)
+    private static void AnalyzeContract(SymbolAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var namedType = (INamedTypeSymbol)context.Symbol;
+
+        // Only enforce on contract projects
+        var assemblyName = context.Compilation.Assembly.Name;
+
+        if (ProjectAnalyzer.GetProjectType(assemblyName!) != ProjectType.Contract)
+            return;
+
+        // Skip interfaces, enums, delegates, etc.
+        if (namedType.TypeKind is TypeKind.Interface or TypeKind.Enum or TypeKind.Delegate)
+            return;
+
+        var mutableMember = FindFirstMutableMember(namedType, context.CancellationToken);
+        if (mutableMember == null)
+            return;
+
+        var location = mutableMember.Locations[0];
+
+        var diagnostic = Diagnostic.Create(Rule, location, namedType.Name);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static ISymbol? FindFirstMutableMember(INamedTypeSymbol namedType, CancellationToken cancellationToken)
+    {
+        foreach (var member in namedType.GetMembers())
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterSymbolAction(AnalyzeContract, SymbolKind.NamedType);
-        }
-
-        private static void AnalyzeContract(SymbolAnalysisContext context)
-        {
-            if (context.Symbol is not INamedTypeSymbol namedType)
-                return;
-
-            // Only enforce on contract projects
-            var assemblyName = namedType.ContainingAssembly?.Name;
-            if (string.IsNullOrWhiteSpace(assemblyName))
-                return;
-
-            if (ProjectAnalyzer.GetProjectType(assemblyName!) != ProjectType.Contract)
-                return;
-
-            // Skip interfaces, enums, delegates, etc.
-            if (namedType.TypeKind is TypeKind.Interface or TypeKind.Enum or TypeKind.Delegate)
-                return;
-
-            var mutableMember = FindFirstMutableMember(namedType);
-            if (mutableMember == null)
-                return;
-
-            var location = mutableMember.Locations.Length > 0
-                ? mutableMember.Locations[0]
-                : (namedType.Locations.Length > 0 ? namedType.Locations[0] : Location.None);
-
-            var diagnostic = Diagnostic.Create(Rule, location, namedType.Name);
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        private static ISymbol? FindFirstMutableMember(INamedTypeSymbol namedType)
-        {
-            foreach (var member in namedType.GetMembers())
+            cancellationToken.ThrowIfCancellationRequested();
+            if (member is IPropertySymbol property && IsMutableProperty(property))
             {
-                if (member is IPropertySymbol property && IsMutableProperty(property))
-                {
-                    return property;
-                }
-
-                if (member is IFieldSymbol field && IsMutableField(field))
-                {
-                    return field;
-                }
+                return property;
             }
 
-            return null;
+            if (member is IFieldSymbol field && IsMutableField(field))
+            {
+                return field;
+            }
         }
 
-        private static bool IsMutableProperty(IPropertySymbol property)
-        {
-            if (property.IsStatic)
-                return false;
+        return null;
+    }
 
-            var setter = property.SetMethod;
-            if (setter == null)
-                return false;
+    private static bool IsMutableProperty(IPropertySymbol property)
+    {
+        if (property.IsStatic)
+            return false;
 
-            // init-only setters are considered immutable
-            if (setter.IsInitOnly)
-                return false;
+        var setter = property.SetMethod;
+        if (setter == null)
+            return false;
 
-            return true;
-        }
+        // init-only setters are considered immutable
+        if (setter.IsInitOnly)
+            return false;
 
-        private static bool IsMutableField(IFieldSymbol field)
-        {
-            if (field.IsStatic)
-                return false;
+        return true;
+    }
 
-            if (field.IsConst || field.IsReadOnly)
-                return false;
+    private static bool IsMutableField(IFieldSymbol field)
+    {
+        if (field.IsStatic)
+            return false;
 
-            return true;
-        }
+        if (field.IsReadOnly)
+            return false;
+
+        return true;
     }
 }

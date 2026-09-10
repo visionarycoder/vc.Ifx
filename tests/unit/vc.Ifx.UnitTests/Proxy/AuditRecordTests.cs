@@ -17,7 +17,7 @@ public class AuditRecordTests
         record.OperationName.Should().BeEmpty();
         record.Result.Should().BeNull();
         record.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        record.Duration.Should().Be(TimeSpan.Zero);
+        record.Duration.Should().BeNull();
         record.Success.Should().BeFalse();
         record.ErrorMessage.Should().BeNull();
         record.CorrelationId.Should().BeNull();

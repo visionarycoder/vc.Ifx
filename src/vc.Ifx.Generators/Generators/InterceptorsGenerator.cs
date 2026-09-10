@@ -26,30 +26,14 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
                 BuildRequest)
             .Where(request => request != null);
 
-        context.RegisterSourceOutput(candidates, (ctx, request) =>
-        {
-            if (request != null)
-            {
-                Emit(ctx, request);
-            }
-        });
+        context.RegisterSourceOutput(candidates, (ctx, request) => Emit(ctx, request!));
     }
 
     private static GenerationRequest? BuildRequest(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var targetType = context.TargetSymbol as INamedTypeSymbol;
-        if (targetType == null)
-        {
-            return null;
-        }
-
-        if (context.Attributes.Length == 0)
-        {
-            return null;
-        }
-
+        var targetType = (INamedTypeSymbol)context.TargetSymbol;
         var attribute = context.Attributes[0];
         var activitySourceName = ReadConstructorString(attribute, 0);
 
@@ -83,8 +67,8 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
         return new GenerationRequest(
             targetType.ContainingNamespace.IsGlobalNamespace ? string.Empty : targetType.ContainingNamespace.ToDisplayString(),
             targetType.Name,
-            activitySourceName ?? string.Empty,
-            interceptorSuffix ?? "OpenTelemetryInterceptor",
+            activitySourceName!,
+            interceptorSuffix!,
             interfaces);
     }
 
@@ -120,7 +104,7 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
 
         var typesArgument = attribute.ConstructorArguments[1];
 
-        if (typesArgument.Kind != TypedConstantKind.Array)
+        if (typesArgument.Kind != TypedConstantKind.Array || typesArgument.IsNull)
         {
             yield break;
         }
@@ -137,7 +121,7 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
     private static void Emit(SourceProductionContext context, GenerationRequest request)
     {
         var source = GenerateSource(request);
-        var hintName = request.TargetTypeName + ".Interceptors.g.cs";
+        var hintName = request.TargetNamespace + "." + request.TargetTypeName + ".Interceptors.g.cs";
         context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
     }
 
@@ -397,7 +381,7 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
 
         foreach (var property in CollectProperties(contract))
         {
-            EmitProperty(builder, indent, property);
+            EmitProperty(builder, indent, property, contract.GetMembers(property.Name).Any(member => member.Kind != SymbolKind.Property));
             builder.AppendLine();
         }
 
@@ -506,10 +490,11 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
         }
     }
 
-    private static void EmitProperty(StringBuilder builder, string indent, IPropertySymbol property)
+    private static void EmitProperty(StringBuilder builder, string indent, IPropertySymbol property, bool explicitImplementation)
     {
         var propertyType = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var propertyName = EscapeIdentifier(property.Name);
+        var declaringType = property.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         if (property.IsIndexer)
         {
@@ -544,9 +529,10 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
         }
 
         builder.Append(indent);
-        builder.Append("    public ");
+        builder.Append(explicitImplementation ? "    " : "    public ");
         builder.Append(propertyType);
         builder.Append(' ');
+        if (explicitImplementation) { builder.Append(declaringType).Append('.'); }
         builder.Append(propertyName);
         builder.AppendLine();
         builder.Append(indent);
@@ -555,7 +541,7 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
         if (property.GetMethod != null)
         {
             builder.Append(indent);
-            builder.Append("        get => innerService.");
+            builder.Append("        get => ((").Append(declaringType).Append(")innerService).");
             builder.Append(propertyName);
             builder.AppendLine(";");
         }
@@ -563,7 +549,7 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
         if (property.SetMethod != null)
         {
             builder.Append(indent);
-            builder.Append("        set => innerService.");
+            builder.Append("        set => ((").Append(declaringType).Append(")innerService).");
             builder.Append(propertyName);
             builder.AppendLine(" = value;");
         }
@@ -842,14 +828,13 @@ public sealed class InterceptorsGenerator : IIncrementalGenerator
                 constraints.Add("class");
             }
 
-            if (typeParameter.HasValueTypeConstraint)
-            {
-                constraints.Add("struct");
-            }
-
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
                 constraints.Add("unmanaged");
+            }
+            else if (typeParameter.HasValueTypeConstraint)
+            {
+                constraints.Add("struct");
             }
 
             foreach (var constraintType in typeParameter.ConstraintTypes)

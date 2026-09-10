@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,6 +20,8 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
     private const string AttributeName = "GenerateEnumerationAttribute";
     private const string GeneratedAttributeFullName = GeneratedAttributeNamespace + "." + AttributeName;
     private const string AttributeFullName = AttributeNamespace + "." + AttributeName;
+    private static readonly DiagnosticDescriptor ValueOutOfRange = new("GEN002", "Enumeration value out of range",
+        "Enumeration member '{0}' must fit System.Int32 for the enumeration base contract", "Generation", DiagnosticSeverity.Error, true);
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -35,37 +38,16 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
                 (ctx, cancellationToken) => CreateModel(ctx, cancellationToken))
                 .Where(model => model != null);
 
-            context.RegisterSourceOutput(candidates, (ctx, model) =>
-            {
-                if (model != null)
-                {
-                    Emit(ctx, model);
-                }
-            });
+            context.RegisterSourceOutput(candidates, (ctx, model) => Emit(ctx, model!));
 
-            context.RegisterSourceOutput(generatedAttributeCandidates, (ctx, model) =>
-            {
-                if (model != null)
-                {
-                    Emit(ctx, model);
-                }
-            });
+            context.RegisterSourceOutput(generatedAttributeCandidates, (ctx, model) => Emit(ctx, model!));
         }
 
-        private static EnumerationModel? CreateModel(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+        private static EnumerationResult? CreateModel(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!(context.TargetSymbol is INamedTypeSymbol enumSymbol))
-            {
-                return null;
-            }
-
-            if (context.Attributes.Length == 0)
-            {
-                return null;
-            }
-
+            var enumSymbol = (INamedTypeSymbol)context.TargetSymbol;
             var attribute = context.Attributes[0];
 
             var className = GetConstructorValue(attribute, 0);
@@ -110,12 +92,12 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
                     continue;
                 }
 
-                if (member.ConstantValue is null)
+                int id;
+                try { id = Convert.ToInt32(member.ConstantValue); }
+                catch (OverflowException)
                 {
-                    continue;
+                    return new EnumerationResult(null, Diagnostic.Create(ValueOutOfRange, member.Locations[0], member.Name));
                 }
-
-                var id = Convert.ToInt32(member.ConstantValue);
                 members.Add(new EnumerationMember(member.Name, id));
             }
 
@@ -134,13 +116,13 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
                 defaultName = members[0].Name;
             }
 
-            return new EnumerationModel(
+            return new EnumerationResult(new EnumerationModel(
                 outputNamespace ?? string.Empty,
-                className ?? string.Empty,
-                defaultName ?? string.Empty,
-                enumerationNamespace ?? string.Empty,
-                enumerationTypeName ?? string.Empty,
-                members.ToImmutableArray());
+                EscapeIdentifier(className!),
+                EscapeIdentifier(defaultName!),
+                enumerationNamespace!,
+                enumerationTypeName!,
+                members.Select(member => new EnumerationMember(EscapeIdentifier(member.Name), member.Id)).ToImmutableArray()), null);
         }
 
         private static string? GetConstructorValue(AttributeData attribute, int index)
@@ -166,13 +148,17 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
             return null;
         }
 
-        private static void Emit(SourceProductionContext context, EnumerationModel model)
+        private static void Emit(SourceProductionContext context, EnumerationResult result)
         {
+            if (result.Diagnostic != null) { context.ReportDiagnostic(result.Diagnostic); return; }
+            var model = result.Model!;
             var source = GenerateSource(model);
-            var hintName = $"{model.ClassName}.Enumeration.g.cs";
+            var hintName = $"{model.Namespace}.{model.ClassName}.Enumeration.g.cs".Replace("@", string.Empty);
 
             context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
         }
+
+        private static string EscapeIdentifier(string name) => SyntaxFacts.GetKeywordKind(name) == SyntaxKind.None ? name : "@" + name;
 
         private static string GenerateSource(EnumerationModel model)
         {
@@ -292,6 +278,12 @@ public sealed class EnumerationGenerator : IIncrementalGenerator
             source.AppendLine("}");
             
             return source.ToString();
+        }
+
+        private sealed class EnumerationResult(EnumerationModel? model, Diagnostic? diagnostic)
+        {
+            internal EnumerationModel? Model { get; } = model;
+            internal Diagnostic? Diagnostic { get; } = diagnostic;
         }
 
         private sealed class EnumerationModel(string ns, string className, string defaultName, string enumerationNamespace, string enumerationTypeName, ImmutableArray<EnumerationMember> members)

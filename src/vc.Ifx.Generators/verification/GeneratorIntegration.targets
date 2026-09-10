@@ -1,0 +1,6 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)../../../Directory.Build.targets" />
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'vc.Ifx.UnitTests' And '$(IfxTestPackage)' == 'vc.Ifx.Generators' And '$(IfxTestSourceScope)' == 'Generators/Implementation'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../vc.Ifx.WebApi/vc.Ifx.WebApi.csproj" />
+  </ItemGroup>
+</Project>

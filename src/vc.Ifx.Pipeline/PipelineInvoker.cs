@@ -1,34 +1,64 @@
 using VisionaryCoder.Framework.Pipeline.Abstractions;
+using VisionaryCoder.Framework.Pipeline.Interceptors;
 
 namespace VisionaryCoder.Framework.Pipeline;
-public sealed class PipelineInvoker(
-    IEnumerable<IInterceptor> interceptors,
-    IEndpointResolver resolver,
-    ILocalDispatcher local,
-    IRemoteDispatcher remote)
-    : IInvoker
-{
-    private readonly IReadOnlyList<IInterceptor> interceptors = interceptors.ToList();
 
+/// <summary>Invokes policies in registration order around local or remote dispatch.</summary>
+public sealed class PipelineInvoker : IInvoker
+{
+    private readonly IInterceptor[] interceptors;
+    private readonly IEndpointResolver resolver;
+    private readonly ILocalDispatcher local;
+    private readonly IRemoteDispatcher remote;
+
+    /// <summary>Snapshots policies and validates all collaborators.</summary>
+    public PipelineInvoker(IEnumerable<IInterceptor> interceptors, IEndpointResolver resolver,
+        ILocalDispatcher local, IRemoteDispatcher remote)
+    {
+        ArgumentNullException.ThrowIfNull(interceptors);
+        this.interceptors = interceptors.ToArray();
+        if (this.interceptors.Any(item => item is null))
+            throw new ArgumentException("Interceptors cannot contain null.", nameof(interceptors));
+        if (this.interceptors.OfType<ResilienceInterceptor>().Skip(1).Any())
+            throw new ArgumentException("Register only one resilience interceptor.", nameof(interceptors));
+        this.resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+        this.local = local ?? throw new ArgumentNullException(nameof(local));
+        this.remote = remote ?? throw new ArgumentNullException(nameof(remote));
+    }
+
+    /// <inheritdoc />
     public Task<TResponse> InvokeAsync<TRequest, TResponse>(TRequest request)
+        where TRequest : IRequest<TResponse> => InvokeAsync<TRequest, TResponse>(request, CancellationToken.None);
+
+    /// <inheritdoc />
+    public async Task<TResponse> InvokeAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken)
         where TRequest : IRequest<TResponse>
     {
-        EndpointResolution resolution = resolver.Resolve(typeof(TRequest));
-
-        Func<TRequest, Task<TResponse>> terminal = resolution.IsLocal
-            ? (req) => local.DispatchAsync<TRequest, TResponse>(req)
-            : (req) => remote.DispatchAsync<TRequest, TResponse>(req, resolution);
-
-        Func<TRequest, Task<TResponse>> next = terminal;
-
-        // Build chain in reverse so first registered runs first
-        for (int i = interceptors.Count - 1; i >= 0; i--)
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        string? previous = Correlation.CurrentId;
+        Correlation.CurrentId = previous ?? Guid.NewGuid().ToString("N");
+        try
         {
-            Func<TRequest, Task<TResponse>> current = next;
-            IInterceptor interceptor = interceptors[i];
-            next = (req) => interceptor.InvokeAsync(req, current);
+            Func<TRequest, CancellationToken, Task<TResponse>> next = (item, token) =>
+            {
+                token.ThrowIfCancellationRequested();
+                EndpointResolution resolution = resolver.Resolve(typeof(TRequest));
+                return resolution.IsLocal
+                    ? local.DispatchAsync<TRequest, TResponse>(item, token)
+                    : remote.DispatchAsync<TRequest, TResponse>(item, resolution, token);
+            };
+            for (int i = interceptors.Length - 1; i >= 0; i--)
+            {
+                var current = next;
+                var interceptor = interceptors[i];
+                next = (item, token) => interceptor.InvokeAsync(item, current, token);
+            }
+            return await next(request, cancellationToken).ConfigureAwait(false);
         }
-
-        return next(request);
+        finally
+        {
+            Correlation.CurrentId = previous;
+        }
     }
 }

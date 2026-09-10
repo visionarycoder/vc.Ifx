@@ -19,7 +19,10 @@ public static class CachingInterceptorExtensions
         this IServiceCollection services,
         Action<CachingOptions>? configure = null)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddLogging();
         services.AddMemoryCache();
+        services.AddOptions<CachingOptions>();
 
         if (configure != null)
         {
@@ -29,7 +32,7 @@ public static class CachingInterceptorExtensions
         {
             ILogger<CachingInterceptor> logger = provider.GetRequiredService<ILogger<CachingInterceptor>>();
             IMemoryCache cache = provider.GetRequiredService<IMemoryCache>();
-            CachingOptions options = provider.GetService<IOptions<CachingOptions>>()?.Value ?? new CachingOptions();
+            CachingOptions options = provider.GetRequiredService<IOptions<CachingOptions>>().Value;
 
             return new CachingInterceptor(
                 logger,

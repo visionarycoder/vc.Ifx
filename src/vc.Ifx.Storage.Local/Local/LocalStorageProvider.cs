@@ -1,385 +1,340 @@
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace VisionaryCoder.Framework.Storage.Local;
 
-public class LocalStorageProvider(ILogger<LocalStorageProvider> logger) : IStorageProvider
+/// <summary>Provides native file operations and rooted object storage.</summary>
+/// <remarks>
+/// The legacy file API retains native paths. Object operations use a captured root and
+/// portable relative keys. Lexical validation does not prevent symbolic-link or junction escapes.
+/// </remarks>
+public class LocalStorageProvider : IStorageProvider, IObjectStorageProvider
 {
+    private readonly ILogger<LocalStorageProvider> logger;
+    private readonly string rootPath;
 
-    private readonly ILogger<LocalStorageProvider> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    /// <summary>Initializes the provider, capturing the current directory as the object root.</summary>
+    /// <param name="logger">The operation logger.</param>
+    public LocalStorageProvider(ILogger<LocalStorageProvider> logger) : this(new LocalStorageOptions(), logger) { }
 
+    /// <summary>Initializes the provider with a snapshot of the configured object root.</summary>
+    /// <param name="options">The root configuration; does not alter legacy path operations.</param>
+    /// <param name="logger">The operation logger.</param>
+    public LocalStorageProvider(LocalStorageOptions options, ILogger<LocalStorageProvider> logger)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        options.Validate();
+        rootPath = Path.GetFullPath(options.RootPath);
+    }
+
+    /// <inheritdoc/>
+    public StorageCapabilities Capabilities => StorageCapabilities.Read | StorageCapabilities.Write |
+        StorageCapabilities.Delete | StorageCapabilities.Metadata | StorageCapabilities.List | StorageCapabilities.CreateOnly;
+
+    /// <inheritdoc/>
+    public Task<Stream> OpenReadAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        string path = ResolveObjectPath(request.Path);
+        try
+        {
+            return Task.FromResult<Stream>(new FileStream(path, FileMode.Open, FileAccess.Read,
+                FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan));
+        }
+        catch (DirectoryNotFoundException exception)
+        {
+            throw new FileNotFoundException("The storage object does not exist.", request.Path, exception);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<StorageObjectMetadata> WriteAsync(StorageWriteRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        string path = ResolveObjectPath(request.Path);
+        if (!request.Content.CanRead)
+        {
+            throw new ArgumentException("The content stream must remain readable until the write completes.", nameof(request));
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await using (var destination = new FileStream(path, request.Overwrite ? FileMode.Create : FileMode.CreateNew,
+            FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
+        {
+            await request.Content.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+            await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return ReadMetadata(path, request.Path);
+    }
+
+    /// <inheritdoc/>
+    public Task<StorageObjectMetadata?> GetMetadataAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        string path = ResolveObjectPath(request.Path);
+        try
+        {
+            return Task.FromResult<StorageObjectMetadata?>(ReadMetadata(path, request.Path));
+        }
+        catch (FileNotFoundException)
+        {
+            // FileInfo.Length also reports missing parents and directory entries as missing files.
+            return Task.FromResult<StorageObjectMetadata?>(null);
+        }
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteAsync(StorageObjectRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        DeleteFile(ResolveObjectPath(request.Path));
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<StorageObjectMetadata> ListAsync(StorageListRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        await Task.CompletedTask.ConfigureAwait(false);
+        IEnumerable<string> paths;
+        try
+        {
+            if ((File.GetAttributes(rootPath) & FileAttributes.Directory) == 0)
+            {
+                throw new IOException("The object storage root is not a directory.");
+            }
+
+            paths = Directory.EnumerateFiles(rootPath, "*", new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = false,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            });
+        }
+        catch (FileNotFoundException)
+        {
+            yield break;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            yield break;
+        }
+
+        using IEnumerator<string> files = paths.GetEnumerator();
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!files.MoveNext())
+            {
+                yield break;
+            }
+
+            string objectPath = Path.GetRelativePath(rootPath, files.Current).Replace(Path.DirectorySeparatorChar, '/');
+            if (objectPath.StartsWith(request.Prefix, StringComparison.Ordinal))
+            {
+                yield return ReadMetadata(files.Current, objectPath);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public bool FileExists(FileInfo fileInfo)
     {
         ArgumentNullException.ThrowIfNull(fileInfo);
-        try
-        {
-            fileInfo.Refresh();
-            bool exists = fileInfo.Exists;
-            logger.LogTrace("File existence check for FileInfo '{Path}': {Exists}", fileInfo.FullName, exists);
-            return exists;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking file existence for FileInfo '{Path}'", fileInfo.FullName);
-            throw;
-        }
+        fileInfo.Refresh();
+        return fileInfo.Exists;
     }
 
-    public bool FileExists(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        var fileInfo = new FileInfo(path);
-        try
-        {
-            fileInfo.Refresh(); // Ensure we have current information
-            bool exists = fileInfo.Exists;
-            logger.LogTrace("File existence check for '{Path}': {Exists}", fileInfo.FullName, exists);
-            return exists;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking file existence for '{Path}'", fileInfo.FullName);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public bool FileExists(string path) => File.Exists(ValidatePath(path));
 
-    public string ReadAllText(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            logger.LogDebug("Reading all text from '{Path}'", path);
-            string content = File.ReadAllText(path);
-            logger.LogTrace("Successfully read {Length} characters from '{Path}'", content.Length, path);
-            return content;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error reading text from '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public string ReadAllText(string path) => File.ReadAllText(ValidatePath(path));
 
-    public async Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            logger.LogDebug("Reading all text async from '{Path}'", path);
-            string content = await File.ReadAllTextAsync(path, cancellationToken);
-            logger.LogTrace("Successfully read {Length} characters from '{Path}'", content.Length, path);
-            return content;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error reading text async from '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default) =>
+        File.ReadAllTextAsync(ValidatePath(path), cancellationToken);
 
-    public byte[] ReadAllBytes(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            logger.LogDebug("Reading all bytes from '{Path}'", path);
-            byte[] bytes = File.ReadAllBytes(path);
-            logger.LogTrace("Successfully read {Length} bytes from '{Path}'", bytes.Length, path);
-            return bytes;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error reading bytes from '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public byte[] ReadAllBytes(string path) => File.ReadAllBytes(ValidatePath(path));
 
-    public async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            logger.LogDebug("Reading all bytes async from '{Path}'", path);
-            byte[] bytes = await File.ReadAllBytesAsync(path, cancellationToken);
-            logger.LogTrace("Successfully read {Length} bytes async from '{Path}'", bytes.Length, path);
-            return bytes;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error reading bytes async from '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public Task<byte[]> ReadAllBytesAsync(string path, CancellationToken cancellationToken = default) =>
+        File.ReadAllBytesAsync(ValidatePath(path), cancellationToken);
 
+    /// <inheritdoc/>
     public void WriteAllText(string path, string content)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentNullException.ThrowIfNull(content);
-        try
-        {
-            logger.LogDebug("Writing {Length} characters to '{Path}'", content.Length, path);
-            File.WriteAllText(path, content);
-            logger.LogTrace("Successfully wrote text to '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error writing text to '{Path}'", path);
-            throw;
-        }
+        File.WriteAllText(path, content);
     }
 
-    public async Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentNullException.ThrowIfNull(content);
-        try
-        {
-            logger.LogDebug("Writing {Length} characters async to '{Path}'", content.Length, path);
-            await File.WriteAllTextAsync(path, content, cancellationToken);
-            logger.LogTrace("Successfully wrote text async to '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error writing text async to '{Path}'", path);
-            throw;
-        }
+        return File.WriteAllTextAsync(path, content, cancellationToken);
     }
 
+    /// <inheritdoc/>
     public void WriteAllBytes(string path, byte[] bytes)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentNullException.ThrowIfNull(bytes);
-        try
-        {
-            logger.LogDebug("Writing {Length} bytes to '{Path}'", bytes.Length, path);
-            File.WriteAllBytes(path, bytes);
-            logger.LogTrace("Successfully wrote bytes to '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error writing bytes to '{Path}'", path);
-            throw;
-        }
+        File.WriteAllBytes(path, bytes);
     }
 
-    public async Task WriteAllBytesAsync(string path, byte[] bytes, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public Task WriteAllBytesAsync(string path, byte[] bytes, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentNullException.ThrowIfNull(bytes);
-        try
-        {
-            logger.LogDebug("Writing {Length} bytes async to '{Path}'", bytes.Length, path);
-            await File.WriteAllBytesAsync(path, bytes, cancellationToken);
-            logger.LogTrace("Successfully wrote bytes async to '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error writing bytes async to '{Path}'", path);
-            throw;
-        }
+        return File.WriteAllBytesAsync(path, bytes, cancellationToken);
     }
 
+    /// <inheritdoc/>
     public void DeleteFile(string path)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         try
         {
-            if (File.Exists(path))
-            {
-                logger.LogDebug("Deleting file '{Path}'", path);
-                File.Delete(path);
-                logger.LogTrace("Successfully deleted file '{Path}'", path);
-            }
-            else
-            {
-                logger.LogTrace("File '{Path}' does not exist, no deletion needed", path);
-            }
+            File.Delete(path);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error deleting file '{Path}'", path);
-            throw;
-        }
+        catch (DirectoryNotFoundException) { }
     }
 
+    /// <inheritdoc/>
     public Task DeleteFileAsync(string path, CancellationToken cancellationToken = default)
     {
-        // File.Delete is not I/O bound, so we run it in a task for consistency
-        return Task.Run(() => DeleteFile(path), cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        DeleteFile(path);
+        return Task.CompletedTask;
     }
 
-    public bool DirectoryExists(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            bool exists = Directory.Exists(path);
-            logger.LogTrace("Directory existence check for '{Path}': {Exists}", path, exists);
-            return exists;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking directory existence for '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public bool DirectoryExists(string path) => Directory.Exists(ValidatePath(path));
 
-    public DirectoryInfo CreateDirectory(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            logger.LogDebug("Creating directory '{Path}'", path);
-            DirectoryInfo directoryInfo = Directory.CreateDirectory(path);
-            logger.LogTrace("Successfully created directory '{Path}'", path);
-            return directoryInfo;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error creating directory '{Path}'", path);
-            throw;
-        }
-    }
+    /// <inheritdoc/>
+    public DirectoryInfo CreateDirectory(string path) => Directory.CreateDirectory(ValidatePath(path));
 
+    /// <inheritdoc/>
     public Task<DirectoryInfo> CreateDirectoryAsync(string path, CancellationToken cancellationToken = default)
     {
-        // Directory.CreateDirectory is not I/O bound, so we run it in a task for consistency
-        return Task.Run(() => CreateDirectory(path), cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(CreateDirectory(path));
     }
 
+    /// <inheritdoc/>
     public void DeleteDirectory(string path, bool recursive = true)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         try
         {
-            if (Directory.Exists(path))
-            {
-                logger.LogDebug("Deleting directory '{Path}' (recursive: {Recursive})", path, recursive);
-                Directory.Delete(path, recursive);
-                logger.LogTrace("Successfully deleted directory '{Path}'", path);
-            }
-            else
-            {
-                logger.LogTrace("Directory '{Path}' does not exist, no deletion needed", path);
-            }
+            Directory.Delete(path, recursive);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error deleting directory '{Path}' (recursive: {Recursive})", path, recursive);
-            throw;
-        }
+        catch (DirectoryNotFoundException) { }
     }
 
+    /// <inheritdoc/>
     public Task DeleteDirectoryAsync(string path, bool recursive = true, CancellationToken cancellationToken = default)
     {
-        // Directory.Delete is not I/O bound, so we run it in a task for consistency
-        return Task.Run(() => DeleteDirectory(path, recursive), cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        DeleteDirectory(path, recursive);
+        return Task.CompletedTask;
     }
 
+    /// <inheritdoc/>
     public string[] GetFiles(string path, string searchPattern = "*")
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-        try
-        {
-            logger.LogDebug("Getting files from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            string[] files = Directory.GetFiles(path, searchPattern);
-            logger.LogTrace("Found {Count} files in '{Path}'", files.Length, path);
-            return files;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting files from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            throw;
-        }
+        return Directory.GetFiles(path, searchPattern);
     }
 
+    /// <inheritdoc/>
     public string[] GetDirectories(string path, string searchPattern = "*")
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-        try
-        {
-            logger.LogDebug("Getting directories from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            string[] directories = Directory.GetDirectories(path, searchPattern);
-            logger.LogTrace("Found {Count} directories in '{Path}'", directories.Length, path);
-            return directories;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error getting directories from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            throw;
-        }
+        return Directory.GetDirectories(path, searchPattern);
     }
 
-    public async IAsyncEnumerable<string> EnumerateFilesAsync(string path, string searchPattern = "*", [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<string> EnumerateFilesAsync(string path, string searchPattern = "*",
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ValidatePath(path);
         ArgumentException.ThrowIfNullOrWhiteSpace(searchPattern);
-        logger.LogDebug("Enumerating files async from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-        await Task.Yield(); // Make it actually async
-        List<string> files;
-        try
-        {
-            files = Directory.EnumerateFiles(path, searchPattern).ToList();
-            logger.LogTrace("Completed enumerating files from '{Path}'", path);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error enumerating files from '{Path}' with pattern '{Pattern}'", path, searchPattern);
-            throw;
-        }
-        foreach (string file in files)
+        cancellationToken.ThrowIfCancellationRequested();
+        await Task.CompletedTask.ConfigureAwait(false);
+        using IEnumerator<string> files = Directory.EnumerateFiles(path, searchPattern).GetEnumerator();
+        while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            yield return file;
+            if (!files.MoveNext())
+            {
+                yield break;
+            }
+
+            yield return files.Current;
         }
     }
 
-    public string GetFullPath(string path)
+    /// <inheritdoc/>
+    public string GetFullPath(string path) => Path.GetFullPath(ValidatePath(path));
+
+    /// <inheritdoc/>
+    public string? GetDirectoryName(string path) => Path.GetDirectoryName(ValidatePath(path));
+
+    /// <inheritdoc/>
+    public string GetFileName(string path) => Path.GetFileName(ValidatePath(path));
+
+    private string ValidatePath(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
+        if (path.Contains('\0'))
         {
-            string fullPath = Path.GetFullPath(path);
-            logger.LogTrace("Resolved full path for '{Path}': '{FullPath}'", path, fullPath);
-            return fullPath;
+            throw new ArgumentException("Paths must not contain null characters.", nameof(path));
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error resolving full path for '{Path}'", path);
-            throw;
-        }
+
+        logger.LogDebug("Local storage path: {Path}", path);
+        return path;
     }
 
-    public string? GetDirectoryName(string path)
+    private string ResolveObjectPath(string path)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
+        ValidatePath(path);
+        foreach (string segment in path.Split('/'))
         {
-            string? directoryName = Path.GetDirectoryName(path);
-            logger.LogTrace("Resolved directory name for '{Path}': '{DirectoryName}'", path, directoryName ?? "<null>");
-            return directoryName;
+            if (segment.Length == 0 || segment is "." or ".." || segment.EndsWith('.') || segment.EndsWith(' ') ||
+                segment.IndexOfAny(['\\', ':', '<', '>', '"', '|', '?', '*']) >= 0 || segment.Any(char.IsControl))
+            {
+                throw new ArgumentException("Object paths require relative slash-separated names without traversal or special path characters.", nameof(path));
+            }
         }
-        catch (Exception ex)
+
+        if (File.Exists(rootPath))
         {
-            logger.LogError(ex, "Error resolving directory name for '{Path}'", path);
-            throw;
+            throw new IOException("The object storage root is not a directory.");
         }
+
+        return Path.Combine(rootPath, path.Replace('/', Path.DirectorySeparatorChar));
     }
 
-    public string GetFileName(string path)
+    private static StorageObjectMetadata ReadMetadata(string path, string objectPath)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        try
-        {
-            string fileName = Path.GetFileName(path);
-            logger.LogTrace("Resolved file name for '{Path}': '{FileName}'", path, fileName);
-            return fileName;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error resolving file name for '{Path}'", path);
-            throw;
-        }
+        var file = new FileInfo(path);
+        return new StorageObjectMetadata(objectPath, file.Length, new DateTimeOffset(file.LastWriteTimeUtc));
     }
 }

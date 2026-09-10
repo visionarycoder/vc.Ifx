@@ -1,121 +1,70 @@
+using Azure.Core;
+using Azure.Storage.Queues;
+using System.Text.RegularExpressions;
+
 namespace VisionaryCoder.Framework.Messaging.Azure.Queue;
 
-/// <summary>
-/// Configuration options for Azure Queue Storage operations.
-/// </summary>
+/// <summary>Configuration for the queue transport; business retry and poison policies belong to the caller.</summary>
 public sealed class AzureQueueStorageOptions
 {
-    /// <summary>
-    /// Gets or sets the Azure Storage account connection string.
-    /// </summary>
     public string? ConnectionString { get; init; }
-
-    /// <summary>
-    /// Gets or sets the Azure Storage account URI (when using managed identity).
-    /// </summary>
     public string? StorageAccountUri { get; init; }
-
-    /// <summary>
-    /// Gets or sets the default queue name for queue operations.
-    /// </summary>
     public required string QueueName { get; init; }
-
-    /// <summary>
-    /// Gets or sets whether to use managed identity for authentication.
-    /// When true, StorageAccountUri must be provided. When false, ConnectionString must be provided.
-    /// </summary>
-    public bool UseManagedIdentity { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets whether to create the queue if it doesn't exist.
-    /// </summary>
+    public bool UseManagedIdentity { get; init; }
     public bool CreateQueueIfNotExists { get; init; } = true;
-
-    /// <summary>
-    /// Gets or sets the timeout for queue operations in milliseconds.
-    /// </summary>
+    /// <summary>Per-network-operation timeout, not a total workflow deadline.</summary>
     public int TimeoutMilliseconds { get; init; } = 30000;
-
-    /// <summary>
-    /// Gets or sets the message time-to-live in seconds. Default is 7 days (604800 seconds).
-    /// Set to -1 for maximum allowed time-to-live.
-    /// </summary>
-    public int MessageTimeToLiveSeconds { get; init; } = 604800; // 7 days
-
-    /// <summary>
-    /// Gets or sets the visibility timeout for messages in seconds. Default is 30 seconds.
-    /// </summary>
+    /// <summary>Positive lifetime in seconds, or -1 for no expiration.</summary>
+    public int MessageTimeToLiveSeconds { get; init; } = 604800;
+    /// <summary>Receive invisibility, between one second and seven days.</summary>
     public int VisibilityTimeoutSeconds { get; init; } = 30;
-
-    /// <summary>
-    /// Gets or sets the maximum number of messages to retrieve in a single operation. Default is 32 (max).
-    /// </summary>
     public int MaxMessagesToRetrieve { get; init; } = 32;
-
-    /// <summary>
-    /// Gets or sets whether to Base64 encode message content.
-    /// </summary>
     public bool EncodeMessages { get; init; } = true;
+    /// <summary>Additional SDK retry attempts, from zero to ten.</summary>
+    public int MaxRetryAttempts { get; init; } = 3;
+    public int RetryDelayMilliseconds { get; init; } = 1000;
 
-    /// <summary>
-    /// Validates the configuration and throws exceptions for invalid settings.
-    /// </summary>
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(QueueName);
+        if (!Regex.IsMatch(QueueName, "\\A[a-z0-9](?:[a-z0-9]|-(?!-)){1,61}[a-z0-9]\\z", RegexOptions.CultureInvariant))
+            throw new ArgumentException("Queue name must be 3-63 ASCII lowercase letters, digits or single internal hyphens.", nameof(QueueName));
 
         if (UseManagedIdentity)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(StorageAccountUri);
-            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out _))
-            {
-                throw new ArgumentException("StorageAccountUri must be a valid absolute URI.", nameof(StorageAccountUri));
-            }
+            if (!Uri.TryCreate(StorageAccountUri, UriKind.Absolute, out var uri) ||
+                uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length != 0 ||
+                uri.Query.Length != 0 || uri.Fragment.Length != 0)
+                throw new ArgumentException("StorageAccountUri must be an absolute HTTPS URI without credentials, query or fragment.", nameof(StorageAccountUri));
         }
         else
-        {
             ArgumentException.ThrowIfNullOrWhiteSpace(ConnectionString);
-        }
 
-        if (TimeoutMilliseconds <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(TimeoutMilliseconds), "Timeout must be greater than 0");
-        }
-
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(TimeoutMilliseconds);
         if (MessageTimeToLiveSeconds < -1 || MessageTimeToLiveSeconds == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(MessageTimeToLiveSeconds), "Message time-to-live must be greater than 0 or -1 for maximum");
-        }
-
-        if (VisibilityTimeoutSeconds <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(VisibilityTimeoutSeconds), "Visibility timeout must be greater than 0");
-        }
-
-        if (MaxMessagesToRetrieve <= 0 || MaxMessagesToRetrieve > 32)
-        {
-            throw new ArgumentOutOfRangeException(nameof(MaxMessagesToRetrieve), "Max messages to retrieve must be between 1 and 32");
-        }
-
-        // Validate queue name according to Azure naming rules
-        if (!IsValidQueueName(QueueName))
-        {
-            throw new ArgumentException("Queue name must be 3-63 characters long, contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen.", nameof(QueueName));
-        }
+            throw new ArgumentOutOfRangeException(nameof(MessageTimeToLiveSeconds));
+        if (VisibilityTimeoutSeconds is < 1 or > 604800)
+            throw new ArgumentOutOfRangeException(nameof(VisibilityTimeoutSeconds));
+        if (MaxMessagesToRetrieve is < 1 or > 32)
+            throw new ArgumentOutOfRangeException(nameof(MaxMessagesToRetrieve));
+        if (MaxRetryAttempts is < 0 or > 10)
+            throw new ArgumentOutOfRangeException(nameof(MaxRetryAttempts));
+        ArgumentOutOfRangeException.ThrowIfNegative(RetryDelayMilliseconds);
     }
 
-    private static bool IsValidQueueName(string queueName)
+    /// <summary>Creates SDK-owned encoding, bounded exponential retry and network timeout settings.</summary>
+    public QueueClientOptions CreateClientOptions()
     {
-        if (string.IsNullOrWhiteSpace(queueName) ||
-            queueName.Length < 3 ||
-            queueName.Length > 63 ||
-            queueName.StartsWith('-') ||
-            queueName.EndsWith('-') ||
-            queueName.Contains("--"))
+        Validate();
+        var clientOptions = new QueueClientOptions
         {
-            return false;
-        }
-
-        return queueName.All(c => char.IsLower(c) || char.IsDigit(c) || c == '-');
+            MessageEncoding = EncodeMessages ? QueueMessageEncoding.Base64 : QueueMessageEncoding.None
+        };
+        clientOptions.Retry.Mode = RetryMode.Exponential;
+        clientOptions.Retry.MaxRetries = MaxRetryAttempts;
+        clientOptions.Retry.Delay = TimeSpan.FromMilliseconds(RetryDelayMilliseconds);
+        clientOptions.Retry.NetworkTimeout = TimeSpan.FromMilliseconds(TimeoutMilliseconds);
+        return clientOptions;
     }
 }

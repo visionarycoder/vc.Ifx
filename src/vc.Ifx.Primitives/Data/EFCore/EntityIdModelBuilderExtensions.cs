@@ -8,6 +8,7 @@ public static class EntityIdModelBuilderExtensions
         where TEntity : class
         where TKey : notnull
     {
+        ArgumentNullException.ThrowIfNull(builder);
         var converter = new EntityIdValueConverter<TEntity, TKey>();
         builder.HasConversion(converter);
         return builder;

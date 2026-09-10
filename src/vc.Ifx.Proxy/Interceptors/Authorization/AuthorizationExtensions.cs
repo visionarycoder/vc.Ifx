@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VisionaryCoder.Framework.Proxy.Interceptors.Authorization.Policies;
+using VisionaryCoder.Framework.Proxy.Interceptors.Security;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Authorization;
 
@@ -24,6 +25,7 @@ public static class AuthorizationExtensions
     public static IServiceCollection AddAuthorization(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        AddEnforcementBridge(services);
 
         // Register NULL OBJECT implementation as fallback (SOLID principle)
         // This will be used if no explicit authorization policies are registered
@@ -46,6 +48,8 @@ public static class AuthorizationExtensions
         where T : class, IAuthorizationPolicy
     {
         ArgumentNullException.ThrowIfNull(services);
+        AddEnforcementBridge(services);
+        RemoveNullFallback(services);
 
         // Add authorization policy (multiple policies can coexist)
         services.AddSingleton<IAuthorizationPolicy, T>();
@@ -65,6 +69,8 @@ public static class AuthorizationExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(requiredRoles);
+        AddEnforcementBridge(services);
+        RemoveNullFallback(services);
 
         // Add role-based authorization policy with explicit configuration
         services.AddSingleton<IAuthorizationPolicy>(provider =>
@@ -85,6 +91,8 @@ public static class AuthorizationExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(policy);
+        AddEnforcementBridge(services);
+        RemoveNullFallback(services);
 
         // Add specific policy instance
         services.AddSingleton(policy);
@@ -104,6 +112,7 @@ public static class AuthorizationExtensions
         where T : class, IAuthorizationPolicy
     {
         ArgumentNullException.ThrowIfNull(services);
+        AddEnforcementBridge(services);
 
         // Remove existing authorization policies and replace with explicit type
         services.RemoveAll<IAuthorizationPolicy>();
@@ -124,6 +133,7 @@ public static class AuthorizationExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(defaultRoles);
+        AddEnforcementBridge(services);
 
         // Remove null policy and replace with role-based authorization
         services.RemoveAll<IAuthorizationPolicy>();
@@ -131,5 +141,15 @@ public static class AuthorizationExtensions
             new RoleBasedAuthorizationPolicy(defaultRoles));
 
         return services;
+    }
+
+    private static void AddEnforcementBridge(IServiceCollection services)
+        => services.TryAddEnumerable(ServiceDescriptor.Scoped<IProxyAuthorizationPolicy, LegacyAuthorizationPolicyAdapter>());
+
+    private static void RemoveNullFallback(IServiceCollection services)
+    {
+        foreach (var descriptor in services.Where(descriptor => descriptor.ServiceType == typeof(IAuthorizationPolicy) &&
+            descriptor.ImplementationType == typeof(NullAuthorizationPolicy)).ToArray())
+            services.Remove(descriptor);
     }
 }

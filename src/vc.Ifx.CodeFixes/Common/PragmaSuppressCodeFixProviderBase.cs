@@ -1,39 +1,10 @@
-using System.Collections.Immutable;
-using System.Threading.Tasks;
+namespace vc.Ifx.CodeFixes.Common;
 
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-
-namespace vc.Ifx.CodeFixes.Common
+/// <summary>Compatibility base; blanket suppression is no longer offered.</summary>
+public abstract class PragmaSuppressCodeFixProviderBase : RetiredCodeFixProvider
 {
-    public abstract class PragmaSuppressCodeFixProviderBase : CodeFixProvider
-    {
-        protected abstract string DiagnosticId { get; }
-
-        protected abstract string Title { get; }
-
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(this.DiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            if (context.Diagnostics.IsEmpty)
-            {
-                return Task.CompletedTask;
-            }
-
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    this.Title,
-                    cancellationToken => CaCodeFixUtilities.AddFilePragmaSuppressionAsync(context.Document, this.DiagnosticId, cancellationToken),
-                    this.Title),
-                context.Diagnostics[0]);
-
-            return Task.CompletedTask;
-        }
-    }
+    /// <summary>Retains the legacy derived-provider declaration contract.</summary>
+    protected abstract string DiagnosticId { get; }
+    /// <summary>Retains the legacy derived-provider title contract.</summary>
+    protected abstract string Title { get; }
 }

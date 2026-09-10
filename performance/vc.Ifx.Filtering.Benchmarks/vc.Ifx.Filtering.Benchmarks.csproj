@@ -9,9 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
+    <Compile Include="../BenchmarkProgram.cs" Link="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\vc.Ifx.Filtering\vc.Ifx.Filtering.csproj" />
+    <ProjectReference Include="..\..\src\vc.Ifx.Querying\vc.Ifx.Querying.csproj" />
   </ItemGroup>
 </Project>

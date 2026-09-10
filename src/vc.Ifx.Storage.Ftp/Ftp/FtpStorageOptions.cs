@@ -1,55 +1,61 @@
 namespace VisionaryCoder.Framework.Storage.Ftp;
 
-/// <summary>
-/// Configuration options for FTP storage operations.
-/// </summary>
+/// <summary>Connection settings for a single FTP endpoint. Validation does not connect.</summary>
 public sealed class FtpStorageOptions
 {
-    /// <summary>
-    /// Gets or sets the FTP server host address.
-    /// </summary>
+    /// <summary>DNS name or IP address, without scheme, path or credentials.</summary>
     public required string Host { get; init; }
-    /// Gets or sets the FTP server port. Default is 21 for FTP, 990 for FTPS.
+    /// <summary>Explicit endpoint port; defaults to 21, including explicit FTPS.</summary>
     public int Port { get; init; } = 21;
-    /// Gets or sets the username for FTP authentication.
+    /// <summary>FTP login name.</summary>
     public required string Username { get; init; }
-    /// Gets or sets the password for FTP authentication.
+    /// <summary>FTP password. Obtain secrets from an external secret store.</summary>
     public required string Password { get; init; }
-    /// Gets or sets whether to use SSL/TLS for secure FTP (FTPS).
-    public bool UseSsl { get; init; } = false;
-    /// Gets or sets whether to use passive mode for FTP connections.
+    /// <summary>Require explicit TLS with normal certificate validation.</summary>
+    public bool UseSsl { get; init; }
+    /// <summary>Use passive rather than active data connections.</summary>
     public bool UsePassive { get; init; } = true;
-    /// Gets or sets the timeout for FTP operations in milliseconds.
+    /// <summary>Positive timeout for each connection and read, not an overall deadline.</summary>
     public int TimeoutMilliseconds { get; init; } = 30000;
-    /// Gets or sets the keep-alive interval for FTP connections.
-    public bool KeepAlive { get; init; } = false;
-    /// Gets or sets whether to use binary transfer mode.
+    /// <summary>Enable TCP socket keep-alive.</summary>
+    public bool KeepAlive { get; init; }
+    /// <summary>Legacy transfer mode. Object operations always use binary.</summary>
     public bool UseBinary { get; init; } = true;
-    /// Gets or sets the buffer size for file transfers.
+    /// <summary>Positive copy buffer and SDK transfer chunk size in bytes.</summary>
     public int BufferSize { get; init; } = 8192;
-    /// Gets the FTP server URI based on the configuration.
-    public string ServerUri => UseSsl ? $"ftps://{Host}:{Port}" : $"ftp://{Host}:{Port}";
+    /// <summary>Absolute server directory for object keys only; not a security boundary.</summary>
+    public string RootPath { get; init; } = "/";
+    /// <summary>Credential-free endpoint URI, including IPv6 bracket notation.</summary>
+    public string ServerUri => new UriBuilder(UseSsl ? "ftps" : "ftp", Host, Port).Uri.GetLeftPart(UriPartial.Authority);
 
-    /// Validates the configuration and throws exceptions for invalid settings.
+    /// <summary>Reject invalid endpoint, credentials, limits and object root.</summary>
     public void Validate()
     {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(nameof(Host));
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(nameof(Username));
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(nameof(Password));
+        ValidateText(Host, nameof(Host));
+        if (Uri.CheckHostName(Host) == UriHostNameType.Unknown)
+            throw new ArgumentException("Host must be a DNS name or IP address.", nameof(Host));
+        ValidateText(Username, nameof(Username));
+        ValidateText(Password, nameof(Password));
+        ArgumentOutOfRangeException.ThrowIfLessThan(Port, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(Port, 65535);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(TimeoutMilliseconds);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(BufferSize);
+        ValidateText(RootPath, nameof(RootPath));
+        if (!RootPath.StartsWith('/') || RootPath.Contains('\\') || RootPath.Contains(':'))
+            throw new ArgumentException("RootPath must be an absolute FTP directory.", nameof(RootPath));
+        ValidateSegments(RootPath[1..].TrimEnd('/'));
+    }
 
-        if (Port <= 0 || Port > 65535)
-        {
-            throw new ArgumentOutOfRangeException(nameof(Port), "Port must be between 1 and 65535");
-        }
+    internal static void ValidateText(string value, string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value, name);
+        if (value.Any(char.IsControl)) throw new ArgumentException("Control characters are not allowed.", name);
+    }
 
-        if (TimeoutMilliseconds <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(TimeoutMilliseconds), "Timeout must be greater than 0");
-        }
-
-        if (BufferSize <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(BufferSize), "Buffer size must be greater than 0");
-        }
+    internal static void ValidateSegments(string path)
+    {
+        if (path.Length == 0) return;
+        if (path.Split('/').Any(segment => segment is "" or "." or ".."))
+            throw new ArgumentException("Empty and traversal path segments are not allowed.", nameof(path));
     }
 }

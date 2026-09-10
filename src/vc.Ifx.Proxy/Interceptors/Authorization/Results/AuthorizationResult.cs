@@ -33,6 +33,7 @@ public class AuthorizationResult
     /// <summary>
     /// Gets or sets the context information associated with this authorization result.
     /// Contains additional data about the authorization decision including user info, policies evaluated, etc.
+    /// This mutable per-result dictionary requires external synchronization when shared across threads.
     /// </summary>
     public Dictionary<string, object> Context { get; set; }
 

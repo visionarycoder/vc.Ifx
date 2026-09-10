@@ -1,23 +1,51 @@
-# Filtering Subsystem
+# vc.Ifx.Filtering
 
-This directory contains the filtering model, expression translation and execution strategies used to build and apply portable filters across POCO collections and EF Core queryables.
+Compose reusable predicates and portable filters without coupling applications to
+a database provider. Database query shape and execution belong to QuerySpec/access
+packages; EF-specific translation belongs to vc.Ifx.Filtering.EntityFrameworkCore.
 
-Key components
+## Predicate Specifications
 
-- `VisionaryCoder.Framework.Filtering.Abstractions` — Filter node model and enums (`FilterNode`, `FilterCondition`, `FilterGroup`, `FilterOperation`, etc.)
-- `ExpressionToFilterNode` — Translate LINQ `Expression<Func<T,bool>>` into `FilterNode` trees
-- `Poco` execution strategy — Apply `FilterNode` to in-memory `IEnumerable<T>`
-- `EFCore` execution strategy — Translate `FilterNode` into EF Core expressions (optimized translation for `IN`, Any/All and string ops)
+```csharp
+var activeAdults = new FilterSpec<Customer>(customer => customer.IsActive)
+    .Where(customer => customer.Age >= 18);
+IQueryable<Customer> matching = activeAdults.Apply(customers);
+FilterNode snapshot = activeAdults.ToFilterNode();
+```
 
-Samples
+Where, And, Or and Not return new specifications. Expressions are combined by
+parameter substitution, without Invoke or premature compilation for IQueryable.
+The legacy Filter.For<T>().Where(...).Build() API remains supported and snapshots
+its builder state.
 
-A sample demo demonstrates building filters, applying to POCO lists and EF queryables. See `src/VisionaryCoder.Framework/Filtering/Sample`.
+## Portable Execution
 
-Splitting guidance
+FilterExpression.Create<T>(node) produces a LINQ predicate without executing a
+query. PocoFilterExecutionStrategy accepts both IEnumerable and IQueryable.
+Unsupported expressions, malformed values, unknown paths and unsupported node
+types throw rather than silently dropping conditions.
 
-When extracting the filtering subsystem into a standalone package:
+Supported portable operations include comparisons, Boolean members/constants,
+groups, general negation, string operations, nested Any/All, collection Contains
+and captured-list membership. Empty AND matches all; empty OR and empty IN match
+none. Null comparisons are preserved. Null dereferences follow CLR behavior and
+need explicit guards. Nullable comparisons and floating-point negation retain
+their original Boolean semantics.
 
-1. Create `VisionaryCoder.Framework.Filtering.Abstractions` project with the model types and interfaces.
-2. Create `VisionaryCoder.Framework.Filtering.Poco` and `VisionaryCoder.Framework.Filtering.EFCore` projects for execution strategies.
-3. Keep `ExpressionToFilterNode` close to the Abstractions or in a lightweight `Filtering.Helpers` package if you want to share it between strategies.
+Groups hold read-only snapshots. Polymorphic JSON uses a $type discriminator;
+leaf field names and existing numeric operator values are unchanged. Capture
+values are snapshotted only when translating and use invariant formatting.
+TimeOnly membership values preserve seconds and fractional ticks during portable
+and JSON round trips.
+See [the contract](../../docs/filtering/filter-contract.md) for supported syntax,
+scalar collection paths, serialization, compatibility and application validation.
+
+## Verification
+
+```powershell
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Filtering -Filter FullyQualifiedName~Filtering
+```
+
+Tests compare translated and JSON-roundtripped predicates with CLR execution,
+including nested collections, nulls, NaN, captured values and malformed filters.
 

@@ -1,14 +1,12 @@
 namespace VisionaryCoder.Framework.Storage;
 
 /// <summary>
-/// Defines a comprehensive contract for storage operations following Microsoft I/O patterns.
-/// This interface consolidates both file and directory operations for improved testability
-/// and follows the accessor pattern for VBD (Volatility-Based Decomposition) architecture.
+/// Defines the legacy file and directory storage contract.
 /// </summary>
 /// <remarks>
-/// This interface is designed to be easily mockable for unit testing and provides
-/// both synchronous and asynchronous operations for maximum flexibility.
-/// Based on Microsoft's System.IO.Abstractions patterns.
+/// Existing filesystem-shaped signatures are retained for compatibility. New provider-neutral
+/// integrations should use <see cref="IObjectStorageProvider"/>. Legacy provider behavior,
+/// including virtual directories and cancellation support, must be verified per provider.
 /// </remarks>
 public interface IStorageProvider
 {

@@ -3,6 +3,8 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using VisionaryCoder.Framework.Proxy.Interceptors.Caching.Providers;
 
 namespace VisionaryCoder.Framework.Proxy.Interceptors.Caching;
@@ -22,6 +24,7 @@ public static class CachingExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddCaching(this IServiceCollection services, Action<CachingOptions>? configure = null)
     {
+        AddInfrastructure(services);
         // Add memory cache for infrastructure
         services.AddMemoryCache();
 
@@ -38,7 +41,7 @@ public static class CachingExtensions
         services.TryAddSingleton<IProxyCache, NullProxyCache>();
 
         // Register the caching interceptor
-        services.TryAddSingleton<IOrderedProxyInterceptor, CachingInterceptor>();
+        services.TryAddSingleton<IOrderedProxyInterceptor>(provider => provider.GetRequiredService<CachingInterceptor>());
 
         return services;
     }
@@ -52,6 +55,7 @@ public static class CachingExtensions
     public static IServiceCollection AddCaching<T>(this IServiceCollection services, Action<CachingOptions>? configure = null)
         where T : class
     {
+        AddInfrastructure(services);
         services.AddMemoryCache();
 
         if (configure != null)
@@ -84,7 +88,7 @@ public static class CachingExtensions
             throw new ArgumentException($"Type parameter {t.FullName} must implement IProxyCache, ICachePolicyProvider or ICacheKeyProvider.", nameof(T));
         }
 
-        services.TryAddSingleton<IOrderedProxyInterceptor, CachingInterceptor>();
+        services.TryAddSingleton<IOrderedProxyInterceptor>(provider => provider.GetRequiredService<CachingInterceptor>());
 
         return services;
     }
@@ -108,21 +112,15 @@ public static class CachingExtensions
     }
 
     /// <summary>
-    /// Adds distributed caching support for multi-instance scenarios.
+    /// Legacy registration alias. Does not install a distributed backend; explicitly replace IProxyCache in the host.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Configuration for caching options.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddDistributedCaching(this IServiceCollection services, Action<CachingOptions> configure)
     {
-        // This would be extended to support distributed caching providers like Redis
-        // For now, falls back to memory cache with a warning in configuration
-        services.Configure<CachingOptions>(options =>
-        {
-            configure(options);
-            // Add warning about distributed caching not being fully implemented
-        });
-
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
         return services.AddCaching(configure);
     }
 
@@ -198,11 +196,28 @@ public static class CachingExtensions
     public static IServiceCollection UseDefaultCachingProviders(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        AddInfrastructure(services);
 
         services.ReplaceCacheKeyProvider<DefaultCacheKeyProvider>();
         services.ReplaceCachePolicyProvider<DefaultCachePolicyProvider>();
         services.ReplaceProxyCache<MemoryProxyCache>();
 
         return services;
+    }
+
+    private static void AddInfrastructure(IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddLogging();
+        services.AddOptions<CachingOptions>();
+        services.TryAddSingleton(provider => provider.GetRequiredService<IOptions<CachingOptions>>().Value);
+        services.AddMemoryCache();
+        services.TryAddSingleton(provider => new CachingInterceptor(
+            provider.GetRequiredService<ILogger<CachingInterceptor>>(),
+            provider.GetRequiredService<IProxyCache>(),
+            provider.GetRequiredService<ICacheKeyProvider>(),
+            provider.GetRequiredService<ICachePolicyProvider>()));
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IProxyInterceptor, CachingInterceptor>(
+            provider => provider.GetRequiredService<CachingInterceptor>()));
     }
 }

@@ -131,21 +131,8 @@ public class RetryInterceptorTests
             throw new BusinessException("Business rule violation");
         }
 
-        // Act
-        // BusinessException is caught and operation completes
-        // Note: The retry interceptor infinite loops on non-retryable exceptions
-        // This is a design issue in the original code - adding timeout
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
-
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when cancellation happens
-        }
+        await Assert.ThrowsExactlyAsync<BusinessException>(
+            () => interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
         // Assert - should have been called only once (not retried)
         callCount.Should().Be(1);
@@ -164,18 +151,8 @@ public class RetryInterceptorTests
             throw new NonRetryableTransportException("Permanent failure");
         }
 
-        // Act - similar to business exception, this will loop
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
-
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+        await Assert.ThrowsExactlyAsync<NonRetryableTransportException>(
+            () => interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
         // Assert
         callCount.Should().Be(1);
@@ -194,18 +171,8 @@ public class RetryInterceptorTests
             throw new ProxyCanceledException("Operation cancelled");
         }
 
-        // Act
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
-
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+        await Assert.ThrowsExactlyAsync<ProxyCanceledException>(
+            () => interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
         // Assert
         callCount.Should().Be(1);
@@ -224,18 +191,8 @@ public class RetryInterceptorTests
             throw new InvalidOperationException("Unexpected error");
         }
 
-        // Act
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        context.CancellationToken = cts.Token;
-
-        try
-        {
-            await interceptor.InvokeAsync(context, Next, CancellationToken.None);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => interceptor.InvokeAsync(context, Next, CancellationToken.None));
 
         // Assert
         callCount.Should().Be(1);

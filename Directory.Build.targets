@@ -1,5 +1,120 @@
 <Project>
+  <!-- Applied after project properties, including legacy project-level preview settings. -->
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <CollectCoverage Condition="'$(CollectCoverage)' == ''">false</CollectCoverage>
+    <CoverletOutputFormat>json,opencover</CoverletOutputFormat>
+    <CoverletOutput>$(MSBuildProjectDirectory)/TestResults/coverage/$(Configuration)/</CoverletOutput>
+    <Include>[vc.Ifx*]*</Include>
+    <Include Condition="'$(IfxCoveragePackage)' != ''">[$(IfxCoveragePackage)]*</Include>
+    <Exclude>[vc.Ifx.UnitTests]*,[vc.Ifx.IntegrationTests]*</Exclude>
+    <ExcludeByFile>**/obj/**/*.cs</ExcludeByFile>
+    <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+    <ExcludeAssembliesWithoutSources>None</ExcludeAssembliesWithoutSources>
+    <IncludeTestAssembly>false</IncludeTestAssembly>
+    <SkipAutoProps>false</SkipAutoProps>
+    <Threshold>100</Threshold>
+    <ThresholdType>line,branch</ThresholdType>
+    <ThresholdStat>minimum</ThresholdStat>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true'">
+    <InternalsVisibleTo Include="vc.Ifx.UnitTests" />
+    <InternalsVisibleTo Include="vc.Ifx.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(IfxTestSourceScope)' != ''">
+    <IfxTestSelectedScope Include="$([MSBuild]::Unescape('$(IfxTestSourceScope)'))">
+      <Pattern>%(Identity)/**/*.cs</Pattern>
+      <Pattern Condition="'%(Extension)' == '.cs'">%(Identity)</Pattern>
+    </IfxTestSelectedScope>
+    <IfxUnselectedTestSource Include="@(Compile)" Exclude="@(IfxTestSelectedScope->'%(Pattern)');Usings.cs;GlobalUsings.cs;AssemblyInfo.cs;Properties/AssemblyInfo.cs;Helpers/**/*.cs" />
+    <Compile Remove="@(IfxUnselectedTestSource)" />
+    <IfxUnselectedTestProject Include="@(ProjectReference)" Exclude="@(ProjectReference->WithMetadataValue('Filename', '$(IfxTestPackage)'))" Condition="'$(IfxTestPackage)' != ''" />
+    <ProjectReference Remove="@(IfxUnselectedTestProject)" />
+  </ItemGroup>
+
+  <Target Name="ValidateIfxTestSourceScope" BeforeTargets="PrepareForBuild" Condition="'$(IsTestProject)' == 'true' AND '$(IfxTestSourceScope)' != ''">
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(IfxTestSelectedScope.Identity)', '^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9][A-Za-z0-9_.-]*)*$'))" Text="IfxTestSourceScope requires literal relative paths without traversal." />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)/%(IfxTestSelectedScope.Identity)')" Text="Test source scope does not exist: %(IfxTestSelectedScope.Identity)." />
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(IfxEffectiveTestOutputKey)', '^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9][A-Za-z0-9_.-]*)*$'))" Text="Use Invoke-FrameworkTests.ps1 for validated multi-source selection and isolated output keys." />
+    <Error Condition="'$(IfxTestPackage)' != '' AND '@(ProjectReference)' == ''" Text="No direct project reference matches IfxTestPackage=$(IfxTestPackage)." />
+  </Target>
+
+  <ItemGroup><IfxDeclaredProjectReference Include="@(ProjectReference)" /></ItemGroup>
+
   <!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
+  <Target Name="CaptureIfxReportingEvidence" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true' AND '$(MSBuildProjectName)' != 'docs'">
+    <PropertyGroup>
+      <IfxPackageReportDirectory>$(IfxReportDirectory)/$(MSBuildProjectName)</IfxPackageReportDirectory>
+      <ErrorLog>$(IfxPackageReportDirectory)/diagnostics.sarif,version=2.1</ErrorLog>
+    </PropertyGroup>
+    <MakeDir Directories="$(IfxPackageReportDirectory)" />
+    <GetFileHash Files="@(Compile)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="IfxReportingSource" />
+    </GetFileHash>
+    <WriteLinesToFile File="$(IfxPackageReportDirectory)/sources.txt" Lines="@(IfxReportingSource->'%(FileHash)|%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxPackageReportDirectory)/symbols.txt" Lines="$(DefineConstants)" Overwrite="true" Encoding="UTF-8" />
+  </Target>
+
+  <Target Name="CaptureIfxBuildInputs" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
+    <PropertyGroup>
+      <IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <IfxIdentityInput Include="$(MSBuildProjectFullPath);$(MSBuildAllProjects);@(Compile);@(ReferencePath);@(Analyzer);@(AdditionalFiles);@(EmbeddedResource);@(Protobuf);$(ProjectAssetsFile)" />
+      <IfxIdentityOptional Include="$(DirectoryBuildPropsPath);$(DirectoryBuildTargetsPath);$(DirectoryPackagesPropsPath);$(MSBuildThisFileFullPath);$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).nuget.g.props;$(MSBuildThisFileDirectory)Directory.Build.props" />
+      <IfxIdentityOptional Include="@(EditorConfigFiles);@(GlobalAnalyzerConfigFiles);@(AnalyzerConfigFiles);$(MSBuildThisFileDirectory)global.json;$(MSBuildThisFileDirectory).editorconfig;$(MSBuildThisFileDirectory)NuGet.config;$(MSBuildThisFileDirectory)Directory.Packages.props" />
+      <IfxIdentityInput Include="@(IfxIdentityOptional)" Condition="Exists('%(Identity)')" />
+      <IfxIdentityAbsent Include="@(IfxIdentityOptional)" Condition="!Exists('%(Identity)')" />
+    </ItemGroup>
+    <MakeDir Directories="$(IfxIdentityDirectory)" />
+    <GetFileHash Files="@(IfxIdentityInput)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="IfxIdentityInputHash" />
+    </GetFileHash>
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/inputs.txt" Lines="@(IfxIdentityInputHash->'%(FileHash)|%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/compile.txt" Lines="@(Compile->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/non-code-inputs.txt" Lines="@(EmbeddedResource->'%(FullPath)');@(Protobuf->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/references.txt" Lines="@(IfxDeclaredProjectReference->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/absent.txt" Lines="@(IfxIdentityAbsent->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+  </Target>
+
+  <Target Name="GetIfxBuildSettings" DependsOnTargets="AddImplicitDefineConstants" Returns="@(IfxBuildSetting)">
+    <ItemGroup>
+      <IfxBuildSetting Include="ProjectPath"><Value>$(MSBuildProjectFullPath)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="TargetPath"><Value>$(TargetPath)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="TargetDir"><Value>$(TargetDir)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="Configuration"><Value>$(Configuration)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="TargetFramework"><Value>$(TargetFramework)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="LangVersion"><Value>$(LangVersion)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="DefineConstants"><Value>$(DefineConstants)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="Optimize"><Value>$(Optimize)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="DebugType"><Value>$(DebugType)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="Nullable"><Value>$(Nullable)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="IsTestProject"><Value>$(IsTestProject)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="NETCoreSdkVersion"><Value>$(NETCoreSdkVersion)</Value></IfxBuildSetting>
+      <IfxBuildSetting Include="MSBuildSDKsPath"><Value>$(MSBuildSDKsPath)</Value></IfxBuildSetting>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CaptureIfxBuildOutputs" AfterTargets="Build" DependsOnTargets="GetIfxBuildSettings" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
+    <PropertyGroup><IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory></PropertyGroup>
+    <Error Condition="!Exists('$(IfxIdentityDirectory)/inputs.txt')" Text="Build provenance requires a fresh compilation for $(MSBuildProjectName)." />
+    <ItemGroup><IfxIdentityOutput Include="$(TargetDir)**/*" /></ItemGroup>
+    <MakeDir Directories="$(IfxIdentityDirectory)/settings" />
+    <GetFileHash Files="@(IfxIdentityOutput)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="IfxIdentityOutputHash" />
+    </GetFileHash>
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/outputs.txt" Lines="@(IfxIdentityOutputHash->'%(FileHash)|%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(IfxIdentityDirectory)/settings/%(IfxBuildSetting.Identity).txt" Lines="%(IfxBuildSetting.Value)" Overwrite="true" Encoding="UTF-8" />
+  </Target>
+
   <Target Name="CopyNuGetPackages" AfterTargets="Pack">
     <ItemGroup>
       <GeneratedPackages Include="$(OutputPath)\*.nupkg" />

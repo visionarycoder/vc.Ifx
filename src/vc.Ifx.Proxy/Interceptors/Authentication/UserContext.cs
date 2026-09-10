@@ -57,7 +57,7 @@ public class UserContext
     /// Gets a value indicating whether the user context is valid and not expired.
     /// </summary>
     public bool IsValid => !string.IsNullOrEmpty(UserId) && 
-                          (ExpiresAt == null || ExpiresAt > DateTimeOffset.UtcNow);
+                          (ExpiresAt is not { } expiry || expiry > DateTimeOffset.UtcNow);
 
     /// <summary>
     /// Determines if the user has a specific role.

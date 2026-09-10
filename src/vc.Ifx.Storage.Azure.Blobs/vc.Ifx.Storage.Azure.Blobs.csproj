@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>vc.Ifx.Storage.Azure.Blobs</PackageId>
+    <Description>Azure Blob Storage provider integration for vc.Ifx.</Description>
+    <PackageTags>azure;blobs;storage;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,5 +15,8 @@
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

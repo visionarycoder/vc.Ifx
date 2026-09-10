@@ -1,526 +1,221 @@
-using System.Diagnostics;
+using System.Collections;
+using System.Globalization;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Json;
 using VisionaryCoder.Framework.Filtering.Abstractions;
 
 namespace VisionaryCoder.Framework.Filtering;
 
-/// <summary>
-/// Converts LINQ expression trees into the framework's FilterNode representation.
-/// </summary>
-/// <remarks>
-/// This translator supports a subset of expression syntax sufficient for typical
-/// filtering scenarios: boolean combinations (<c>&amp;&amp;</c>, <c>||</c>), comparisons (<c>==</c>, <c>!=</c>, <c>&lt;</c>, <c>&gt;</c>, etc.),
-/// simple unary negation (!), string operations (Contains/StartsWith/EndsWith) and
-/// common Enumerable methods such as Any/All/Contains used in collection predicates.
-///
-/// The translator intentionally returns <c>null</c> for unsupported nodes; public
-/// entry points raise <see cref="NotSupportedException"/> when translation fails.
-/// </remarks>
+/// <summary>Translates supported predicates without discarding unsupported conditions.</summary>
 public static class ExpressionToFilterNode
 {
-    /// <summary>
-    /// Translate a strongly-typed predicate expression into a <see cref="FilterNode"/>.
-    /// </summary>
-    /// <typeparam name="T">The parameter type used in the expression (e.g. entity type).</typeparam>
-    /// <param name="expression">The predicate expression to translate.</param>
-    /// <returns>A <see cref="FilterNode"/> representing the predicate.</returns>
-    /// <exception cref="NotSupportedException">Thrown when the expression contains unsupported constructs.</exception>
-    public static FilterNode Translate<T>(Expression<Func<T, bool>> expression) => TranslateNode(expression.Body) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
+    // Indexed by the six stable comparison enum values, after Comparison validates them.
+    private static readonly FilterOperation[] NegatedComparisons =
+    [FilterOperation.NotEquals, FilterOperation.Equals, FilterOperation.LessOrEqual,
+        FilterOperation.LessThan, FilterOperation.GreaterOrEqual, FilterOperation.GreaterThan];
+    /// <summary>Snapshots a predicate as a portable filter.</summary>
+    public static FilterNode Translate<T>(Expression<Func<T, bool>> expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        return TranslateNode(expression.Body, expression.Parameters[0]);
+    }
 
-    /// <summary>
-    /// Translate a general expression into a <see cref="FilterNode"/>.
-    /// </summary>
-    /// <param name="expression">The expression to translate.</param>
-    /// <returns>A <see cref="FilterNode"/> representing the expression.</returns>
-    /// <exception cref="NotSupportedException">Thrown when the expression contains unsupported constructs.</exception>
-    public static FilterNode Translate(Expression expression) => TranslateNode(expression) ?? throw new NotSupportedException($"Expression '{expression}' is not supported.");
-
-    /// <summary>
-    /// Internal recursive dispatcher that maps expression node types to translator methods.
-    /// Returns <c>null</c> when the node is not supported by the translator.
-    /// </summary>
-    private static FilterNode? TranslateNode(Expression expression) =>
-        expression switch
+    /// <summary>Translates a Boolean expression or single-parameter predicate.</summary>
+    public static FilterNode Translate(Expression expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        if (expression is LambdaExpression lambda)
         {
-            BinaryExpression binary => TranslateBinary(binary),
-            MethodCallExpression call => TranslateMethodCall(call),
-            UnaryExpression { NodeType: ExpressionType.Not } unary => TranslateNot(unary),
-            _ => null
+            if (lambda.Parameters.Count != 1) throw Unsupported(expression);
+            return TranslateNode(lambda.Body, lambda.Parameters[0]);
+        }
+        return TranslateNode(expression, null);
+    }
+
+    private static FilterNode TranslateNode(Expression expression, ParameterExpression? parameter)
+    {
+        if (expression.Type != typeof(bool)) throw Unsupported(expression);
+        if (expression is BinaryExpression binary)
+        {
+            if (binary.NodeType is ExpressionType.AndAlso or ExpressionType.OrElse)
+            {
+                FilterCombination combination = binary.NodeType == ExpressionType.AndAlso
+                    ? FilterCombination.And : FilterCombination.Or;
+                FilterNode left = TranslateNode(binary.Left, parameter);
+                FilterNode right = TranslateNode(binary.Right, parameter);
+                return new FilterGroup(combination, Flatten(left, combination).Concat(Flatten(right, combination)).ToArray());
+            }
+            if (binary.Method is not null && binary.Method.DeclaringType != typeof(string) &&
+                binary.Method.DeclaringType != typeof(decimal) && binary.Method.DeclaringType != typeof(DateTime) &&
+                binary.Method.DeclaringType != typeof(DateTimeOffset) && binary.Method.DeclaringType != typeof(Guid))
+                throw Unsupported(expression);
+            string? path = GetPath(binary.Left, parameter);
+            bool inverted = path is null;
+            path ??= GetPath(binary.Right, parameter);
+            if (path is null) throw Unsupported(expression);
+            return new FilterCondition(path, Comparison(binary.NodeType, inverted),
+                Format(Evaluate(inverted ? binary.Left : binary.Right)));
+        }
+        if (expression is UnaryExpression { NodeType: ExpressionType.Not } not)
+        {
+            FilterNode operand = TranslateNode(not.Operand, parameter);
+            // Preserve explicit negation for lifted nullable and floating-point comparisons.
+            if (operand is FilterCondition condition && not.Operand is BinaryExpression comparison &&
+                Nullable.GetUnderlyingType(comparison.Left.Type) is null &&
+                Nullable.GetUnderlyingType(comparison.Right.Type) is null &&
+                comparison.Left.Type != typeof(float) && comparison.Left.Type != typeof(double) &&
+                comparison.Right.Type != typeof(float) && comparison.Right.Type != typeof(double))
+                return condition with { Operator = NegatedComparisons[(int)condition.Operator] };
+            return new FilterNegation(operand);
+        }
+        if (expression is MethodCallExpression call) return TranslateCall(call, parameter);
+        string? booleanPath = GetPath(expression, parameter);
+        return booleanPath is not null
+            ? new FilterCondition(booleanPath, FilterOperation.Equals, bool.TrueString)
+            : new FilterConstant((bool)Evaluate(expression)!);
+    }
+
+    private static IEnumerable<FilterNode> Flatten(FilterNode node, FilterCombination combination) =>
+        node is FilterGroup group && group.Combination == combination ? group.Children : [node];
+
+    private static FilterOperation Comparison(ExpressionType type, bool inverted)
+    {
+        FilterOperation operation = type switch
+        {
+            ExpressionType.Equal => FilterOperation.Equals,
+            ExpressionType.NotEqual => FilterOperation.NotEquals,
+            ExpressionType.GreaterThan => FilterOperation.GreaterThan,
+            ExpressionType.GreaterThanOrEqual => FilterOperation.GreaterOrEqual,
+            ExpressionType.LessThan => FilterOperation.LessThan,
+            ExpressionType.LessThanOrEqual => FilterOperation.LessOrEqual,
+            _ => throw new NotSupportedException($"Comparison '{type}' is not supported.")
         };
-
-    /// <summary>
-    /// Translates binary expressions. Handles logical groups (AndAlso/OrElse) by
-    /// creating <see cref="FilterGroup"/> nodes and comparison operators by delegating
-    /// to <see cref="TranslateComparison(BinaryExpression)"/>.
-    /// </summary>
-    private static FilterNode? TranslateBinary(BinaryExpression binary)
-    {
-        // Comparison: ==, !=, <, <=, >, >=
-        if (binary.NodeType is not (ExpressionType.AndAlso or ExpressionType.OrElse))
+        if (!inverted) return operation;
+        return operation switch
         {
-            return TranslateComparison(binary);
-        }
-
-        // Logical group: && or ||
-        FilterCombination combination = binary.NodeType == ExpressionType.AndAlso
-            ? FilterCombination.And
-            : FilterCombination.Or;
-        FilterNode? left = TranslateNode(binary.Left);
-        FilterNode? right = TranslateNode(binary.Right);
-
-        var children = new List<FilterNode>();
-        if (left is not null) children.AddRange(FlattenIfSameGroup(left, combination));
-        if (right is not null) children.AddRange(FlattenIfSameGroup(right, combination));
-
-        return new FilterGroup(combination, children);
-
-    }
-
-    /// <summary>
-    /// Helper that flattens nested groups of the same combination type to avoid
-    /// deeply nested group trees (for example, <c>(A &amp;&amp; B) &amp;&amp; C</c> becomes <c>A &amp;&amp; B &amp;&amp; C</c>).
-    /// </summary>
-    private static IEnumerable<FilterNode> FlattenIfSameGroup(FilterNode node, FilterCombination combination)
-    {
-        if (node is FilterGroup group && group.Combination == combination)
-        {
-            foreach (FilterNode child in group.Children)
-            {
-                yield return child;
-            }
-            yield break;
-        }
-        yield return node;
-    }
-
-    /// <summary>
-    /// Handles comparison expressions by normalizing member/constant positions and
-    /// mapping the expression to a <see cref="FilterCondition"/>.
-    /// </summary>
-    private static FilterNode? TranslateComparison(BinaryExpression binary)
-    {
-
-        (MemberExpression? memberExpr, Expression? constantExpr, FilterOperation? op) = NormalizeBinary(binary);
-        if (memberExpr is null || constantExpr is null || op is null)
-        {
-            return null;
-        }
-
-        string? path = GetMemberPath(memberExpr);
-        if (path is null)
-        {
-            return null;
-        }
-
-        string? value = EvaluateToString(constantExpr);
-        return new FilterCondition(path, op.Value, value);
-
-    }
-
-    /// <summary>
-    /// Normalizes a binary expression so that the member expression is on the left
-    /// and the constant-like expression is on the right. If operands are reversed the
-    /// comparison operator will be inverted accordingly.
-    /// </summary>
-    private static (MemberExpression? member, Expression? constant, FilterOperation?) NormalizeBinary(BinaryExpression binary)
-    {
-
-        MemberExpression? leftMember = GetMember(binary.Left);
-        MemberExpression? rightMember = GetMember(binary.Right);
-
-        bool leftIsConstLike = IsConstantLike(binary.Left);
-        bool rightIsConstLike = IsConstantLike(binary.Right);
-
-        // member op constant
-        if (leftMember is not null && rightIsConstLike)
-        {
-            FilterOperation? op = MapComparisonOperator(binary.NodeType, invert: false);
-            return (leftMember, binary.Right, op);
-        }
-
-        // constant op member -> invert operator
-        if (rightMember is not null && leftIsConstLike)
-        {
-            FilterOperation? op = MapComparisonOperator(binary.NodeType, invert: true);
-            return (rightMember, binary.Left, op);
-        }
-
-        return (null, null, null);
-    }
-
-    /// <summary>
-    /// Maps ExpressionType comparison nodes to framework <see cref="FilterOperation"/>,
-    /// optionally inverting the operator when the constant appears on the left.
-    /// </summary>
-    private static FilterOperation? MapComparisonOperator(ExpressionType nodeType, bool invert)
-    {
-
-        return (nodeType, invert) switch
-        {
-            (ExpressionType.Equal, _) => FilterOperation.Equals,
-            (ExpressionType.NotEqual, _) => FilterOperation.NotEquals,
-
-            (ExpressionType.GreaterThan, false) => FilterOperation.GreaterThan,
-            (ExpressionType.GreaterThan, true) => FilterOperation.LessThan,
-
-            (ExpressionType.GreaterThanOrEqual, false) => FilterOperation.GreaterOrEqual,
-            (ExpressionType.GreaterThanOrEqual, true) => FilterOperation.LessOrEqual,
-
-            (ExpressionType.LessThan, false) => FilterOperation.LessThan,
-            (ExpressionType.LessThan, true) => FilterOperation.GreaterThan,
-
-            (ExpressionType.LessThanOrEqual, false) => FilterOperation.LessOrEqual,
-            (ExpressionType.LessThanOrEqual, true) => FilterOperation.GreaterOrEqual,
-
-            _ => null
+            FilterOperation.GreaterThan => FilterOperation.LessThan,
+            FilterOperation.GreaterOrEqual => FilterOperation.LessOrEqual,
+            FilterOperation.LessThan => FilterOperation.GreaterThan,
+            FilterOperation.LessOrEqual => FilterOperation.GreaterOrEqual,
+            _ => operation
         };
-
     }
 
-    /// <summary>
-    /// Translates supported method calls into FilterNode forms.
-    /// Supported patterns include string methods (Contains/StartsWith/EndsWith),
-    /// Enumerable static methods (Any/All/Contains) and instance collection Contains.
-    /// </summary>
-    private static FilterNode? TranslateMethodCall(MethodCallExpression call)
+    private static FilterNode TranslateCall(MethodCallExpression call, ParameterExpression? parameter)
     {
-
-        // string.Contains / StartsWith / EndsWith
-        if (call.Object is not null && call.Object.Type == typeof(string) && call.Arguments.Count == 1)
+        if (call.Method.DeclaringType == typeof(string) && call.Object is not null &&
+            call.Arguments.Count == 1 && call.Arguments[0].Type == typeof(string))
         {
-            MemberExpression? targetMember = GetMember(call.Object);
-            if (targetMember is null)
-            {
-                return null;
-            }
-
-            string? path = GetMemberPath(targetMember);
-            if (path is null)
-            {
-                return null;
-            }
-
-            Expression arg = call.Arguments[0];
-            string? value = EvaluateToString(arg);
-
-            FilterOperation? op = call.Method.Name switch
+            FilterOperation operation = call.Method.Name switch
             {
                 nameof(string.Contains) => FilterOperation.Contains,
                 nameof(string.StartsWith) => FilterOperation.StartsWith,
                 nameof(string.EndsWith) => FilterOperation.EndsWith,
-                _ => null
+                _ => throw Unsupported(call)
             };
-
-            return op is null
-                ? null
-                : new FilterCondition(path, op.Value, value);
+            return new FilterCondition(GetPath(call.Object, parameter) ?? throw Unsupported(call),
+                operation, Format(Evaluate(call.Arguments[0])));
         }
-
-        // Collection methods: Any(), All(), Contains()
-        if (call.Method.DeclaringType == typeof(Enumerable))
+        bool isLinq = call.Method.DeclaringType == typeof(Enumerable) || call.Method.DeclaringType == typeof(Queryable);
+        if (isLinq && call.Method.Name is nameof(Enumerable.Any) or nameof(Enumerable.All))
         {
-            return TranslateEnumerableMethod(call);
+            string path = GetPath(call.Arguments[0], parameter) ?? throw Unsupported(call);
+            if (call.Arguments.Count == 1)
+                return new FilterCollectionCondition(path, FilterOperation.HasElements, null);
+            Expression predicate = call.Arguments[^1];
+            if (predicate is UnaryExpression { NodeType: ExpressionType.Quote } quote) predicate = quote.Operand;
+            if (predicate is not LambdaExpression lambda) throw Unsupported(call);
+            return new FilterCollectionCondition(path,
+                call.Method.Name == nameof(Enumerable.Any) ? FilterOperation.Any : FilterOperation.All,
+                TranslateNode(lambda.Body, lambda.Parameters[0]));
         }
-
-        // Collection instance methods: Contains() on List/ICollection
-        if (call.Object is null || !IsCollectionType(call.Object.Type) || call.Method.Name != nameof(List<object>.Contains) || call.Arguments.Count != 1)
+        if (call.Method.Name == nameof(Enumerable.Contains))
         {
-            return null;
-        }
-
-        {
-            MemberExpression? collectionMember = GetMember(call.Object);
-            if (collectionMember is null)
+            Expression source;
+            Expression value;
+            if ((isLinq || call.Method.DeclaringType == typeof(MemoryExtensions)) && call.Arguments.Count == 2)
             {
-                return null;
+                source = UnwrapArraySpan(call.Arguments[0]);
+                value = call.Arguments[1];
             }
-
-            string? path = GetMemberPath(collectionMember);
-            if (path is null)
+            else if (call.Object is not null && call.Arguments.Count == 1 && call.Object.Type.IsGenericType &&
+                call.Object.Type.GetGenericTypeDefinition() == typeof(List<>))
             {
-                return null;
+                source = call.Object;
+                value = call.Arguments[0];
             }
-
-            string? value = EvaluateToString(call.Arguments[0]);
-            return new FilterCondition(path, FilterOperation.Contains, value);
+            else throw Unsupported(call);
+            string? path = GetPath(source, parameter);
+            if (path is not null) return new FilterCondition(path, FilterOperation.Contains, Format(Evaluate(value)));
+            path = GetPath(value, parameter) ?? throw Unsupported(call);
+            if (Evaluate(source) is not IEnumerable items) throw Unsupported(call);
+            return new FilterCondition(path, FilterOperation.In,
+                JsonSerializer.Serialize(items.Cast<object?>().Select(Format).ToArray()));
         }
-
-        // Custom methods can be added here by checking call.Method.DeclaringType and Method.Name
-        // Example for custom method support:
-        // if (call.Method.DeclaringType == typeof(MyCustomClass) && call.Method.Name == "MyMethod")
-        // {
-        //     // Extract parameters and create appropriate FilterNode
-        //     return new FilterCondition(...);
-        // }
-
+        throw Unsupported(call);
     }
 
-    /// <summary>
-    /// Translates a simple logical negation. Only supports negation of a comparison
-    /// expression (e.g. <c>!x.IsActive</c> or <c>! (x.Value &gt; 4)</c>).
-    /// </summary>
-    private static FilterNode? TranslateNot(UnaryExpression unary)
+    private static Expression UnwrapArraySpan(Expression expression)
     {
-        // Only handle simple negation of a comparison or method call for now
-        // e.g. !c.IsActive or !c.Name.Contains("x")
-        if (unary.Operand is not BinaryExpression binary)
+        if (expression is MethodCallExpression { Method.Name: "op_Implicit", Arguments.Count: 1 } conversion &&
+            conversion.Type.IsGenericType &&
+            (conversion.Type.GetGenericTypeDefinition() == typeof(ReadOnlySpan<>) ||
+             conversion.Type.GetGenericTypeDefinition() == typeof(Span<>)) && conversion.Arguments[0].Type.IsArray)
         {
-            return null;
+            Expression array = conversion.Arguments[0];
+            return array is UnaryExpression { NodeType: ExpressionType.Convert, Method: null } cast &&
+                cast.Type.IsAssignableFrom(cast.Operand.Type) ? cast.Operand : array;
         }
-
-        // Flip operator if possible
-        (MemberExpression? memberExpr, Expression? constantExpr, FilterOperation? op) = NormalizeBinary(binary);
-        if (memberExpr is null || constantExpr is null || op is null)
-        {
-            return null;
-        }
-
-        FilterOperation negated = NegateOperator(op.Value);
-        string? path = GetMemberPath(memberExpr);
-        string? value = EvaluateToString(constantExpr);
-        return new FilterCondition(path!, negated, value);
-        
+        return expression;
     }
 
-    /// <summary>
-    /// Negates a filter operator when a logical NOT is applied to a condition.
-    /// </summary>
-    private static FilterOperation NegateOperator(FilterOperation op) =>
-        op switch
-        {
-            FilterOperation.Equals => FilterOperation.NotEquals,
-            FilterOperation.NotEquals => FilterOperation.Equals,
-            FilterOperation.GreaterThan => FilterOperation.LessOrEqual,
-            FilterOperation.GreaterOrEqual => FilterOperation.LessThan,
-            FilterOperation.LessThan => FilterOperation.GreaterOrEqual,
-            FilterOperation.LessOrEqual => FilterOperation.GreaterThan,
-            _ => throw new NotSupportedException($"Cannot negate operator '{op}'.")
-        };
-
-    /// <summary>
-    /// Attempts to obtain a <see cref="MemberExpression"/> from an expression.
-    /// Handles trivial conversions (e.g. boxing/unboxing) by unwrapping unary convert nodes.
-    /// </summary>
-    private static MemberExpression? GetMember(Expression expression) =>
-        expression switch
-        {
-            MemberExpression m => m,
-            UnaryExpression { NodeType: ExpressionType.Convert, Operand: MemberExpression inner } => inner,
-            _ => null
-        };
-
-    /// <summary>
-    /// Determines whether an expression is "constant-like" (literal, captured closure, or nested constant conversion).
-    /// </summary>
-    private static bool IsConstantLike(Expression expression) => expression.NodeType is ExpressionType.Constant || expression is MemberExpression { Expression: ConstantExpression } || (expression is UnaryExpression u && IsConstantLike(u.Operand));
-
-    /// <summary>
-    /// Builds a dotted member path for nested member expressions (e.g. <c>x.Address.City</c> -> "Address.City").
-    /// Returns null if path cannot be determined.
-    /// </summary>
-    private static string? GetMemberPath(MemberExpression member)
+    private static string? GetPath(Expression expression, ParameterExpression? parameter)
     {
+        if (expression is UnaryExpression { NodeType: ExpressionType.Convert, Method: null } conversion &&
+            conversion.Operand.Type.IsEnum && conversion.Type == Enum.GetUnderlyingType(conversion.Operand.Type))
+            expression = conversion.Operand;
         var parts = new Stack<string>();
-        Expression? current = member;
-
-        while (current is MemberExpression m)
+        Expression? current = expression;
+        while (current is MemberExpression member)
         {
-            parts.Push(m.Member.Name);
-            current = m.Expression;
+            parts.Push(member.Member.Name);
+            current = member.Expression;
         }
-
-        // Stop at the root parameter (e.g. x)
-        return string.Join('.', parts);
+        if (current is not ParameterExpression root || (parameter is not null && root != parameter)) return null;
+        return parts.Count == 0 ? "$" : string.Join('.', parts);
     }
 
-    /// <summary>
-    /// Translates LINQ Enumerable method calls (Any, All, Contains) to FilterNode structures.
-    /// Supports: Any(), Any(predicate), All(predicate), Enumerable.Contains(source, value).
-    /// </summary>
-    /// <param name="call">The method call expression representing a LINQ Enumerable method.</param>
-    /// <returns>A FilterNode representing the collection operation, or null if translation is not supported.</returns>
-    private static FilterNode? TranslateEnumerableMethod(MethodCallExpression call)
+    private static object? Evaluate(Expression expression) => expression switch
     {
-        // First argument should be the collection (source)
-        if (call.Arguments.Count == 0)
-        {
-            return null;
-        }
+        ConstantExpression constant => constant.Value,
+        MemberExpression { Member: FieldInfo field } member => field.GetValue(
+            member.Expression is null ? null : Evaluate(member.Expression)),
+        MemberExpression { Member: PropertyInfo property } member => property.GetValue(
+            member.Expression is null ? null : Evaluate(member.Expression)),
+        NewArrayExpression { NodeType: ExpressionType.NewArrayInit } array => array.Expressions.Select(Evaluate).ToArray(),
+        UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked, Method: null } conversion =>
+            ConvertValue(Evaluate(conversion.Operand), conversion.Type),
+        _ => throw Unsupported(expression)
+    };
 
-        Expression collectionExpr = call.Arguments[0];
-        MemberExpression? collectionMember = GetMember(collectionExpr);
-        if (collectionMember is not null)
-        {
-            string? path = GetMemberPath(collectionMember);
-            if (path is null)
-            {
-                return null;
-            }
-
-            switch (call.Method.Name)
-            {
-                case nameof(Enumerable.Any):
-                    switch (call.Arguments.Count)
-                    {
-
-                        // Any() without predicate - just check if collection has elements
-                        case 1:
-                            return new FilterCollectionCondition(path, FilterOperation.HasElements, null);
-
-                        // Any(predicate) - check if any element matches the predicate
-                        case 2 when call.Arguments[1] is UnaryExpression { Operand: LambdaExpression anyLambdaPredicate }:
-                            {
-                                FilterNode? predicateFilter = TranslateNode(anyLambdaPredicate.Body);
-                                return predicateFilter is null
-                                    ? null
-                                    : new FilterCollectionCondition(path, FilterOperation.Any, predicateFilter);
-                            }
-                    }
-
-                    break;
-
-                case nameof(Enumerable.All):
-
-                    // All(predicate) - check if all elements match the predicate
-                    if (call.Arguments.Count == 2 && call.Arguments[1] is UnaryExpression { Operand: LambdaExpression allLambdaPredicate })
-                    {
-                        FilterNode? predicateFilter = TranslateNode(allLambdaPredicate.Body);
-                        return predicateFilter is null
-                            ? null
-                            : new FilterCollectionCondition(path, FilterOperation.All, predicateFilter);
-                    }
-                    break;
-
-                case nameof(Enumerable.Contains):
-                    // Contains(value) - check if collection contains a specific value
-                    if (call.Arguments.Count == 2)
-                    {
-                        string? value = EvaluateToString(call.Arguments[1]);
-                        return new FilterCondition(path, FilterOperation.Contains, value);
-                    }
-                    break;
-            }
-
-            return null;
-        }
-
-        // collectionExpr is not a member (likely a constant or complex expression)
-        // Support patterns like: new[] { "A", "B" }.Contains(x.Prop) -> translates to IN
-        if (call.Method.Name == nameof(Enumerable.Contains) && call.Arguments.Count == 2)
-        {
-            // If the first arg is constant-like (collection) and the second arg is a member, create an IN
-            if (IsConstantLike(collectionExpr))
-            {
-                // evaluate collection
-                object? raw = EvaluateExpression(collectionExpr);
-                if (raw is System.Collections.IEnumerable items)
-                {
-                    // collect string forms
-                    var list = new List<string?>();
-                    foreach (object? it in items)
-                    {
-                        list.Add(it?.ToString());
-                    }
-
-                    // second argument should be member expression representing the property
-                    MemberExpression? memberExpr = GetMember(call.Arguments[1]);
-                    if (memberExpr is null) return null;
-                    string? path = GetMemberPath(memberExpr);
-                    if (path is null) return null;
-
-                    string json = JsonSerializer.Serialize(list);
-                    return new FilterCondition(path, FilterOperation.In, json);
-                }
-            }
-
-            // Also support instance-method form: (new[] {"A"}).Contains(x.Prop)
-            if (call.Object is not null && IsConstantLike(call.Object))
-            {
-                object? raw = EvaluateExpression(call.Object);
-                if (raw is System.Collections.IEnumerable items)
-                {
-                    var list = new List<string?>();
-                    foreach (object? it in items)
-                    {
-                        list.Add(it?.ToString());
-                    }
-
-                    // argument[0] is the element (member)
-                    MemberExpression? memberExpr = GetMember(call.Arguments[0]);
-                    if (memberExpr is null) return null;
-                    string? path = GetMemberPath(memberExpr);
-                    if (path is null) return null;
-
-                    string json = JsonSerializer.Serialize(list);
-                    return new FilterCondition(path, FilterOperation.In, json);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static object? EvaluateExpression(Expression expression)
+    private static object? ConvertValue(object? value, Type type)
     {
-        Expression expr = expression;
-        while (expr is UnaryExpression u && expr.NodeType == ExpressionType.Convert)
-        {
-            expr = u.Operand;
-        }
-
-        if (expr is ConstantExpression constant)
-        {
-            return constant.Value;
-        }
-
-        try
-        {
-            LambdaExpression lambda = Expression.Lambda(expr);
-            return lambda.Compile().DynamicInvoke();
-        }
-        catch
-        {
-            return null;
-        }
+        if (value is null || type.IsInstanceOfType(value)) return value;
+        Type target = Nullable.GetUnderlyingType(type) ?? type;
+        return target.IsEnum ? Enum.ToObject(target, value) : Convert.ChangeType(value, target, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>
-    /// Checks if a type is a collection type (array or implements IEnumerable&lt;T&gt;, ICollection&lt;T&gt;, or IList&lt;T&gt;).
-    /// Strings are explicitly excluded.
-    /// </summary>
-    private static bool IsCollectionType(Type type)
+    private static string? Format(object? value) => value switch
     {
-        if (type == typeof(string))
-        {
-            return false;
-        }
-        return type.IsArray || type.GetInterfaces().Any(i => i.IsGenericType && (i.GetGenericTypeDefinition() == typeof(IEnumerable<>) || i.GetGenericTypeDefinition() == typeof(ICollection<>) || i.GetGenericTypeDefinition() == typeof(IList<>)));
-    }
+        null => null,
+        DateTime date => date.ToString("O", CultureInfo.InvariantCulture),
+        DateTimeOffset date => date.ToString("O", CultureInfo.InvariantCulture),
+        TimeOnly time => time.ToString("O", CultureInfo.InvariantCulture),
+        IFormattable formatted => formatted.ToString(null, CultureInfo.InvariantCulture),
+        _ => value.ToString()
+    };
 
-    /// <summary>
-    /// Evaluates an expression to its string representation. Handles constants, captured closures
-    /// and simple expressions by compiling and invoking the expression where necessary.
-    /// </summary>
-    private static string? EvaluateToString(Expression expression)
-    {
-        // Normalize to underlying expression
-        Expression expr = expression;
-
-        // Strip conversions
-        while (expr is UnaryExpression u && expr.NodeType == ExpressionType.Convert)
-        {
-            expr = u.Operand;
-        }
-
-        if (expr is ConstantExpression constant)
-        {
-            return constant.Value?.ToString();
-        }
-
-        // Captured local / closure / more complex constant
-        LambdaExpression lambda = Expression.Lambda(expr);
-        object? value = lambda.Compile().DynamicInvoke();
-        return value?.ToString();
-    }
+    private static NotSupportedException Unsupported(Expression expression) =>
+        new($"Expression '{expression}' is not supported by portable filters.");
 }

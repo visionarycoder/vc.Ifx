@@ -326,7 +326,6 @@ public class EnumerableExtensionsTests
     }
 
     [TestMethod]
-    [Ignore("Batch implementation appears to have a bug - returning wrong values")]
     public void Batch_WithValidSize_ShouldReturnBatches()
     {
         // Arrange

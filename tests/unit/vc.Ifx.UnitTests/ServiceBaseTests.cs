@@ -10,6 +10,50 @@ namespace VisionaryCoder.Framework.Tests;
 [TestClass]
 public class ServiceBaseTests
 {
+    [TestMethod]
+    public void DisposeIsDeterministicAndTheLoggerIsBorrowed()
+    {
+        var logger = new Mock<ILogger<LifecycleService>>();
+        var disposableLogger = logger.As<IDisposable>();
+        var service = new LifecycleService(logger.Object);
+        service.CheckUsable();
+        service.Dispose();
+        var exception = Assert.ThrowsExactly<ObjectDisposedException>(() => service.CheckUsable());
+        Assert.AreEqual(nameof(LifecycleService), exception.ObjectName);
+        service.Dispose();
+        Assert.AreEqual(2, service.DisposeCalls);
+        Assert.IsTrue(service.LastDisposing);
+        disposableLogger.Verify(value => value.Dispose(), Times.Never);
+    }
+
+    [TestMethod]
+    public void ProtectedDisposalHookRemainsCompatibleWithoutABaseFinalizer()
+    {
+        var service = new LifecycleService(Mock.Of<ILogger<LifecycleService>>());
+        service.CheckUsable();
+        service.InvokeDispose(false);
+        Assert.IsFalse(service.LastDisposing);
+        Assert.ThrowsExactly<ObjectDisposedException>(() => service.CheckUsable());
+        service.Dispose();
+        Assert.IsTrue(service.LastDisposing);
+        Assert.IsNull(typeof(ServiceBase<>).GetMethod("Finalize",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly));
+    }
+
+    public sealed class LifecycleService(ILogger<LifecycleService> logger) : ServiceBase<LifecycleService>(logger)
+    {
+        public int DisposeCalls { get; private set; }
+        public bool LastDisposing { get; private set; }
+        public void CheckUsable() => ThrowIfDisposed();
+        public void InvokeDispose(bool disposing) => Dispose(disposing);
+        protected override void Dispose(bool disposing)
+        {
+            DisposeCalls++;
+            LastDisposing = disposing;
+            base.Dispose(disposing);
+        }
+    }
+
     #region Test Implementation
 
     /// <summary>

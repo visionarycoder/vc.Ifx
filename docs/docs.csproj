@@ -1,22 +1,40 @@
-<Project ToolsVersion="Current">
+<Project DefaultTargets="Build">
+  <!-- Documentation is an SDK project for IDE discovery, not a framework library. -->
   <PropertyGroup>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+    <ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
     <IsPackable>false</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).no-output\</BaseIntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory).no-output\</OutputPath>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+    <!-- NuGet's supported non-NuGet graph style; no assets or generated restore imports. -->
+    <RestoreProjectStyle>Unknown</RestoreProjectStyle>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="**\*.*" Exclude="bin\**;obj\**;.no-output\**" />
+    <None Include="**/*" Exclude="**/bin/**;**/obj/**;**/.no-output/**;docs.csproj">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>true</Visible>
+    </None>
   </ItemGroup>
 
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- Keep the standard project-system imports, but this project produces no build output. -->
   <Target Name="Build" />
-
   <Target Name="Restore" />
-
-  <Target Name="Clean">
-    <RemoveDir Directories="$(MSBuildThisFileDirectory)bin;$(MSBuildThisFileDirectory)obj;$(MSBuildThisFileDirectory).no-output" />
-  </Target>
-
+  <Target Name="Clean" />
+  <Target Name="Pack" />
   <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+  <Target Name="CompileDesignTime" />
+  <Target Name="GetTargetPath" />
+  <Target Name="GetTargetPathWithTargetPlatformMoniker" />
 </Project>

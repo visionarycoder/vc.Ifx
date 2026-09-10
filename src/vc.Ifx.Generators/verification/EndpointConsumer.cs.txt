@@ -1,0 +1,19 @@
+using System;
+using System.Threading;
+using Microsoft.AspNetCore.Builder;
+using vc.Ifx.Generated;
+using vc.Ifx.Generators.Abstractions.Attributes;
+
+internal static class Handlers
+{
+    [GenerateEndpoint("/files/{**path}", "GET", Name = "ReadFile", Summary = "Read a file", Tags = new[] { "Files" }, RequireAuthorization = true)]
+    internal static string Read(string path, CancellationToken cancellationToken) => path;
+
+    [GenerateEndpoint("/optional/{id:int?}", "GET")]
+    internal static string Optional(int? id) => id?.ToString() ?? "none";
+
+    [GenerateEndpoint("/literal/{{**path}}", "GET")]
+    internal static string Literal() => "literal";
+
+    internal static void Register(WebApplication app) => app.MapGeneratedIfxEndpoints();
+}

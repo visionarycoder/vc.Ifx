@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace VisionaryCoder.Framework.Extensions;
 /// <summary>
@@ -11,14 +12,19 @@ public static class ReflectionExtensions
     /// Gets the name of the calling class.
     /// </summary>
     /// <returns>The name of the calling class. Returns the method name if the class is not found.</returns>
+    /// <remarks>Best-effort physical stack inspection; callers' optimized or async frames may be absent.</remarks>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static string NameOfCallingClass()
+        => NameOfCallingClass(new StackTrace());
+
+    private static string NameOfCallingClass(StackTrace stack)
     {
         string fullName;
         Type? declaringType;
         int skipFrames = 2;
         do
         {
-            MethodBase? method = new StackFrame(skipFrames, false).GetMethod();
+            MethodBase? method = stack.GetFrame(skipFrames)?.GetMethod();
             declaringType = method?.DeclaringType;
             if (declaringType == null)
             {
@@ -32,10 +38,12 @@ public static class ReflectionExtensions
     }
     /// Reads the stack frame to get the root calling type.
     /// <returns>The type of the calling class, or <c>null</c> if not found.</returns>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static Type? TypeOfCallingClass()
-    {
-        return new StackFrame(2).GetMethod()?.ReflectedType;
-    }
+        => TypeOfCallingClass(new StackTrace());
+
+    private static Type? TypeOfCallingClass(StackTrace stack)
+        => stack.GetFrame(2)?.GetMethod()?.ReflectedType;
 
     /// <summary>
     /// Checks if a type implements a specific interface.

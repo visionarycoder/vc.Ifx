@@ -63,7 +63,6 @@ public class LocalSecretProviderTests
 
         // Assert
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*Secret name cannot be null or empty*")
             .WithParameterName("name");
     }
 
@@ -78,23 +77,24 @@ public class LocalSecretProviderTests
 
         // Assert
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*Secret name cannot be null or empty*");
+            .WithParameterName("name");
     }
 
     [TestMethod]
     [DataRow(" ")]
     [DataRow("  ")]
-    public async Task GetAsync_WithWhitespaceName_ShouldReturnNull(string secretName)
+    public async Task GetAsync_WithWhitespaceName_ShouldRejectInvalidPath(string secretName)
     {
         // Arrange
         mockConfiguration.SetupGet(c => c[It.IsAny<string>()]).Returns((string?)null);
         var provider = new LocalSecretProvider(mockConfiguration.Object, options);
 
         // Act
-        string? result = await provider.GetAsync(secretName);
+        Func<Task> action = () => provider.GetAsync(secretName);
 
         // Assert
-        result.Should().BeNull("whitespace-only names are treated as valid but non-existent secrets");
+        await action.Should().ThrowAsync<ArgumentException>().WithParameterName("name");
+        mockConfiguration.VerifyNoOtherCalls();
     }
 
     [TestMethod]
@@ -136,7 +136,7 @@ public class LocalSecretProviderTests
     public async Task GetAsync_WithEnvironmentVariable_ShouldReturnValue()
     {
         // Arrange
-        string secretName = "TEST_ENV_SECRET";
+        string secretName = $"IFX_TEST_{Guid.NewGuid():N}";
         string expectedValue = "env-secret-value";
         Environment.SetEnvironmentVariable(secretName, expectedValue);
 
@@ -183,7 +183,7 @@ public class LocalSecretProviderTests
     public async Task GetAsync_DirectKeyTakesPriority_OverEnvironmentVariable()
     {
         // Arrange
-        string secretName = "TEST_PRIORITY_SECRET";
+        string secretName = $"IFX_TEST_{Guid.NewGuid():N}";
         string configValue = "config-value";
         string envValue = "env-value";
 
@@ -211,7 +211,7 @@ public class LocalSecretProviderTests
     public async Task GetAsync_WithNonExistentSecret_ShouldReturnNull()
     {
         // Arrange
-        string secretName = "NonExistentSecret";
+        string secretName = $"IFX_MISSING_{Guid.NewGuid():N}";
         mockConfiguration.SetupGet(c => c[It.IsAny<string>()]).Returns((string?)null);
 
         var provider = new LocalSecretProvider(mockConfiguration.Object, options);
@@ -256,7 +256,7 @@ public class LocalSecretProviderTests
     }
 
     [TestMethod]
-    public async Task GetAsync_WithCanceledToken_ShouldNotCheckCancellation()
+    public async Task GetAsync_WithCanceledToken_ShouldCancelBeforeReadingConfiguration()
     {
         // Arrange
         mockConfiguration.SetupGet(c => c["Secrets:TestSecret"]).Returns("test-value");
@@ -265,10 +265,12 @@ public class LocalSecretProviderTests
         cts.Cancel();
 
         // Act
-        string? result = await provider.GetAsync("TestSecret", cts.Token);
+        Func<Task> action = () => provider.GetAsync("TestSecret", cts.Token);
 
         // Assert
-        result.Should().Be("test-value", "LocalSecretProvider doesn't check cancellation token");
+        var exception = await action.Should().ThrowAsync<OperationCanceledException>();
+        exception.Which.CancellationToken.Should().Be(cts.Token);
+        mockConfiguration.VerifyNoOtherCalls();
     }
 
     [TestMethod]

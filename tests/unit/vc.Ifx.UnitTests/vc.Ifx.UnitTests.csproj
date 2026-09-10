@@ -19,11 +19,36 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\..\src\vc.Ifx\vc.Ifx.csproj" />
     <ProjectReference Include="..\..\..\src\vc.Ifx.Roslyn\vc.Ifx.Roslyn.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Roslyn.Reporting\vc.Ifx.Roslyn.Reporting.csproj" />
     <ProjectReference Include="..\..\..\src\vc.Ifx.Analyzers\vc.Ifx.Analyzers.csproj" />
     <ProjectReference Include="..\..\..\src\vc.Ifx.CodeFixes\vc.Ifx.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Abstractions\vc.Ifx.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Data.Azure.Tables\vc.Ifx.Data.Azure.Tables.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Filtering\vc.Ifx.Filtering.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Filtering.EntityFrameworkCore\vc.Ifx.Filtering.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Generators\vc.Ifx.Generators.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Generators.Abstractions\vc.Ifx.Generators.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Messaging.Azure.Queues\vc.Ifx.Messaging.Azure.Queues.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Observability\vc.Ifx.Observability.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Pipeline\vc.Ifx.Pipeline.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Pipeline.Grpc\vc.Ifx.Pipeline.Grpc.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Primitives\vc.Ifx.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Proxy\vc.Ifx.Proxy.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Proxy.AspNetCore\vc.Ifx.Proxy.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Proxy.Http\vc.Ifx.Proxy.Http.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Querying\vc.Ifx.Querying.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Secrets.Abstractions\vc.Ifx.Secrets.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Secrets.Azure.KeyVault\vc.Ifx.Secrets.Azure.KeyVault.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Secrets.Local\vc.Ifx.Secrets.Local.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Storage.Abstractions\vc.Ifx.Storage.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Storage.Azure.Blobs\vc.Ifx.Storage.Azure.Blobs.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Storage.Ftp\vc.Ifx.Storage.Ftp.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.Storage.Local\vc.Ifx.Storage.Local.csproj" />
+    <ProjectReference Include="..\..\..\src\vc.Ifx.WebApi\vc.Ifx.WebApi.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="MSTest.TestAdapter" />
-    <PackageReference Include="coverlet.collector">
+    <PackageReference Include="coverlet.msbuild">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -32,6 +57,7 @@
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Azure.Core" />

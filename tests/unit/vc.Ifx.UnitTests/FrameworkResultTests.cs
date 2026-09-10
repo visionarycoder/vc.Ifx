@@ -168,7 +168,7 @@ public class FrameworkResultTests
         }
 
         [TestMethod]
-        public void Match_WithSuccessfulResultButNullValue_ShouldExecuteFailureAction()
+        public void Match_WithSuccessfulResultButNullValue_ShouldExecuteSuccessAction()
         {
             // Arrange
             var result = ServiceResult<string?>.Success(null);
@@ -177,13 +177,13 @@ public class FrameworkResultTests
 
             // Act
             result.Match(
-                val => { successCalled = true; },
+                val => { val.Should().BeNull(); successCalled = true; },
                 (error, ex) => { failureCalled = true; }
             );
 
             // Assert
-            successCalled.Should().BeFalse();
-            failureCalled.Should().BeTrue();
+            successCalled.Should().BeTrue();
+            failureCalled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -279,7 +279,7 @@ public class FrameworkResultTests
         }
 
         [TestMethod]
-        public void Map_WithSuccessfulResultButNullValue_ShouldReturnOriginalFailure()
+        public void Map_WithSuccessfulResultButNullValue_ShouldMapSuccessfully()
         {
             // Arrange
             var result = ServiceResult<string?>.Success(null);
@@ -288,8 +288,10 @@ public class FrameworkResultTests
             ServiceResult<int> mappedResult = result.Map(x => x?.Length ?? 0);
 
             // Assert
-            mappedResult.IsSuccess.Should().BeFalse();
-            mappedResult.ErrorMessage.Should().Be("Value is null");
+            mappedResult.IsSuccess.Should().BeTrue();
+            mappedResult.Value.Should().Be(0);
+            mappedResult.ErrorMessage.Should().BeNull();
+            mappedResult.Exception.Should().BeNull();
         }
 
         [TestMethod]

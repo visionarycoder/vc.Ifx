@@ -13,6 +13,8 @@ public static class LoggingInterceptorExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddLoggingInterceptor(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddLogging();
         services.AddSingleton<IProxyInterceptor, LoggingInterceptor>();
         return services;
     }

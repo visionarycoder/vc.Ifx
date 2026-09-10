@@ -6,73 +6,67 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using vc.Ifx.Analyzers.Helpers;
 using vc.Ifx.Analyzers.Models;
 
-namespace vc.Ifx.Analyzers.Rules.Volatility
+namespace vc.Ifx.Analyzers.Rules.Volatility;
+
+public static class Vbd101VaultNoLeakage
 {
+    public static readonly DiagnosticDescriptor Rule = new(
+        id: DiagnosticIds.Vbd101VaultNoLeakage,
+        title: "Vault internals must not leak",
+        messageFormat: "Infrastructure project '{0}' leaks internals to '{1}'. Only test assemblies may be granted InternalsVisibleTo.",
+        category: "Architecture.Volatility",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: "https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#legacy-vbd-policy",
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    public static class Vbd101VaultNoLeakage
+    public static void Initialize(AnalysisContext context)
     {
-        public static readonly DiagnosticDescriptor Rule = new(
-            id: DiagnosticIds.Vbd101VaultNoLeakage,
-            title: "Vault internals must not leak",
-            messageFormat: "Infrastructure project '{0}' leaks internals to '{1}'. Only test assemblies may be granted InternalsVisibleTo.",
-            category: "Architecture.Volatility",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            helpLinkUri: "Docs/Volatility/vbd101.md",
-            customTags: WellKnownDiagnosticTags.CompilationEnd);
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.RegisterCompilationAction(AnalyzeCompilation);
+    }
 
-        public static void Initialize(AnalysisContext context)
+    private static void AnalyzeCompilation(CompilationAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var compilation = context.Compilation;
+        var assemblyName = context.Compilation.Assembly.Name;
+
+        if (ProjectAnalyzer.GetProjectType(assemblyName!) != ProjectType.Infrastructure)
+            return;
+
+        var assemblySymbol = compilation.Assembly;
+        var friendAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InternalsVisibleToAttribute");
+        if (friendAttribute is null)
+            return;
+        var internalsVisibleToAttributes = assemblySymbol.GetAttributes()
+            .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, friendAttribute))
+            .ToList();
+
+        foreach (var attribute in internalsVisibleToAttributes)
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterCompilationAction(AnalyzeCompilation);
+            context.CancellationToken.ThrowIfCancellationRequested();
+            if (attribute.ConstructorArguments.Length == 0)
+                continue;
+
+            var friendAssemblyName = attribute.ConstructorArguments[0].Value as string;
+            if (string.IsNullOrWhiteSpace(friendAssemblyName))
+                continue;
+
+            if (IsTestOrBenchmarkAssembly(friendAssemblyName!))
+                continue;
+
+            var location = attribute.ApplicationSyntaxReference!.GetSyntax(context.CancellationToken).GetLocation();
+
+            var diagnostic = Diagnostic.Create(Rule, location, assemblyName, friendAssemblyName);
+            context.ReportDiagnostic(diagnostic);
         }
+    }
 
-        private static void AnalyzeCompilation(CompilationAnalysisContext context)
-        {
-            var compilation = context.Compilation;
-            var assemblyName = compilation.AssemblyName;
-            if (string.IsNullOrWhiteSpace(assemblyName))
-                return;
-
-            if (ProjectAnalyzer.GetProjectType(assemblyName!) != ProjectType.Infrastructure)
-                return;
-
-            var assemblySymbol = compilation.Assembly;
-            var internalsVisibleToAttributes = assemblySymbol.GetAttributes()
-                .Where(attr => attr.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.InternalsVisibleToAttribute")
-                .ToList();
-
-            foreach (var attribute in internalsVisibleToAttributes)
-            {
-                if (attribute.ConstructorArguments.Length == 0)
-                    continue;
-
-                var friendAssemblyName = attribute.ConstructorArguments[0].Value as string;
-                if (string.IsNullOrWhiteSpace(friendAssemblyName))
-                    continue;
-
-                if (IsTestOrBenchmarkAssembly(friendAssemblyName!))
-                    continue;
-
-                var syntaxReference = attribute.ApplicationSyntaxReference;
-                var location = syntaxReference != null
-                    ? syntaxReference.GetSyntax(context.CancellationToken).GetLocation()
-                    : Location.None;
-
-                var diagnostic = Diagnostic.Create(Rule, location, assemblyName);
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
-
-        private static bool IsTestOrBenchmarkAssembly(string assemblyName)
-        {
-            return assemblyName.IndexOf("Test", System.StringComparison.OrdinalIgnoreCase) >= 0
-                || assemblyName.IndexOf("Tests", System.StringComparison.OrdinalIgnoreCase) >= 0
-                || assemblyName.EndsWith(".UnitTests", System.StringComparison.OrdinalIgnoreCase)
-                || assemblyName.EndsWith(".Tests", System.StringComparison.OrdinalIgnoreCase)
-                || assemblyName.IndexOf("Benchmark", System.StringComparison.OrdinalIgnoreCase) >= 0
-                || assemblyName.EndsWith(".Benchmarks", System.StringComparison.OrdinalIgnoreCase);
-        }
+    private static bool IsTestOrBenchmarkAssembly(string assemblyName)
+    {
+        return assemblyName.IndexOf("Test", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || assemblyName.IndexOf("Benchmark", System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }

@@ -11,6 +11,7 @@ namespace VisionaryCoder.Framework.Proxy.Interceptors.Telemetry;
 /// </summary>
 public sealed class TelemetryInterceptor : IOrderedProxyInterceptor
 {
+    private static readonly ActivitySource defaultActivitySource = new("VisionaryCoder.Framework.Proxy");
     private readonly ILogger<TelemetryInterceptor> logger;
     private readonly ActivitySource activitySource;
     /// <inheritdoc />
@@ -23,13 +24,16 @@ public sealed class TelemetryInterceptor : IOrderedProxyInterceptor
     public TelemetryInterceptor(ILogger<TelemetryInterceptor> logger, ActivitySource? activitySource = null)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.activitySource = activitySource ?? new ActivitySource("VisionaryCoder.Framework.Proxy");
+        this.activitySource = activitySource ?? defaultActivitySource;
     }
     public async Task<ProxyResponse<T>> InvokeAsync<T>(
         ProxyContext context,
         ProxyDelegate<T> next,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
         string requestType = context.Request?.GetType().Name ?? "Unknown";
         string operationName = $"Proxy.{requestType}";
         using Activity? activity = activitySource.StartActivity(operationName);
@@ -49,7 +53,9 @@ public sealed class TelemetryInterceptor : IOrderedProxyInterceptor
             ProxyResponse<T> result = await next(context, cancellationToken);
             stopwatch.Stop();
             activity?.SetTag("proxy.duration_ms", stopwatch.ElapsedMilliseconds);
-            activity?.SetTag("proxy.success", true);
+            activity?.SetTag("proxy.success", result.IsSuccess);
+            if (!result.IsSuccess)
+                activity?.SetStatus(ActivityStatusCode.Error, "Proxy response failed");
             logger.LogDebug("Telemetry completed successfully for {RequestType} in {ElapsedMs}ms",
                 requestType, stopwatch.ElapsedMilliseconds);
             return result;

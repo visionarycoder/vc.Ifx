@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>vc.Ifx.Storage.Ftp</PackageId>
+    <Description>FTP storage provider integration for vc.Ifx.</Description>
+    <PackageTags>ftp;storage;provider;ifx</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,5 +14,8 @@
     <ProjectReference Include="..\vc.Ifx.Storage.Abstractions\vc.Ifx.Storage.Abstractions.csproj" />
     <PackageReference Include="FluentFTP" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

@@ -36,7 +36,10 @@ public sealed class SecurityInterceptor : IOrderedProxyInterceptor
         ProxyDelegate<T> next,
         CancellationToken cancellationToken = default)
     {
-        using IDisposable? _ = logger.BeginScope("SecurityInterceptor for {RequestType}", context.Request?.GetType().Name ?? "Unknown");
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
+        using IDisposable? scope = logger.BeginScope("SecurityInterceptor for {RequestType}", context.Request?.GetType().Name ?? "Unknown");
 
         try
         {
@@ -44,11 +47,14 @@ public sealed class SecurityInterceptor : IOrderedProxyInterceptor
             foreach (IProxySecurityEnricher enricher in enrichers)
             {
                 await enricher.EnrichAsync(context, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             // Check authorization policies
             foreach (IProxyAuthorizationPolicy policy in policies)
             {
-                if (!await policy.IsAuthorizedAsync(context, cancellationToken))
+                bool authorized = await policy.IsAuthorizedAsync(context, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!authorized)
                 {
                     logger.LogWarning("Authorization failed for policy {PolicyType}", policy.GetType().Name);
                     return ProxyResponse<T>.Failure("Authorization failed");
@@ -57,7 +63,7 @@ public sealed class SecurityInterceptor : IOrderedProxyInterceptor
             logger.LogDebug("Security validation passed, proceeding to next interceptor");
             return await next(context, cancellationToken);
         }
-        catch (Exception ex) when (ex is not ProxyException)
+        catch (Exception ex) when (ex is not ProxyException and not OperationCanceledException)
         {
             logger.LogError(ex, "Unexpected error during security processing");
             return ProxyResponse<T>.Failure("Security processing failed");

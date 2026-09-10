@@ -1,26 +1,26 @@
 ; Unshipped analyzer release
+; IFX1000 and IFX1001 descriptor releases are tracked in vc.Ifx.Roslyn, their defining assembly.
 
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-IFX1000 | Maintainability | Info | Diagnostic references in comments require a disposition marker.
-IFX1001 | Maintainability | Warning | CA#### and CS#### pragma suppressions require an explicit justification.
-CQ100 | CodeQuality | Warning | Methods should stay within the configured line-count threshold.
-CQ101 | CodeQuality | Warning | Methods should stay within the configured parameter-count threshold.
-CQ102 | CodeQuality | Warning | Methods should stay within the configured nesting-depth threshold.
-CQ103 | CodeQuality | Warning | Methods should stay within the configured local-variable threshold.
-CQ104 | CodeQuality | Warning | Methods should stay within the configured cyclomatic-complexity threshold.
-IFX001 | Framework | Error | Proxy contracts must expose asynchronous signatures.
-IFX002 | Framework | Warning | Members marked with refactor indicators should be addressed.
-IFX003 | Framework | Info | Unused private members should be removed.
-IFX004 | Framework | Info | Unused types should be removed.
-IFX005 | Framework | Warning | Controller attributes should follow the framework ordering convention.
-IFX006 | Framework | Warning | Source files should contain one primary class.
-SEC001 | Security | Warning | SQL operations should avoid injection-prone construction.
-SEC002 | Security | Warning | Controller logging should not introduce SQL-injection vectors.
-VBD100 | Architecture | Warning | A vault should represent one volatility boundary.
-VBD101 | Architecture | Warning | Vault types should not leak across boundaries.
-VBD102 | Architecture | Warning | Infrastructure projects should not depend on domain projects.
+IFX1100 | Maintainability | Warning | Ordinary method control-flow nesting exceeds the configured limit; ifx-control-nesting-v1.
+CQ100 | CodeQuality | Warning | Legacy compatibility policy: at most 80 immediate body statements, not physical source lines.
+CQ101 | CodeQuality | Warning | Legacy compatibility policy: at most 5 parameters.
+CQ102 | CodeQuality | Warning | Legacy compatibility policy: at most 4 enclosing blocks; method body counts as one.
+CQ103 | CodeQuality | Warning | Legacy compatibility policy: at most 10 variable declarators.
+CQ104 | CodeQuality | Warning | Legacy compatibility syntax metric: at most 10; upstream CA1502 remains the active cyclomatic rule.
+IFX001 | Design | Error | Proxy contracts must expose asynchronous signatures.
+IFX002 | Refactoring | Warning | Members marked with refactor indicators should be addressed.
+IFX003 | Design | Warning | Unused private members should be removed.
+IFX004 | Design | Warning | Unused types should be removed.
+IFX005 | Design | Info | Controller attributes should follow the framework ordering convention.
+IFX006 | Design | Warning | Source files should contain one primary class.
+SEC001 | Security | Error | SQL operations should avoid injection-prone construction.
+SEC002 | Security | Error | Recognized controller input at logging sinks requires review; not SQL-safety certification.
+VBD100 | Architecture.Volatility | Warning | A vault should represent one volatility boundary.
+VBD101 | Architecture.Volatility | Warning | Vault types should not leak across boundaries.
+VBD102 | Architecture.Volatility | Error | Infrastructure projects should not depend on domain projects.
 VBD200 | Architecture | Warning | Manager layer methods should not contain business logic.
 VBD201 | Architecture | Warning | Managers should not call other managers.
 VBD202 | Architecture.Layers | Warning | Managers should not depend directly on Access projects.

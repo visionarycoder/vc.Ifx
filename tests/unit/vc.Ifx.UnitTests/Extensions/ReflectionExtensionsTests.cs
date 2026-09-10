@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using VisionaryCoder.Framework.Extensions;
 
 namespace VisionaryCoder.Framework.Tests.Extensions;
@@ -40,11 +41,13 @@ public class ReflectionExtensionsTests
     }
 
     // Helper methods for testing NameOfCallingClass
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private string GetCallingClassName()
     {
         return ReflectionExtensions.NameOfCallingClass();
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private string GetCallingClassNameNested()
     {
         return GetCallingClassName();
@@ -88,11 +91,13 @@ public class ReflectionExtensionsTests
     }
 
     // Helper methods for testing TypeOfCallingClass
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private Type? GetCallingClassType()
     {
         return ReflectionExtensions.TypeOfCallingClass();
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private Type? GetCallingClassTypeNested()
     {
         return GetCallingClassType();
@@ -422,7 +427,11 @@ public class ReflectionExtensionsTests
     #endregion
 }
 
-public class TestClass
+public class TestClass : IDisposable
 {
-
+    public string GetValue() => "TestValue";
+    public void ThrowException() => throw new InvalidOperationException("Expected fixture failure.");
+    public void OverloadedMethod() { }
+    public void OverloadedMethod(int value) { }
+    public void Dispose() { }
 }

@@ -9,19 +9,19 @@ public static class QueryFilterSchema
 {
 
     private const string DefaultResourceName = "VisionaryCoder.Framework.Schemas.queryfilter.schema.json";
-    private static readonly Lazy<string> schemaContent = new(LoadSchemaFromResource);
+    private static readonly Lazy<string> schemaContent = new(() => LoadSchemaFromResource(typeof(QueryFilterSchema).Assembly, DefaultResourceName));
 
     /// <summary>
     /// Gets the QueryFilter JSON Schema as a string.
     /// </summary>
     public static string Content => schemaContent.Value;
 
-    private static string LoadSchemaFromResource()
+    internal static string LoadSchemaFromResource(Assembly assembly, string resourceName)
     {
-        using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(DefaultResourceName);
+        using Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
         {
-            throw new InvalidOperationException($"Could not find embedded resource: {DefaultResourceName}");
+            throw new InvalidOperationException($"Could not find embedded resource: {resourceName}");
         }
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();

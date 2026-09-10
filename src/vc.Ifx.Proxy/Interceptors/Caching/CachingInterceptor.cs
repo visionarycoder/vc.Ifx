@@ -52,7 +52,7 @@ public sealed class CachingInterceptor : IOrderedProxyInterceptor
             logger,
             new MemoryProxyCache(cache ?? throw new ArgumentNullException(nameof(cache))),
             CreateKeyProvider(options),
-            new DefaultCachePolicyProvider(options ?? throw new ArgumentNullException(nameof(options))))
+            new DefaultCachePolicyProvider(options))
     {
     }
 
@@ -62,6 +62,9 @@ public sealed class CachingInterceptor : IOrderedProxyInterceptor
     /// </summary>
     public async Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
         string operationName = context.OperationName ?? "Unknown";
         string correlationId = context.CorrelationId ?? "None";
 
@@ -146,14 +149,12 @@ public sealed class CachingInterceptor : IOrderedProxyInterceptor
             return true;
         }
 
-        if (!context.Headers.TryGetValue("Cache-Control", out string? cacheControl))
-        {
-            return false;
-        }
-
-        string cacheControlValue = cacheControl.ToLowerInvariant();
-        return cacheControlValue.Contains("no-cache", StringComparison.Ordinal) ||
-               cacheControlValue.Contains("no-store", StringComparison.Ordinal);
+        return (context.Headers ?? [])
+            .Where(header => header.Key.Equals("Cache-Control", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(header => (header.Value ?? string.Empty).Split(','))
+            .Select(directive => directive.Split('=', 2)[0].Trim())
+            .Any(directive => directive.Equals("no-cache", StringComparison.OrdinalIgnoreCase) ||
+                directive.Equals("no-store", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool ShouldCacheResponse<T>(ProxyResponse<T> response, CachePolicy policy)

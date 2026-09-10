@@ -6,37 +6,36 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using vc.Ifx.Analyzers.Helpers;
 using vc.Ifx.Analyzers.Models;
 
-namespace vc.Ifx.Analyzers.Rules.CodeQuality
+namespace vc.Ifx.Analyzers.Rules.CodeQuality;
+
+public static class Cq104TooHighCyclomaticComplexity
 {
+    private const int MaxComplexity = 10;
 
-    public static class Cq104TooHighCyclomaticComplexity
+    public static readonly DiagnosticDescriptor Rule = new(
+        id: DiagnosticIds.Cq104TooComplex,
+        title: "Method cyclomatic complexity is too high",
+        messageFormat: "Method '{0}' has cyclomatic complexity {1} (max allowed: {2})",
+        category: "CodeQuality",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: "https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#legacy-metrics-policy");
+
+    public static void Initialize(AnalysisContext context)
     {
-        private const int MaxComplexity = 10;
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.MethodDeclaration);
+    }
 
-        public static readonly DiagnosticDescriptor Rule = new(
-            id: DiagnosticIds.Cq104TooComplex,
-            title: "Method cyclomatic complexity is too high",
-            messageFormat: "Method '{0}' has cyclomatic complexity {1} (max allowed: {2})",
-            category: "CodeQuality",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            helpLinkUri: "Docs/CodeQuality/cq104.md");
-
-        public static void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.MethodDeclaration);
-        }
-
-        private static void Analyze(SyntaxNodeAnalysisContext context)
-        {
-            var method = (MethodDeclarationSyntax)context.Node;
-            var complexity = CodeQualityMetrics.ComputeCyclomaticComplexity(method);
-            if (complexity <= MaxComplexity)
-                return;
-            var diagnostic = Diagnostic.Create(Rule, method.Identifier.GetLocation(), method.Identifier.Text, complexity, MaxComplexity);
-            context.ReportDiagnostic(diagnostic);
-        }
+    private static void Analyze(SyntaxNodeAnalysisContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var method = (MethodDeclarationSyntax)context.Node;
+        var complexity = CodeQualityMetrics.ComputeCyclomaticComplexity(method);
+        if (complexity <= MaxComplexity)
+            return;
+        var diagnostic = Diagnostic.Create(Rule, method.Identifier.GetLocation(), method.Identifier.Text, complexity, MaxComplexity);
+        context.ReportDiagnostic(diagnostic);
     }
 }

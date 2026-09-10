@@ -7,9 +7,13 @@ public static class PageExtensions
     // Offset-based (simple, fine for small/medium datasets)
     public static async Task<Page<T>> ToPageAsync<T>(this IQueryable<T> query, PageRequest request, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        int offset = checked((request.PageNumber - 1) * request.PageSize);
         int count = await query.CountAsync(cancellationToken);
         List<T> items = await query
-            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Skip(offset)
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
         return new Page<T>(items, count, request.PageNumber, request.PageSize);
@@ -21,7 +25,12 @@ public static class PageExtensions
 
     private static async Task<Page<T>> ExecuteAsync<T>(IQueryable<T> source, PageRequest request, Func<IQueryable<T>, string?, int, CancellationToken, Task<(IReadOnlyList<T>, string?)>> fn, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(fn);
+        cancellationToken.ThrowIfCancellationRequested();
         (IReadOnlyList<T> items, string? next) = await fn(source, request.ContinuationToken, request.PageSize, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return new Page<T>(items, count: 0, pageNumber: 0, pageSize: request.PageSize, nextToken: next);
     }
 }
