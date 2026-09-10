@@ -873,23 +873,22 @@ public class StorageServiceTests
     #region GetDirectoryName Tests
 
     [TestMethod]
-    [DataRow("C:\\folder\\file.txt", "C:\\folder")]
-    [DataRow("C:\\folder\\subfolder\\file.txt", "C:\\folder\\subfolder")]
+    [DataRow("folder/file.txt", "folder")]
+    [DataRow("folder/subfolder/file.txt", "folder/subfolder")]
     public void GetDirectoryName_WithValidPath_ShouldReturnDirectoryName(string path, string expected)
     {
         // Act
-        string? result = service!.GetDirectoryName(path);
+        string? result = service!.GetDirectoryName(Path.GetFullPath(path));
 
         // Assert
-        result.Should().Be(expected);
+        result.Should().Be(Path.GetFullPath(expected));
     }
 
     [TestMethod]
-    [DataRow("C:\\")]
-    public void GetDirectoryName_WithRootPath_ShouldReturnNull(string path)
+    public void GetDirectoryName_WithRootPath_ShouldReturnNull()
     {
         // Act
-        string? result = service!.GetDirectoryName(path);
+        string? result = service!.GetDirectoryName(Path.GetPathRoot(Path.GetFullPath("."))!);
 
         // Assert
         result.Should().BeNull();
@@ -900,8 +899,8 @@ public class StorageServiceTests
     #region GetFileName Tests
 
     [TestMethod]
-    [DataRow("C:\\folder\\file.txt", "file.txt")]
-    [DataRow("C:\\folder\\subfolder\\document.doc", "document.doc")]
+    [DataRow("folder/file.txt", "file.txt")]
+    [DataRow("folder/subfolder/document.doc", "document.doc")]
     [DataRow("filename.txt", "filename.txt")]
     public void GetFileName_WithValidPath_ShouldReturnFileName(string path, string expected)
     {
