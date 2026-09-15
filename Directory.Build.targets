@@ -10,10 +10,10 @@
     <IsPackable>false</IsPackable>
     <CollectCoverage Condition="'$(CollectCoverage)' == ''">false</CollectCoverage>
     <CoverletOutputFormat>json,opencover</CoverletOutputFormat>
-    <CoverletOutput>$(MSBuildProjectDirectory)/TestResults/coverage/$(Configuration)/</CoverletOutput>
-    <Include>[vc.Ifx*]*</Include>
+    <CoverletOutput>$(MSBuildProjectDirectory)/test-results/coverage/$(Configuration)/</CoverletOutput>
+    <Include>[Ifx*]*,[Util*]*</Include>
     <Include Condition="'$(IfxCoveragePackage)' != ''">[$(IfxCoveragePackage)]*</Include>
-    <Exclude>[vc.Ifx.UnitTests]*,[vc.Ifx.IntegrationTests]*</Exclude>
+    <Exclude>[Ifx.UnitTests]*,[Ifx.IntegrationTests]*,[Util.UnitTests]*,[*.UnitTests]*,[*.IntegrationTests]*,[*.Benchmarks]*</Exclude>
     <ExcludeByFile>**/obj/**/*.cs</ExcludeByFile>
     <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
     <ExcludeAssembliesWithoutSources>None</ExcludeAssembliesWithoutSources>
@@ -25,8 +25,9 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true'">
-    <InternalsVisibleTo Include="vc.Ifx.UnitTests" />
-    <InternalsVisibleTo Include="vc.Ifx.IntegrationTests" />
+    <InternalsVisibleTo Include="Ifx.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.IntegrationTests" />
+    <InternalsVisibleTo Include="Util.UnitTests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(IfxTestSourceScope)' != ''">
@@ -115,12 +116,4 @@
     <WriteLinesToFile File="$(IfxIdentityDirectory)/settings/%(IfxBuildSetting.Identity).txt" Lines="%(IfxBuildSetting.Value)" Overwrite="true" Encoding="UTF-8" />
   </Target>
 
-  <Target Name="CopyNuGetPackages" AfterTargets="Pack">
-    <ItemGroup>
-      <GeneratedPackages Include="$(OutputPath)\*.nupkg" />
-      <GeneratedSymbols Include="$(OutputPath)\*.snupkg" />
-    </ItemGroup>
-    <Copy SourceFiles="@(GeneratedPackages)" DestinationFolder="$(MSBuildProjectDirectory)\.nupkgs\" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(GeneratedSymbols)" DestinationFolder="$(MSBuildProjectDirectory)\.nupkgs\" SkipUnchangedFiles="true" />
-  </Target>
 </Project>

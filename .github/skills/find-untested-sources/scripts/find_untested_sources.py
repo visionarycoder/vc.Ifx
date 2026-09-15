@@ -84,7 +84,7 @@ PRUNE_DIRS = {
     "venv",
     "env",
     ".nuget",
-    "TestResults",
+    "test-results",
     "coverage",
     ".next",
     ".nuxt",

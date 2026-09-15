@@ -78,17 +78,17 @@ Six checks reject changed, missing and newly globbed embedded JSON/protobuf inpu
 The fixture compiles the embedded resource; its protobuf item tests capture without
 a gRPC dependency. The full solution capture additionally records the real gRPC input.
 The tests never mutate runtime-package files. All 29 checks passed at
-`TestResults/provenance-regressions/189c7b1d41ea49ed813f7438c839cabf/results.json`.
+`test-results/provenance-regressions/189c7b1d41ea49ed813f7438c839cabf/results.json`.
 The prior implementation failed the embedded-schema mutation regression at
-`TestResults/provenance-regressions/8a9b373174674abaa022ec87df091d31`.
+`test-results/provenance-regressions/8a9b373174674abaa022ec87df091d31`.
 The real wrapper and identity modules also passed all seven isolated package
-regressions at `TestResults/package-wrapper-tests/f7643fb54a274fcaa2bd1b2591426706`;
+regressions at `test-results/package-wrapper-tests/f7643fb54a274fcaa2bd1b2591426706`;
 native tools and the independently tested archive-layout validator are stubbed there.
 
 Final local capture command:
 
 ```powershell
-$build = Join-Path $PWD 'TestResults/provenance/ef-build-05'
+$build = Join-Path $PWD 'test-results/provenance/ef-build-05'
 ./scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Configuration Release `
   -TestSourceScope 'Filtering/EntityFrameworkCore;Infrastructure' `
   -TestPackage vc.Ifx.Filtering.EntityFrameworkCore `
@@ -99,7 +99,7 @@ $env:IFX_REPORT_BUILD = $build
   -TestPackage vc.Ifx.Filtering.EntityFrameworkCore `
   -CoveragePackage vc.Ifx.Filtering.EntityFrameworkCore -WarningsAsErrors
 ./scripts/reporting/Invoke-FrameworkReport.ps1 -BuildDirectory $build `
-  -CoverageRunDirectory (Join-Path $PWD 'TestResults/coverage/vc.Ifx.Filtering.EntityFrameworkCore/490f245891254af7a2396eb852d1cee2') `
+  -CoverageRunDirectory (Join-Path $PWD 'test-results/coverage/vc.Ifx.Filtering.EntityFrameworkCore/490f245891254af7a2396eb852d1cee2') `
   -Revision (git rev-parse HEAD) -Package vc.Ifx.Filtering.EntityFrameworkCore `
   -Configuration Release
 ```
@@ -108,7 +108,7 @@ Build passed with zero warnings; 5 tests passed with no failures/skips, strict
 9/9 lines and 4/4 branches. The bound report passed with zero issues. These are
 scoped results, not the final global checkpoint. Existing coverage infrastructure
 regressions also passed 48/48 at
-`TestResults/coverage-infrastructure/f64bcdc1a082410fbcd745e75d83744b`.
+`test-results/coverage-infrastructure/f64bcdc1a082410fbcd745e75d83744b`.
 The Orchestrator subsequently ran reporting process compatibility (three process
 checks plus the underlying reporting checks) before the authoritative global
 capture. [Final local verification](../planning/local-verification-20260910.md)

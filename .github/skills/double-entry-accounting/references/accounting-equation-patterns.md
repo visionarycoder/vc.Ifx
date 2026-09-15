@@ -255,7 +255,7 @@ public sealed class JournalLineConfiguration : IEntityTypeConfiguration<JournalL
 
 | Check | Test | Pass |
 |---|---|---|
-| Front matter | Run `node .scripts/validate-frontmatter.js --check`. | Command exits with code `0` for this file format. |
+| Front matter | Run `node scripts/validate-frontmatter.js --check`. | Command exits with code `0` for this file format. |
 | STE wording | Run the repository modal-verb scan on this file. | Scan returns zero banned-term matches. |
 | Link integrity | Open both relative skill links. | Both links resolve. |
 | Code example coverage | Read the validator example. | Example includes balance, account-type, trial-balance, and EF Core patterns. |

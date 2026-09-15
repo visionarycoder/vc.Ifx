@@ -7,7 +7,7 @@ $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.
 $mutex = [Threading.Mutex]::new($false, "vc.Ifx.FrameworkTests.$digest")
 $acquired = $false
 $script:passed = 0
-$run = Join-Path $root "TestResults/docs-project/$([Guid]::NewGuid().ToString('N'))"
+$run = Join-Path $root "test-results/docs-project/$([Guid]::NewGuid().ToString('N'))"
 function Invoke-CheckedDotNet {
     param([string] $Name, [string[]] $Arguments)
     $result = & dotnet @Arguments '-m:1' '-p:BuildInParallel=false' '-p:GeneratePackageOnBuild=false' '-warnaserror' 2>&1

@@ -61,7 +61,7 @@ Do not use when the prompt asks for packaging guidance only. Use `vbd-advanced-d
 | 4. Write local DTOs | Agent writes one local DTO per layer that owns the payload shape. | DTO files | Agent reads target files. | Every caller uses a local DTO. |
 | 5. Write mapper code | Agent writes mapper code in client mapper locations or service projects only. | Mapper files | Agent reads mapper files. | Zero mapper code exists in contract projects. |
 | 6. Write caller updates | Agent writes namespace, type, and dependency updates for caller code. | Caller diffs | Agent reads caller diffs. | Callers depend on immediate contracts only. |
-| 7. Verify finding removal | Agent runs build and analyzer verification after each approved finding group. | Verification log | Run `dotnet build Wa.Wsdot.Fin.Idl.slnx`. | Exit code = 0. Selected finding group no longer appears. |
+| 7. Verify finding removal | Agent runs build and analyzer verification after each approved finding group. | Verification log | Run `dotnet build vc.Ifx.slnx`. | Exit code = 0. Selected finding group no longer appears. |
 
 ## Placement Rules
 
@@ -88,7 +88,7 @@ Do not use when the prompt asks for packaging guidance only. Use `vbd-advanced-d
 - [ ] Agent removes direct client-to-engine and client-to-access DTO use.
 - [ ] Agent runs build and analyzer verification after each approved finding group.
 
-Test: Run `dotnet build Wa.Wsdot.Fin.Idl.slnx`.
+Test: Run `dotnet build vc.Ifx.slnx`.
 Pass: Exit code = 0. Zero selected contract-coupling findings remain.
 
 ## Common Pitfalls

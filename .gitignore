@@ -43,7 +43,7 @@ bld/
 Generated\ Files/
 
 # MSTest test Results
-[Tt]est[Rr]esult*/
+test-results/
 [Bb]uild[Ll]og.*
 
 # NUnit
@@ -404,3 +404,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Agent working/sandbox artifacts (transient)
+.sandbox/

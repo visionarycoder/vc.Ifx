@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($RepositoryRoot)
 if ($SelfTest) {
     # Synthetic XML graphs exercise the validator without building or editing package projects.
-    $artifacts = Join-Path $root "TestResults/dependency-audit/$([Guid]::NewGuid().ToString('N'))"
+    $artifacts = Join-Path $root "test-results/dependency-audit/$([Guid]::NewGuid().ToString('N'))"
     $cases = @(
         @{ Name = 'valid'; Projects = @{ 'src/Core/Core.csproj' = ''; 'tests/Test/Test.csproj' = '<ProjectReference Include="../../src/Core/Core.csproj" />'; 'performance/Bench/Bench.csproj' = ''; 'scripts/reporting/Host.csproj' = '<ProjectReference Include="../../src/Core/Core.csproj" />' }; Error = $null },
         @{ Name = 'unlisted-host'; Projects = @{ 'src/Core/Core.csproj' = ''; 'scripts/reporting/Host.csproj' = '' }; Omit = 'scripts/reporting/Host.csproj'; Error = 'Project missing from solution' },

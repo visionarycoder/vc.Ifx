@@ -63,7 +63,7 @@ Agent follows these steps:
 2. Agent applies rule matrix to reference direction, DTO ownership, communication style
 3. Agent inserts proxies, contracts, or message-bus boundaries when direct edge is forbidden
 4. Agent verifies references, namespaces, call flows
-Test: Run `dotnet build Wa.Wsdot.Fin.Idl.slnx`
+Test: Run `dotnet build vc.Ifx.slnx`
 Pass: Zero build errors. Zero architecture analyzer warnings.
 
 ## Rule Matrix

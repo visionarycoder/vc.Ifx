@@ -19,7 +19,7 @@
     <Node Id="@108" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="System.IO.Compression.Brotli, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" DelayedChildNodesState="NotFetched" FilePath="$(ProgramFiles)\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.21\ref\net8.0\System.IO.Compression.Brotli.dll" Group="Collapsed" Label="System.IO.Compression.Brotli.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@110" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.dll">
+    <Node Id="@110" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPath)" Group="Collapsed" Label="vc.Ifx.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@112" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\mstest.testframework\3.10.2\lib\net8.0\Microsoft.VisualStudio.TestPlatform.TestFramework.dll" Group="Collapsed" Label="Microsoft.VisualStudio.TestPlatform.TestFramework.dll">
@@ -388,7 +388,7 @@
     <Node Id="@330" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.Extensions.Caching.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.extensions.caching.abstractions\9.0.9\lib\net8.0\Microsoft.Extensions.Caching.Abstractions.dll" Group="Collapsed" Label="Microsoft.Extensions.Caching.Abstractions.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@332" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Abstractions.dll">
+    <Node Id="@332" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPath)" Group="Collapsed" Label="vc.Ifx.Abstractions.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@334" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.IdentityModel.Abstractions, Version=6.35.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.identitymodel.abstractions\6.35.0\lib\net6.0\Microsoft.IdentityModel.Abstractions.dll" Group="Collapsed" Label="Microsoft.IdentityModel.Abstractions.dll">
@@ -406,7 +406,7 @@
     <Node Id="@340" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.Testing.Extensions.TrxReport.Abstractions, Version=1.8.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.testing.extensions.trxreport.abstractions\1.8.2\lib\net8.0\Microsoft.Testing.Extensions.TrxReport.Abstractions.dll" Group="Collapsed" Label="Microsoft.Testing.Extensions.TrxReport.Abstractions.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@342" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Proxy.Abstractions.dll">
+    <Node Id="@342" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPath)" Group="Collapsed" Label="vc.Ifx.Proxy.Abstractions.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@344" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.TestPlatform.PlatformAbstractions, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.testplatform.testhost\17.14.1\lib\net8.0\Microsoft.TestPlatform.PlatformAbstractions.dll" Group="Collapsed" Label="Microsoft.TestPlatform.PlatformAbstractions.dll">
@@ -460,19 +460,19 @@
     <Node Id="@374" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.ApplicationInsights, Version=2.23.0.29, Culture=neutral, PublicKeyToken=31bf3856ad364e35" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.applicationinsights\2.23.0\lib\netstandard2.0\Microsoft.ApplicationInsights.dll" Group="Collapsed" Label="Microsoft.ApplicationInsights.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@376" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Tests.dll">
+    <Node Id="@376" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPath)" Group="Collapsed" Label="vc.Ifx.Tests.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@378" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Abstractions.Tests.dll">
+    <Node Id="@378" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPath)" Group="Collapsed" Label="vc.Ifx.Abstractions.Tests.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@38" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Microsoft.Testing.Extensions.MSBuild, Version=1.8.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\microsoft.testing.platform.msbuild\1.8.2\lib\net8.0\Microsoft.Testing.Extensions.MSBuild.dll" Group="Collapsed" Label="Microsoft.Testing.Extensions.MSBuild.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@380" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Proxy.Abstractions.Tests.dll">
+    <Node Id="@380" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPath)" Group="Collapsed" Label="vc.Ifx.Proxy.Abstractions.Tests.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@382" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Proxy.Tests.dll">
+    <Node Id="@382" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPath)" Group="Collapsed" Label="vc.Ifx.Proxy.Tests.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@384" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="System.Net.Requests, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DelayedChildNodesState="NotFetched" FilePath="$(ProgramFiles)\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.21\ref\net8.0\System.Net.Requests.dll" Group="Collapsed" Label="System.Net.Requests.dll">
@@ -574,7 +574,7 @@
     <Node Id="@440" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="Azure.Identity, Version=1.15.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8" DelayedChildNodesState="NotFetched" FilePath="C:\Users\Ivan\.nuget\packages\azure.identity\1.15.0\lib\net8.0\Azure.Identity.dll" Group="Collapsed" Label="Azure.Identity.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
-    <Node Id="@442" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(d6925c79-d157-4053-8abf-c74faa8717a3.OutputPath)" Group="Collapsed" Label="VisionaryCoder.Framework.Proxy.dll">
+    <Node Id="@442" Category="CodeSchema_Assembly" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="NotFetched" FilePath="$(d6925c79-d157-4053-8abf-c74faa8717a3.OutputPath)" Group="Collapsed" Label="vc.Ifx.Proxy.dll">
       <Category Ref="FileSystem.Category.FileOfType.dll" />
     </Node>
     <Node Id="@444" Category="CodeSchema_Assembly" CodeSchemaProperty_IsExternal="True" CodeSchemaProperty_StrongName="System.Net.WebProxy, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" DelayedChildNodesState="NotFetched" FilePath="$(ProgramFiles)\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.21\ref\net8.0\System.Net.WebProxy.dll" Group="Collapsed" Label="System.Net.WebProxy.dll">
@@ -3100,22 +3100,22 @@
     </Style>
   </Styles>
   <Paths>
-    <Path Id="19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\tests\VisionaryCoder.Framework.Proxy.Tests\bin\Debug\net8.0\VisionaryCoder.Framework.Proxy.Tests.dll" />
-    <Path Id="19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/tests/VisionaryCoder.Framework.Proxy.Tests/bin/Debug/net8.0/VisionaryCoder.Framework.Proxy.Tests.dll" />
-    <Path Id="1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\src\VisionaryCoder.Framework.Abstractions\bin\Debug\net8.0\VisionaryCoder.Framework.Abstractions.dll" />
-    <Path Id="1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/src/VisionaryCoder.Framework.Abstractions/bin/Debug/net8.0/VisionaryCoder.Framework.Abstractions.dll" />
-    <Path Id="440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\tests\VisionaryCoder.Framework.Proxy.Abstractions.Tests\bin\Debug\net8.0\VisionaryCoder.Framework.Proxy.Abstractions.Tests.dll" />
-    <Path Id="440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/tests/VisionaryCoder.Framework.Proxy.Abstractions.Tests/bin/Debug/net8.0/VisionaryCoder.Framework.Proxy.Abstractions.Tests.dll" />
-    <Path Id="b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\tests\VisionaryCoder.Framework.Tests\bin\Debug\net8.0\VisionaryCoder.Framework.Tests.dll" />
-    <Path Id="b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/tests/VisionaryCoder.Framework.Tests/bin/Debug/net8.0/VisionaryCoder.Framework.Tests.dll" />
-    <Path Id="c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\tests\VisionaryCoder.Framework.Abstractions.Tests\bin\Debug\net8.0\VisionaryCoder.Framework.Abstractions.Tests.dll" />
-    <Path Id="c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/tests/VisionaryCoder.Framework.Abstractions.Tests/bin/Debug/net8.0/VisionaryCoder.Framework.Abstractions.Tests.dll" />
-    <Path Id="cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\src\VisionaryCoder.Framework.Proxy.Abstractions\bin\Debug\net8.0\VisionaryCoder.Framework.Proxy.Abstractions.dll" />
-    <Path Id="cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/src/VisionaryCoder.Framework.Proxy.Abstractions/bin/Debug/net8.0/VisionaryCoder.Framework.Proxy.Abstractions.dll" />
-    <Path Id="d6925c79-d157-4053-8abf-c74faa8717a3.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\src\VisionaryCoder.Framework.Proxy\bin\Debug\net8.0\VisionaryCoder.Framework.Proxy.dll" />
-    <Path Id="d6925c79-d157-4053-8abf-c74faa8717a3.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/src/VisionaryCoder.Framework.Proxy/bin/Debug/net8.0/VisionaryCoder.Framework.Proxy.dll" />
-    <Path Id="e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPath" Value="C:\Dev\GitHub\VisionaryCoder\vc\src\VisionaryCoder.Framework\bin\Debug\net8.0\VisionaryCoder.Framework.dll" />
-    <Path Id="e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPathUri" Value="file:///C:/Dev/GitHub/VisionaryCoder/vc/src/VisionaryCoder.Framework/bin/Debug/net8.0/VisionaryCoder.Framework.dll" />
+    <Path Id="19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\tests\vc.Ifx.Proxy.Tests\bin\Debug\net8.0\vc.Ifx.Proxy.Tests.dll" />
+    <Path Id="19950d84-f489-48bc-a55f-8e8fcdbffabc.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/tests/vc.Ifx.Proxy.Tests/bin/Debug/net8.0/vc.Ifx.Proxy.Tests.dll" />
+    <Path Id="1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\src\vc.Ifx.Abstractions\bin\Debug\net8.0\vc.Ifx.Abstractions.dll" />
+    <Path Id="1badfa89-eebc-4818-bed3-333fce9b63d7.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/src/vc.Ifx.Abstractions/bin/Debug/net8.0/vc.Ifx.Abstractions.dll" />
+    <Path Id="440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\tests\vc.Ifx.Proxy.Abstractions.Tests\bin\Debug\net8.0\vc.Ifx.Proxy.Abstractions.Tests.dll" />
+    <Path Id="440bf4bb-5054-4cfa-a65a-d33290b2e47c.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/tests/vc.Ifx.Proxy.Abstractions.Tests/bin/Debug/net8.0/vc.Ifx.Proxy.Abstractions.Tests.dll" />
+    <Path Id="b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\tests\vc.Ifx.Tests\bin\Debug\net8.0\vc.Ifx.Tests.dll" />
+    <Path Id="b52ff991-2a64-45d0-804f-e8f9576b55f2.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/tests/vc.Ifx.Tests/bin/Debug/net8.0/vc.Ifx.Tests.dll" />
+    <Path Id="c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\tests\vc.Ifx.Abstractions.Tests\bin\Debug\net8.0\vc.Ifx.Abstractions.Tests.dll" />
+    <Path Id="c964bf28-4a11-48ab-92e4-9e25c915d7d6.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/tests/vc.Ifx.Abstractions.Tests/bin/Debug/net8.0/vc.Ifx.Abstractions.Tests.dll" />
+    <Path Id="cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\src\vc.Ifx.Proxy.Abstractions\bin\Debug\net8.0\vc.Ifx.Proxy.Abstractions.dll" />
+    <Path Id="cb224681-b6b9-49d4-b019-19a4a25a2185.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/src/vc.Ifx.Proxy.Abstractions/bin/Debug/net8.0/vc.Ifx.Proxy.Abstractions.dll" />
+    <Path Id="d6925c79-d157-4053-8abf-c74faa8717a3.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\src\vc.Ifx.Proxy\bin\Debug\net8.0\vc.Ifx.Proxy.dll" />
+    <Path Id="d6925c79-d157-4053-8abf-c74faa8717a3.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/src/vc.Ifx.Proxy/bin/Debug/net8.0/vc.Ifx.Proxy.dll" />
+    <Path Id="e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPath" Value="C:\Dev\GitHub\vc.Ifx\vc\src\vc.Ifx\bin\Debug\net8.0\vc.Ifx.dll" />
+    <Path Id="e4f7f080-29ec-4d7b-bd0b-ea6dc39c0676.OutputPathUri" Value="file:///C:/Dev/GitHub/vc.Ifx/vc/src/vc.Ifx/bin/Debug/net8.0/vc.Ifx.dll" />
     <Path Id="ProgramFiles" Value="C:\Program Files" />
     <Path Id="ProgramFilesUri" Value="file:///C:/Program Files" />
   </Paths>

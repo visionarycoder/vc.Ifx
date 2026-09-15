@@ -13,7 +13,7 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project scri
 
 The wrapper owns the repository mutex; all child builds/packs use one MSBuild node
 and disable parallel project builds. Do not invoke the internal script directly.
-Each invocation creates fresh `TestResults/compiler-host-packages/<id>` artifacts,
+Each invocation creates fresh `test-results/compiler-host-packages/<id>` artifacts,
 retains failures, and publishes nothing. Templates are copied into that directory;
 the host/consumer projects have no repository project references and disable shared
 build imports. NuGet's vc.Ifx source mapping and a fresh cache prevent old same-version
@@ -53,7 +53,7 @@ packages from masking a packaging regression.
 
 ## Green Evidence: 2026-09-10
 
-Passed run: `TestResults/compiler-host-packages/b096e65d29104d539734b3e9247c8502`.
+Passed run: `test-results/compiler-host-packages/b096e65d29104d539734b3e9247c8502`.
 The command above completed with zero warnings/errors and exit code zero.
 
 - Five fresh stable `1.0.0` archives pass metadata, layout, symbols and Source Link.
@@ -78,7 +78,7 @@ The command above completed with zero warnings/errors and exit code zero.
 
 ## Red Evidence: 2026-09-10
 
-Prior failing run: `TestResults/compiler-host-packages/dbcd31f85ca74b71879bc1e252cc526b`.
+Prior failing run: `test-results/compiler-host-packages/dbcd31f85ca74b71879bc1e252cc526b`.
 This remains the retained duplication reproduction, not current green evidence.
 
 - All five stable `1.0.0` archives pass layout/symbol/Source Link validation.

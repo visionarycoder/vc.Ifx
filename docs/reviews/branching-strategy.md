@@ -85,4 +85,4 @@ flowchart LR
 - [Release checklist](release-checklist.md)
 - [CI quality and publishing](../../.infra/yaml/README.md)
 - [Quarterly review](quarterly-radar-review.md)
-- [Technology radar](../best-practices/radar.md)
+- [Architecture radar](quarterly-radar-review.md)

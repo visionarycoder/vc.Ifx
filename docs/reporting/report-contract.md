@@ -90,7 +90,7 @@ for both measures and line total >0; branchless 0/0 has unknown percentage, not 
 
 CI captures project-specific SARIF and Compile manifests during the same clean
 build, then tests/coverage, then reporting, then pack. Reports are retained with
-TestResults even on gate failure. Local scoped reports must be labeled scoped and
+test-results even on gate failure. Local scoped reports must be labeled scoped and
 cannot serve as full integration evidence. No publishing or hosted settings changes.
 
 ## References

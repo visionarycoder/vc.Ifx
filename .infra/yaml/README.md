@@ -64,7 +64,7 @@ Warnings are errors for compilation and restore; NuGet audits the complete
 dependency graph. Package validation preserves the existing metadata, dependency,
 README, symbol, and Source Link checks.
 
-`TestResults/**` is retained for 14 days even on failure. The absence of artifacts
+`test-results/**` is retained for 14 days even on failure. The absence of artifacts
 after a pre-build failure is reported as an upload warning, not a replacement for
 the already-failed quality job. Package uploads use the exact validated staging directory and manifest inventory,
 not a broad archive glob; the validator's deliberately broken fixtures remain outside

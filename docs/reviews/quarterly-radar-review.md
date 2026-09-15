@@ -45,7 +45,7 @@ Ensure the Solution Architect Radar and Best Practice Capsules remain accurate, 
 
 ## Actions
 
-- **Radar update:** Edit best-practices/radar.md (quadrant lists + Mermaid diagram).
+- **Radar update:** Edit this review document (quadrant lists + Mermaid diagram).
 - **Capsule edits:** Update READMEs (principles, tooling, patterns) with examples.
 - **ADRs:** Draft new ADRs (ADR-XXXX) for significant shifts; link from radar and capsules.
 - **Issues:** Open GitHub issues for tasks; tag with `radar`, `capsule`, `adr`.
@@ -107,4 +107,4 @@ timeline
 ## Related Visuals
 
 - [Branching Strategy Diagram](branching-strategy.md#branching-strategy-playbook)
-- [Radar Quadrants](../best-practices/radar.md#visual-radar-mermaid)
+- [Radar Review](quarterly-radar-review.md#visual-radar-mermaid)

@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
 Import-Module (Join-Path $root 'scripts/packaging/PackageArtifactManifest.psm1') -Force
-$directory = Join-Path $root "TestResults/package-artifact-tests/$([Guid]::NewGuid().ToString('N'))"
+$directory = Join-Path $root "test-results/package-artifact-tests/$([Guid]::NewGuid().ToString('N'))"
 $null = New-Item -ItemType Directory -Path $directory
 $script:passed = 0
 $revision = 'a' * 40

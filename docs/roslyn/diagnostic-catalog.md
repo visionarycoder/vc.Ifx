@@ -62,7 +62,7 @@ These existing three-digit IDs remain owned by vc.Ifx.Analyzers. Only IFX001 is 
 
 Other analyzer-local families are VBD architecture rules, SEC security rules and CQ code-quality constants. Generator-local GEN001 (Mapping Error, Mapping, Error) and GEN002 (Enumeration value out of range, Generation, Error) have no fix or help link and are not shared descriptors. GEN002 rejects enumeration members outside the Int32 base contract; its source, release tracking and legacy-generator tests are already implemented. Gate 3 retains these existing generator IDs as an explicit legacy-prefix compatibility exception, not permission to allocate further GEN diagnostics. New framework diagnostics use IFX plus four digits; no ID is added or renumbered by this reconciliation.
 
-IFX001 recognizes the resolved `Ifx.Proxy.ProxyContractAttribute` on interfaces, exact `System.Threading.Tasks.Task` / `Task<T>` returns, then `VisionaryCoder.Framework.ServiceRequest` and `System.Threading.CancellationToken` parameter types in that order. TaskFactory and lookalike request types fail. Nonordinary interface members and unannotated interfaces are ignored. These historical attribute/request identities are retained for compatibility, not retargeted to unrelated generator abstractions. IFX002 similarly retains `Wsdot.Idl.Ifx.Attributes.RefactorAttribute`; absent reason/owner values use the documented diagnostic defaults.
+IFX001 recognizes the resolved `Ifx.Proxy.ProxyContractAttribute` on interfaces, exact `System.Threading.Tasks.Task` / `Task<T>` returns, then `vc.Ifx.ServiceRequest` and `System.Threading.CancellationToken` parameter types in that order. TaskFactory and lookalike request types fail. Nonordinary interface members and unannotated interfaces are ignored. These historical attribute/request identities are retained for compatibility, not retargeted to unrelated generator abstractions. IFX002 similarly retains `Wsdot.Idl.Ifx.Attributes.RefactorAttribute`; absent reason/owner values use the documented diagnostic defaults.
 
 IFX003/004 normalize constructed generic references to original definitions and isolate state per compilation. Reports have stable symbol ordering. These are usage heuristics, not reachability/linker proofs; reflection and DI need explicit review. IFX004 retains discovery exemptions for recognized serializer, ORM, data-annotation and MSTest attributes. IFX005 remains a source-order preference only; it does not authorize requests or prove authorization equivalence. IFX006 counts classes through nested namespace declarations but prunes nested types; records/structs remain outside this legacy class-only policy.
 
@@ -182,11 +182,53 @@ Metric policy `ifx-control-nesting-v1`: measure the maximum number of enclosing 
 
 Cyclomatic complexity remains upstream [CA1502](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1502); no IFX clone is introduced. Source method length and parameter-count policies are deferred. Existing CQ helpers remain compatibility code, not automatically registered analyzers.
 
+### IFX1200
+
+| Field | Contract |
+| --- | --- |
+| Owner / emitter | vc.Ifx / vc.Ifx.Analyzers |
+| Category | Reliability |
+| Default severity / enabled | Warning / true |
+| Title | Avoid async void methods |
+| Message | Method '{0}' is declared 'async void'; use 'async Task' unless this is a recognized event handler |
+| Help link | [IFX1200](https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#ifx1200) |
+| Fix availability | `Ifx1200NoAsyncVoidMethodCodeFixProvider` changes the method's return type to `Task`, adding a `System.Threading.Tasks` using directive when absent |
+
+Reports ordinary `async void` methods whose caller cannot observe or await the resulting exception. Excludes methods that override a base member, implement an interface member (implicit or explicit), and the classic two-parameter `(object sender, TEventArgs e)` event-handler shape where the second parameter derives from `System.EventArgs`. Local functions and anonymous functions are outside this method-declaration-scoped rule. The code fix declines when the diagnosed method no longer matches the reported shape, matching the analyzer's own recognized-exception checks.
+
+### IFX1300
+
+| Field | Contract |
+| --- | --- |
+| Owner / emitter | vc.Ifx / vc.Ifx.Analyzers |
+| Category | Reliability |
+| Default severity / enabled | Warning / true |
+| Title | Do not block on asynchronous work |
+| Message | Blocking call '{0}' on an asynchronous operation can cause deadlocks; use 'await' instead |
+| Help link | [IFX1300](https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#ifx1300) |
+| Fix availability | None; propagate `async`/`await` manually. Mechanical rewrite risks changing execution context and exception-flattening behavior |
+
+Flags synchronous blocking on `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>` operations: `Task<T>.Result` property access, instance `Wait()`, static `Task.WaitAll`/`Task.WaitAny`, and `GetAwaiter().GetResult()` chains. Detection uses `IOperation` (property reference and invocation) rather than syntax matching, so it recognizes the pattern regardless of local aliasing. Reports on the member/invocation name location. Generated code is excluded and cancellation is honored throughout.
+
+### IFX1400
+
+| Field | Contract |
+| --- | --- |
+| Owner / emitter | vc.Ifx / vc.Ifx.Analyzers |
+| Category | Naming |
+| Default severity / enabled | Warning / true |
+| Title | Identifier should not use a leading underscore prefix |
+| Message | '{0}' should not use a leading underscore; rename without the underscore prefix |
+| Help link | [IFX1400](https://github.com/visionarycoder/vc.Ifx/blob/main/docs/roslyn/diagnostic-catalog.md#ifx1400) |
+| Fix availability | `Ifx1400NoUnderscorePrefixedIdentifierCodeFixProvider` performs a solution-wide `Renamer.RenameSymbolAsync` rename stripping the leading underscore(s) |
+
+Enforces the repository's explicit no-underscore-prefix identifier convention for private fields, parameters, and local variables (including `for`/`using`/`fixed` declarators). The exact single-character `_` discard identifier is not flagged. The code fix declines when the replacement name is empty, collides with another member/parameter/local/local-function/pattern-designation in the same scope, or the symbol is not a private field, parameter, or local.
+
 ### Repository Ownership Inventory
 
 The source/configuration audit found recurring references to CA1822, CS0168, CA1062, CA1806, CA1823, CA1502, CA1801, CA2207, CA2007, CA1051, CA1303, CA1707, CA1825, CA1819, CA1824, CA1848, CA2000, and CS8981. These are source references/configuration, not a count of actual build violations. All remain upstream-owned; existing CA providers are code-fix-only, and their limitations remain in the remediation inventory above. CA1801 is obsolete in favor of IDE0060. Legacy CA1704/CA1413 support is not a new analyzer requirement. CA1502 remains upstream complexity policy; disposal CA2000, await CA2007, logging CA1848, nullable CS diagnostics, and using/style diagnostics receive no duplicate IFX emitter. Suppressed/ignored entries in consumer configuration do not transfer ownership or justify new rules.
 
-The discoverable preexisting analyzers are DiagnosticDebtAnalyzer and Ifx001Signature. Other framework/VBD/SEC/CQ types retain tested Initialize helpers but no DiagnosticAnalyzer export. Compatibility retention does not justify activating upstream-overlapping rules. This work adds only MethodNestingAnalyzer as a discoverable analyzer; tests lock that exact export set.
+The discoverable preexisting analyzers are DiagnosticDebtAnalyzer and Ifx001Signature. Other framework/VBD/SEC/CQ types retain tested Initialize helpers but no DiagnosticAnalyzer export. Compatibility retention does not justify activating upstream-overlapping rules. This work adds MethodNestingAnalyzer, Ifx1200NoAsyncVoidMethod, Ifx1300NoSyncOverAsyncBlocking, and Ifx1400NoUnderscorePrefixedIdentifier as discoverable analyzers; tests lock that exact export set.
 
 ## Endpoint Generator Diagnostics
 
@@ -210,7 +252,7 @@ attribute applications are left to the C# compiler.
 
 Help link for all eight descriptors: [endpoint contract and diagnostic policy](minimal-api-generator-contract.md#duplicate-policy-and-diagnostics).
 Release tracking is in `src/vc.Ifx.Generators/AnalyzerReleases.Unshipped.md`.
-Tests are under `tests/unit/vc.Ifx.UnitTests/Generators/Implementation`.
+Tests are under `tests/unit/Ifx.UnitTests/Generators/Implementation`.
 The parser compares equivalent parameterized templates, including parameter-name
 aliases; custom constraint overlap and collisions with external/manual registries
 remain ASP.NET routing/integration-test responsibilities. Invalid handlers and all
@@ -234,8 +276,8 @@ emits IFX1000 once. No provider source changed. See the
 [support matrix](code-fix-support-matrix.md#package-composition) for the handoff
 and host limits; Gate 3 did not rerun these package checks.
 
-The analyzer and debt code fix consume the shared `DiagnosticPropertyNames.DiagnosticId` constant and `ReferenceMatcher`. The CodeFixes catalog handoff is reconciled to the accepted [support matrix](code-fix-support-matrix.md): three exported provider types cover IFX1000/1001, IFX005 and CA1062; 15 legacy providers are retired. Strict local evidence is 96/96 tests, 194/194 lines and 176/176 branches in `TestResults/coverage/vc.Ifx.CodeFixes/519d738e3ea74577b777bfa81c31bf07/summary.json`. IFX1100 remains analyzer-local because no generator or code fix needs a shared descriptor yet. This documentation reconciliation adds no diagnostic or provider and does not claim fresh package-host verification.
+The analyzer and debt code fix consume the shared `DiagnosticPropertyNames.DiagnosticId` constant and `ReferenceMatcher`. The CodeFixes catalog handoff is reconciled to the accepted [support matrix](code-fix-support-matrix.md): three exported provider types cover IFX1000/1001, IFX005 and CA1062; 15 legacy providers are retired. Strict local evidence is 96/96 tests, 194/194 lines and 176/176 branches in `test-results/coverage/vc.Ifx.CodeFixes/519d738e3ea74577b777bfa81c31bf07/summary.json`. IFX1100 remains analyzer-local because no generator or code fix needs a shared descriptor yet. This documentation reconciliation adds no diagnostic or provider and does not claim fresh package-host verification.
 
-Tests in `tests/unit/vc.Ifx.UnitTests/Roslyn/SharedContracts` cover descriptor metadata, immutable ordered catalog, existing consumer compatibility, property/message transport, matcher boundaries and null handling. Syntax/semantic helpers and metrics are not applicable because none are exported. Package coverage applies to executable shared code only; compiler-inlined constants have no sequence points.
+Tests in `tests/unit/Ifx.UnitTests/Roslyn/SharedContracts` cover descriptor metadata, immutable ordered catalog, existing consumer compatibility, property/message transport, matcher boundaries and null handling. Syntax/semantic helpers and metrics are not applicable because none are exported. Package coverage applies to executable shared code only; compiler-inlined constants have no sequence points.
 
-Analyzer policy tests live separately in `tests/unit/vc.Ifx.UnitTests/Roslyn/Analyzers`, with full legacy coverage in its `Legacy` subfolder. The 2026-09-09 strict serialized coverage run passed 506 tests, including 46 original debt/shared-contract regressions. Whole vc.Ifx.Analyzers measured 100% lines (2024/2024), branches (1090/1090), and methods without new coverage exclusions. Evidence: `TestResults/coverage/vc.Ifx.Analyzers/4803bd0e0a104e059b89cc2595043c1c/vc.Ifx.UnitTests/coverage.opencover.xml`. The analyzer-only serialized build passed with 0 warnings/errors. This scoped checkpoint is superseded by [final local acceptance](../planning/local-verification-20260910.md), which passed full solution, suite, strict coverage, reporting, and package checks. Hosted execution and hands-on IDE acceptance remain open. CodeFixes implementation/package handoff is accepted and its worker is closed; IFX2000-2007 remain the frozen generator-owned allocation. This bounded Gate 3 documentation handoff does not reopen those implementations.
+Analyzer policy tests live separately in `tests/unit/Ifx.UnitTests/Roslyn/Analyzers`, with full legacy coverage in its `Legacy` subfolder. The 2026-09-09 strict serialized coverage run passed 506 tests, including 46 original debt/shared-contract regressions. Whole vc.Ifx.Analyzers measured 100% lines (2024/2024), branches (1090/1090), and methods without new coverage exclusions. Evidence: `test-results/coverage/vc.Ifx.Analyzers/4803bd0e0a104e059b89cc2595043c1c/vc.Ifx.UnitTests/coverage.opencover.xml`. The analyzer-only serialized build passed with 0 warnings/errors. This scoped checkpoint is superseded by [final local acceptance](../planning/local-verification-20260910.md), which passed full solution, suite, strict coverage, reporting, and package checks. Hosted execution and hands-on IDE acceptance remain open. CodeFixes implementation/package handoff is accepted and its worker is closed; IFX2000-2007 remain the frozen generator-owned allocation. This bounded Gate 3 documentation handoff does not reopen those implementations.

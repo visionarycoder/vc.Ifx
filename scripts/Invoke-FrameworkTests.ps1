@@ -3,7 +3,7 @@
 param(
     [Parameter(ParameterSetName = 'Test')]
     [Parameter(ParameterSetName = 'Build')]
-    [string] $Project = 'tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj',
+    [string] $Project = 'tests/unit/Ifx.UnitTests/Ifx.UnitTests.csproj',
     [Parameter(ParameterSetName = 'Test')]
     [Parameter(ParameterSetName = 'Coverage')][string] $Filter,
     [Parameter(ParameterSetName = 'Test')]
@@ -87,7 +87,7 @@ try {
         }
         if ($Filter) { $arguments += @('--filter', $Filter) }
         if (-not $BuildOnly) {
-            $results = Join-Path $repoRoot "TestResults/tests/$([IO.Path]::GetFileNameWithoutExtension($projectPath))/$([Guid]::NewGuid().ToString('N'))"
+            $results = Join-Path $repoRoot "test-results/tests/$([IO.Path]::GetFileNameWithoutExtension($projectPath))/$([Guid]::NewGuid().ToString('N'))"
             $arguments += @('--logger', 'trx;LogFileName=tests.trx', '--results-directory', $results,
                 '--blame-hang', '--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none')
             Write-Host "Test artifacts: $results"

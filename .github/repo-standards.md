@@ -19,7 +19,7 @@ Ensure that all generated code, documentation, and automation in this repository
 
 ## General Repo Hygiene
 
-- Always respect `.copilotignore` and `.editorconfig` rules.
+- Always respect `.gitignore` and `.editorconfig` rules.
 - Follow **conventional commit messages** (`feat:`, `fix:`, `docs:`, `chore:`).
 - Keep PRs small, focused, and linked to an ADR or issue.
 - Avoid committing secrets, credentials, or machine-specific configs.
@@ -31,8 +31,8 @@ Ensure that all generated code, documentation, and automation in this repository
 - **Source code** lives under `/src/`.
 - **Tests** live under `/tests/` with mirrored structure.
 - **Docs** live under `/docs/` (onboarding, ADRs, contributing).
-- **Best practices** live under `/best-practices/` (capsules + radar).
-- **Copilot instructions** live under `/.copilot/`.
+- **Best practices** live under `/.github/skills/`, with the catalog in `.github/skills-index.md`.
+- **Copilot instructions** live under `/.github/`.
 
 ---
 
@@ -62,8 +62,8 @@ Ensure that all generated code, documentation, and automation in this repository
   - Purpose
   - Setup instructions
   - Example usage
-- Architecture decisions must be captured as **ADRs** in `/docs/architecture-decision-records/`.
-- Best practices must be modularized into **capsules** under `/best-practices/`.
+- Architecture decisions must be captured as **ADRs** in `/docs/adr/`.
+- Best practices must be modularized into **skills** under `/.github/skills/`.
 
 ---
 
@@ -101,9 +101,9 @@ When generating code or docs:
 
 ### Extended Instruction References
 
-- Base aggregation & domain index: `.copilot/copilot-instructions.md`
-- Core C# heuristics: `.copilot/csharp.instructions.md`
-- Pattern examples: `.copilot/design-patterns.instructions.md`
+- Base aggregation & domain index: `.github/copilot-instructions.md`
+- Core C# heuristics: `.github/instructions/csharp.instructions.md`
+- Pattern examples: `.github/instructions/design-patterns.instructions.md`
 
 ---
 

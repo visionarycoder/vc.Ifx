@@ -91,7 +91,7 @@ Provide domain-aware heuristics for generating clean, modern, testable C# 12 / .
 
 ## Patterns Reference
 - Strategy, Decorator, Mediator, Repository, CQRS: choose for clarity, not ceremony.
-- See `.copilot/design-patterns.instructions.md` for exemplar format and pattern scaffolds.
+- See `.github/instructions/design-patterns.instructions.md` for exemplar format and pattern scaffolds.
 
 ## Output Checklist (Before Finalizing)
 1. File + namespace alignment verified.

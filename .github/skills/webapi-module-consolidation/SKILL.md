@@ -67,7 +67,7 @@ Agent reorganizes Portal and Scheduler APIs into versioned business modules so t
 
 | Test | Run | Pass |
 |---|---|---|
-| Build verification | `dotnet build [project].csproj` or `dotnet build Wa.Wsdot.Fin.Idl.slnx` when the changed project belongs to the primary solution | Zero compile errors |
+| Build verification | `dotnet build [project].csproj` or `dotnet build vc.Ifx.slnx` when the changed project belongs to the primary solution | Zero compile errors |
 | HTTP verification | Existing integration tests or targeted `dotnet test [test-project].csproj` | Routes, status codes, auth, and content types pass |
 | Contract verification | Existing OpenAPI generation path | Operation IDs and schemas stay deterministic |
 

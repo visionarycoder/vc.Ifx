@@ -175,7 +175,7 @@ public sealed class HierarchyService
 
 | Check | Test | Pass |
 |---|---|---|
-| Front matter | Run `node .scripts/validate-frontmatter.js --check`. | Command returns code `0`. |
+| Front matter | Run `node scripts/validate-frontmatter.js --check`. | Command returns code `0`. |
 | Link integrity | Open `../SKILL.md` and related skill links. | All local references resolve. |
 | Validation coverage | Review inactive, missing-segment, and incompatible-pair cases. | Each case maps to one explicit validator outcome. |
 | Rollup integrity | Run ancestor traversal and parent-total samples. | Parent totals match governed leaf totals. |

@@ -55,8 +55,8 @@ The following directories are **trusted**. Copilot freely reads, suggests edits,
 | `infrastructure/`  | Full trust       | IaC definitions and deployment configs               |
 | `.scripts/`        | Full trust       | Automation, build, and package-management scripts     |
 | `docs/`            | Full trust       | Documentation hub; governance rules apply (§2)        |
-| `Databases/`       | Full trust       | Database projects — managed under their own solution (`Databases.slnx`); **not** part of `Wa.Wsdot.Fin.Idl.slnx` |
-| `tools/`           | Full trust       | Independent utility applications — each tool is its own standalone solution; **not** part of `Wa.Wsdot.Fin.Idl.slnx` |
+| `Databases/`       | Full trust       | Database projects — managed under their own solution (`Databases.slnx`); **not** part of `vc.Ifx.slnx` |
+| `tools/`           | Full trust       | Independent utility applications — each tool is its own standalone solution; **not** part of `vc.Ifx.slnx` |
 
 ### Solution Membership
 
@@ -64,12 +64,12 @@ Not all trusted directories belong to the same solution. Always use the correct 
 
 | Directory    | Solution File                    | Notes                                      |
 |--------------|----------------------------------|--------------------------------------------|
-| `AzureAPI/`, `Tests/`, `src/` | `Wa.Wsdot.Fin.Idl.slnx` | Primary application solution              |
+| `AzureAPI/`, `Tests/`, `src/` | `vc.Ifx.slnx` | Primary application solution              |
 | `Databases/` | `Databases/Databases.slnx`       | All database projects in one solution      |
 | `tools/`     | `tools/<ToolName>/<ToolName>.slnx` | Each tool is an independent solution     |
 
-- **Do not** add projects from `Databases/` or `tools/` to `Wa.Wsdot.Fin.Idl.slnx`.
-- When generating build or test commands for `Databases/` or `tools/`, reference the correct solution — never default to `Wa.Wsdot.Fin.Idl.slnx`.
+- **Do not** add projects from `Databases/` or `tools/` to `vc.Ifx.slnx`.
+- When generating build or test commands for `Databases/` or `tools/`, reference the correct solution — never default to `vc.Ifx.slnx`.
 
 ### Restricted Directories
 
@@ -88,15 +88,15 @@ Agent suggests and generates the following command patterns without additional c
 
 ```powershell
 # ── .NET: Restore & Build ──────────────────────────────────────────────────
-dotnet restore Wa.Wsdot.Fin.Idl.slnx
-dotnet build Wa.Wsdot.Fin.Idl.slnx
+dotnet restore vc.Ifx.slnx
+dotnet build vc.Ifx.slnx
 dotnet build <project>.csproj
 dotnet format analyzers <project>.csproj
 
 # ── .NET: Testing ─────────────────────────────────────────────────────────
-dotnet test Wa.Wsdot.Fin.Idl.slnx
+dotnet test vc.Ifx.slnx
 dotnet test <project>.csproj
-dotnet test Wa.Wsdot.Fin.Idl.slnx --collect:"XPlat Code Coverage"
+dotnet test vc.Ifx.slnx --collect:"XPlat Code Coverage"
 
 # ── Package Management ────────────────────────────────────────────────────
 .\.scripts\Update-CentralPackageVersions.ps1          # dry run
@@ -186,7 +186,7 @@ If no existing pattern is detectable, fall back to the language-standard default
 | IaC resources        | Match the naming pattern of existing resources in the same config file                                                         |
 | Test files           | Mirror the source file name using the project's existing suffix pattern (e.g., `*Tests.cs`, `*.UnitTests.csproj`)              |
 | CLI scripts          | Match the delimiter and casing of existing scripts in `.scripts/`                                                              |
-| NuGet packages       | Follow the `Wa.Wsdot.Fin.Idl.<Layer>.<Component>` namespace pattern established in the solution                               |
+| NuGet packages       | Follow the `vc.Ifx.<Layer>.<Component>` namespace pattern established in the solution                               |
 
 ### 5.3 Language-Standard Fallbacks
 
@@ -298,7 +298,7 @@ When asked to review code, Copilot performs:
 
 **MSBuild conventions:**
 - Projects automatically detect if they are test projects (suffix: `Test`, `Tests`, `UnitTests`, `IntegrationTests`)
-- Root namespace: `Wa.Wsdot.Fin.Idl.{ProjectName}` (non-test projects)
+- Root namespace: `vc.Ifx.{ProjectName}` (non-test projects)
 - Nullable reference types enabled for all .NET 10 projects
 - Custom analyzers/code fixes/generators in `src/ifx/` are automatically applied to all non-test projects
 - Test projects expose internals via `InternalsVisibleTo` (see `Directory.Build.props`)
@@ -407,4 +407,4 @@ If a user instruction in chat conflicts with a rule in this file:
 
 ---
 
-*Last updated: 2026-08-30 | Owner: Ivan | Scope: Wa.Wsdot.Fin.Idl repository*
+*Last updated: 2026-08-30 | Owner: Ivan | Scope: vc.Ifx repository*

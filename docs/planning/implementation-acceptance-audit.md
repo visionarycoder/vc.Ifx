@@ -79,8 +79,8 @@ remains with infrastructure/Orchestrator; no development Visual Studio is instal
   Gate 3 did not rerun its build or exercise Visual Studio.
 - Existing evidence in `docs/packaging/documentation-project-integration.md:3`
   now records 14 passing CLI checks, artifact
-  `TestResults/docs-project/97a0183382a744cb9ffcb6d700d3678c`.
-  `TestResults/docs-solution-probe/build.log` records the **old** isolated
+  `test-results/docs-project/97a0183382a744cb9ffcb6d700d3678c`.
+  `test-results/docs-solution-probe/build.log` records the **old** isolated
   plain-MSBuild probe's NU1503/missing-restore warning, not a proven failure of the
   new SDK correction. Its items.json proves old standalone items, not IDE behavior.
 
@@ -239,7 +239,7 @@ does not duplicate those workers or claim their global acceptance.
 - Proxy README now explicitly accepts Azure.Identity/AppConfiguration's 1.x
   dependency footprint; extraction requires a future versioned migration.
 - Observability README explicitly retains the public `Observibility` namespace.
-  Aggregator retains Wa.Wsdot public identities; Primitives retains existing EF/ASP.NET
+  Aggregator retains vc.Ifx public identities; Primitives retains existing EF/ASP.NET
   adapters; Secrets.Abstractions retains passive BCL-only KeyVaultOptions. These are
   compatibility exceptions, not remaining namespace-removal assignments.
 - Proxy/Pipeline IInterceptor names describe different execution contracts.
@@ -252,7 +252,7 @@ These are existing reports read during this audit, not newly executed tests or a
 combined final-source certification. Counts are copied from passing package summary
 JSON; older Roslyn/Secrets.Abstractions counts are OpenCover sequence points.
 For ordinary rows, the artifact is
-`TestResults/coverage/<package>/<run>/summary.json`. A zero branch count is not a
+`test-results/coverage/<package>/<run>/summary.json`. A zero branch count is not a
 missing branch-coverage report. Local evidence exists for all 28 source libraries.
 
 | Package | Lines covered/total | Branches covered/total | Run |
@@ -315,7 +315,7 @@ pwsh -NoProfile -File scripts/Test-FrameworkDependencies.ps1 -SelfTest
 
 Live result: 36 projects, 28 source libraries, exactly one non-packable docs
 project; no inventory/reference/cycle/boundary failures. SelfTest: 25 probes;
-fixtures `TestResults/dependency-audit/112648a24d724a40a02974dae33cd863`.
+fixtures `test-results/dependency-audit/112648a24d724a40a02974dae33cd863`.
 Static declared XML checks do not prove evaluated imported references/packability.
 
 CodeFixes package-owner handoff is accepted: no Analyzers project reference or

@@ -33,4 +33,4 @@ target_audience: "both"
 ## Related documentation
 
 - [Architecture playbook](../index.md)
-- [Best practices](../best-practices/radar.md)
+- [Architecture reviews](../reviews/quarterly-radar-review.md)

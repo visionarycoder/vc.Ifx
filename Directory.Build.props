@@ -1,10 +1,13 @@
 <Project>
     <!-- Scoped test builds must select intermediate paths before SDK/NuGet imports. -->
-    <PropertyGroup Condition="'$(IfxTestSourceScope)' != '' AND ('$(MSBuildProjectName)' == 'vc.Ifx.UnitTests' OR '$(MSBuildProjectName)' == 'vc.Ifx.IntegrationTests')">
+    <PropertyGroup Condition="'$(IfxTestSourceScope)' != '' AND ('$(MSBuildProjectName)' == 'Ifx.UnitTests' OR '$(MSBuildProjectName)' == 'Ifx.IntegrationTests' OR '$(MSBuildProjectName)' == 'vc.Ifx.UnitTests' OR '$(MSBuildProjectName)' == 'vc.Ifx.IntegrationTests')">
         <IfxEffectiveTestOutputKey>$(IfxTestSourceScope)</IfxEffectiveTestOutputKey>
         <IfxEffectiveTestOutputKey Condition="'$(IfxTestOutputKey)' != ''">$(IfxTestOutputKey)</IfxEffectiveTestOutputKey>
         <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/scoped/$(IfxEffectiveTestOutputKey)/</BaseIntermediateOutputPath>
         <BaseOutputPath>$(MSBuildProjectDirectory)/bin/scoped/$(IfxEffectiveTestOutputKey)/</BaseOutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
     </PropertyGroup>
 
@@ -28,8 +31,11 @@
 
         <!-- NuGet Package Settings -->
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Authors>Visionary Coder</Authors>
-        <Company>Visionary Coder</Company>
+        <!-- Single shared package output so every project in this repo, and other solutions
+             that add this folder as a local NuGet source, resolve packages from one place. -->
+        <PackageOutputPath>$(MSBuildThisFileDirectory).nupkgs\</PackageOutputPath>
+        <Authors>Ifx</Authors>
+        <Company>Ifx</Company>
         <Copyright>Copyright © $([System.DateTime]::Now.Year)</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>

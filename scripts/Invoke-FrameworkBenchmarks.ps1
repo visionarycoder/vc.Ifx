@@ -14,7 +14,7 @@ $identity = if ($IsWindows) { $root.ToUpperInvariant() } else { $root }
 $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity)))
 $mutex = [Threading.Mutex]::new($false, "vc.Ifx.FrameworkTests.$digest")
 $acquired = $false
-$run = Join-Path $root "TestResults/benchmarks/$([Guid]::NewGuid().ToString('N'))"
+$run = Join-Path $root "test-results/benchmarks/$([Guid]::NewGuid().ToString('N'))"
 try {
     Write-Host 'Waiting for exclusive framework build/test/benchmark access...'
     try { $acquired = $mutex.WaitOne([TimeSpan]::FromSeconds($LockTimeoutSeconds)) }

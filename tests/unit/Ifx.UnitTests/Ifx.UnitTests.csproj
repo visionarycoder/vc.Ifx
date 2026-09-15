@@ -1,0 +1,79 @@
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="BaseIntermediateOutputPath;BaseOutputPath;IfxCoveragePackage;IfxTestPackage;IfxTestSourceScope;IfxTestOutputKey">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>Ifx.Tests</RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- Disable Roslyn/.NET analyzers for test project -->
+    <RunAnalyzers>false</RunAnalyzers>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Configuration\**" />
+    <Compile Remove="Primitives\MonthTests.cs" />
+    <Compile Remove="Proxy\AuthenticationValueContractTests.cs" />
+    <Compile Remove="Proxy\LocalConfigurationContractTests.cs" />
+    <Compile Remove="Querying\QueryContractTests.cs" />
+    <EmbeddedResource Remove="Configuration\**" />
+    <None Remove="Configuration\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Roslyn\Ifx.Roslyn.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Roslyn.Reporting\Ifx.Roslyn.Reporting.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Analyzers\Ifx.Analyzers.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Analyzers.Abstractions\Ifx.Analyzers.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.CodeFixes\Ifx.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Abstractions\Ifx.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Filtering\Ifx.Filtering.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Filtering.EntityFrameworkCore\Ifx.Filtering.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Data.EntityFrameworkCore\Ifx.Data.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Generators\Ifx.Generators.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Generators.Abstractions\Ifx.Generators.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Pipeline\Ifx.Pipeline.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Pipeline.Grpc\Ifx.Pipeline.Grpc.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Primitives\Ifx.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Proxy\Ifx.Proxy.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Proxy.Http\Ifx.Proxy.Http.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Proxy.Interceptor\Ifx.Proxy.Interceptor.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Proxy.AspNetCore\Ifx.Proxy.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Secrets.Local\Ifx.Secrets.Local.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Messaging.Azure.Queues\Ifx.Messaging.Azure.Queues.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Storage\Ifx.Storage.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Storage.Local\Ifx.Storage.Local.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Web\Ifx.Web.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Web.Api\Ifx.Web.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx.Web.AspNetCore\Ifx.Web.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\src\ifx\Ifx\Ifx.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="coverlet.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Proxy\Interceptors\QueryFiltering\" />
+  </ItemGroup>
+
+</Project>

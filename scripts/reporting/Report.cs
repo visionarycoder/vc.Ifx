@@ -1,5 +1,5 @@
 using System.Text.Json;
-using vc.Ifx.Roslyn.Reporting;
+using Ifx.Roslyn.Reporting;
 
 if (args.Length != 2) throw new ArgumentException("Expected request JSON path and output directory.");
 ReportRequest request = JsonSerializer.Deserialize<ReportRequest>(File.ReadAllText(args[0]),

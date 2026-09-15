@@ -18,7 +18,7 @@ capture, and coordinate with other agents so no captured inputs or outputs chang
 during this sequence.
 
 ```powershell
-$build = Join-Path $PWD ('TestResults/reporting/' + [Guid]::NewGuid().ToString('N'))
+$build = Join-Path $PWD ('test-results/reporting/' + [Guid]::NewGuid().ToString('N'))
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly `
   -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
 if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
@@ -74,7 +74,7 @@ which is why the local example asks for the printed coverage directory.
 
 Report generation also runs after failed coverage when a run context exists,
 without turning the failed quality gate green. Packaging and publication require
-the preceding quality steps to succeed. TestResults retains JSON, Markdown, SARIF,
+the preceding quality steps to succeed. test-results retains JSON, Markdown, SARIF,
 source manifests, build identity, and test evidence.
 
 The [2026-09-10 checkpoint](../planning/local-verification-20260910.md) records a
@@ -91,7 +91,7 @@ pwsh -NoProfile -File tests/infrastructure/reporting/Test-ReportingProcessExit.p
 pwsh -NoProfile -File tests/infrastructure/coverage/Test-CoverageInfrastructure.ps1
 ```
 
-Centralized tests under `tests/unit/vc.Ifx.UnitTests/Reporting` cover serialization,
+Centralized tests under `tests/unit/Ifx.UnitTests/Reporting` cover serialization,
 determinism, exact thresholds, malformed/missing input, suppressions, cancellation,
 metric definitions, preprocessor symbols, and generated-code boundaries. Host
 checks cover execution and exit status, no overwrite, scope/revision guards,

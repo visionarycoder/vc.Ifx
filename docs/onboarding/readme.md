@@ -40,7 +40,7 @@ work. Do not reclaim a completed workstream based on an older verification note.
 Coordinate full-suite runs with other agents. From the repository root:
 
 ```powershell
-$build = Join-Path $PWD ('TestResults/reporting/' + [Guid]::NewGuid().ToString('N'))
+$build = Join-Path $PWD ('test-results/reporting/' + [Guid]::NewGuid().ToString('N'))
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly `
   -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
 if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }

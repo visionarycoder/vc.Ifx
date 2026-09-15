@@ -70,7 +70,7 @@ try {
         }
         $payloads[$project.BaseName] = $packagePayloads
     }
-    $run = Join-Path $root "TestResults/package-artifacts/$([Guid]::NewGuid().ToString('N'))"
+    $run = Join-Path $root "test-results/package-artifacts/$([Guid]::NewGuid().ToString('N'))"
     $raw = Join-Path $run 'raw'
     $null = New-Item -ItemType Directory -Path $raw
     foreach ($project in $projects) {

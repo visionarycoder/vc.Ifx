@@ -15,7 +15,7 @@ Use Git, PowerShell 7, and the stable SDK selected by [global.json](global.json)
 ```powershell
 git clone https://github.com/visionarycoder/vc.Ifx.git
 Set-Location vc.Ifx
-$build = Join-Path $PWD ('TestResults/reporting/' + [Guid]::NewGuid().ToString('N'))
+$build = Join-Path $PWD ('test-results/reporting/' + [Guid]::NewGuid().ToString('N'))
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly `
   -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
 if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
@@ -67,6 +67,21 @@ for compiler-host compatibility. All use C# 14.0.
 | [vc.Ifx.Generators.Abstractions](src/vc.Ifx.Generators.Abstractions/README.md) | Runtime endpoint attributes |
 | [vc.Ifx.Roslyn.Reporting](src/vc.Ifx.Roslyn.Reporting/README.md) | Build diagnostics, source metrics, and coverage reports |
 
+## Local Package Feed
+
+Every packable project shares one output location: `.nupkgs/` at the
+repository root (set via `PackageOutputPath` in [Directory.Build.props](Directory.Build.props)
+and registered as the `Ifx-Local` source in [NuGet.config](NuGet.config)).
+Building or packing any project restores and packs against this single folder
+instead of scattering `.nupkg`/`.snupkg` files per project.
+
+Other solutions on this machine reference these packages by adding the same
+folder as a package source:
+
+```powershell
+dotnet nuget add source "C:\dev\a\vc.Ifx\.nupkgs" --name Ifx-Local
+```
+
 ## Supporting Projects
 
 The solution contains 36 projects: 28 libraries, two centralized test projects,
@@ -99,7 +114,7 @@ and [CI guide](.infra/yaml/README.md).
 
 - [Repository instructions](AGENTS.md)
 - [Documentation index](docs/index.md)
-- [Best practices](docs/best-practices/readme.md)
+- [Architecture reviews](docs/reviews/readme.md)
 - [Architecture decisions](docs/adr/index.md)
 - [Framework upgrade plan](docs/planning/framework-upgrade-parallel-plan.md)
 - [Test and coverage guide](tests/README.md)

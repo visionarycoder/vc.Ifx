@@ -10,7 +10,7 @@ function Resolve-IfxTestSelection {
     $scopes = [Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
     $directory = [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($ProjectPath))
     if ($SourceScope) {
-        if ([IO.Path]::GetFileName($ProjectPath) -cnotin @('vc.Ifx.UnitTests.csproj', 'vc.Ifx.IntegrationTests.csproj')) {
+        if ([IO.Path]::GetFileName($ProjectPath) -cnotin @('Ifx.UnitTests.csproj', 'Ifx.IntegrationTests.csproj')) {
             throw 'Test source selection requires a centralized test project.'
         }
         foreach ($raw in $SourceScope.Split(';')) {

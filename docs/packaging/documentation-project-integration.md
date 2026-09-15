@@ -34,7 +34,7 @@ in the earlier assessment was not needed.
 `./tests/infrastructure/docs/Test-DocumentationProject.ps1` passed 14 checks using
 the repository mutex, one MSBuild node, parallel building disabled, and warnings
 as errors. Logs, fixture solution and summary:
-`TestResults/docs-project/97a0183382a744cb9ffcb6d700d3678c`.
+`test-results/docs-project/97a0183382a744cb9ffcb6d700d3678c`.
 
 - Exactly one real solution Project entry and no manual docs File entries.
 - 65 automatic relative None/Link items matched every on-disk document at the
@@ -51,7 +51,7 @@ as errors. Logs, fixture solution and summary:
 - No docs obj/bin/.no-output directories existed after all tested operations.
 
 The earlier plain-MSBuild probe remains retained in
-`TestResults/docs-solution-probe/build.log`: it emitted NU1503 and an empty-restore
+`test-results/docs-solution-probe/build.log`: it emitted NU1503 and an empty-restore
 warning. It predates the SDK-based correction and is not current success evidence.
 The existing packaging documentation check also remains applicable to standalone
 recursive items and no-output targets.

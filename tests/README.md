@@ -105,11 +105,11 @@ concurrent coverage calls. No command deletes the checkout or prior result folde
 
 ## Evidence And Enforcement
 
-Coverage runs write to `TestResults/coverage/<package-or-full>/<unique-run-id>/`.
+Coverage runs write to `test-results/coverage/<package-or-full>/<unique-run-id>/`.
 Each test project contributes `tests.trx`, `coverage.json`, and
 `coverage.opencover.xml`. The run root holds `summary.json` (schema version 1) and
 `summary.md`. Ordinary tests write fresh TRX files under
-`TestResults/tests/<test-project>/<unique-run-id>/`. Missing TRX or zero executed
+`test-results/tests/<test-project>/<unique-run-id>/`. Missing TRX or zero executed
 tests fails the wrapper, including a filter that matches nothing.
 Runs also enable VSTest's hang detector with a two-minute inactivity limit and no
 memory dump; a stalled test fails the run and records a sequence artifact.
@@ -183,7 +183,7 @@ CI runs dependency and infrastructure checks before capturing a fresh Release
 solution build. It then runs `-FullCoverage -Configuration Release -NoBuild
 -WarningsAsErrors` with `IFX_REPORT_BUILD` pointing to that capture, generates the
 matching report, and packages the tested binaries without rebuilding. It never
-uses `-ReportOnly`. TestResults evidence is retained even on failure. Do not run
+uses `-ReportOnly`. test-results evidence is retained even on failure. Do not run
 output-mutating checks between capture and coverage/report/pack. These local
 results do not claim hosted publication or hands-on IDE acceptance.
 

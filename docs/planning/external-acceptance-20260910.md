@@ -28,7 +28,7 @@ the authenticated connector and verified the bytes against GitHub's digest:
 
 `6e0104e226c38fe0a80ed4a37638ff72c8a5402aa70d0d79822d1cac622fa47a`
 
-Local archive: `TestResults/external-acceptance/34498384866/quality-evidence.zip`.
+Local archive: `test-results/external-acceptance/34498384866/quality-evidence.zip`.
 This proves transfer of failure evidence only. Its synthetic package fixtures are
 not the 28 validated framework packages and do not satisfy release acceptance.
 
@@ -42,7 +42,7 @@ coverage threshold, or workflow publishing conditions changed.
 `pwsh -NoProfile -File tests/infrastructure/provenance/Test-BuildProvenance.ps1`
 passed all 30 checks locally; the isolated Release fixture built with zero warnings
 and errors. Evidence:
-`TestResults/provenance-regressions/cc90d9ceaae74af5a68067a84c2e1027/results.json`.
+`test-results/provenance-regressions/cc90d9ceaae74af5a68067a84c2e1027/results.json`.
 
 Only this correction was submitted in [draft PR #9](https://github.com/visionarycoder/vc.Ifx/pull/9),
 branch `codex/gate4-hidden-config-cleanup`, commit
@@ -57,7 +57,7 @@ enumeration omitted hidden files. This is a second cross-platform verifier defec
 not evidence of failing framework behavior tests.
 
 Downloaded artifact `10161418178` to
-`TestResults/external-acceptance/34499807987/quality-evidence.zip` and verified its
+`test-results/external-acceptance/34499807987/quality-evidence.zip` and verified its
 SHA256 `cf99e03da100fc1169ff83b9eb29aa345d79fd6031fa01bdaaea96fb3bb6de0f`.
 Inspected the actual captured integration output identity to confirm the hidden
 mapping entry. Coverage, reports, validated packages, and publication were skipped.
@@ -66,10 +66,10 @@ The second correction includes hidden outputs in live inventory enumeration rath
 than excluding them from provenance. Tests cover unchanged, changed, missing, and
 extra hidden outputs, preserving original attributes through mutation/restoration.
 All 34 local provenance checks passed in
-`TestResults/provenance-regressions/5152b167adca4b699e1df46355cc5e82`.
+`test-results/provenance-regressions/5152b167adca4b699e1df46355cc5e82`.
 `pwsh -NoProfile -File tests/infrastructure/packaging/Test-ValidatedPackageArtifacts.ps1`
 passed 12 checks using the real provenance module and stubbed packaging tools;
-evidence `TestResults/package-wrapper-tests/f21f9963d8034b9c85cf65d75b1b8507`.
+evidence `test-results/package-wrapper-tests/f21f9963d8034b9c85cf65d75b1b8507`.
 
 At commit `05b42c4a8d662bbe03af6466b7b1b1c70e7f8607`, PR #9 included only the
 provenance module and regression script. Its
@@ -103,7 +103,7 @@ passed all 371 tests, none skipped:
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Configuration Release -WarningsAsErrors -Filter 'FullyQualifiedName~Generators.Implementation|FullyQualifiedName~Storage.StorageServiceTests|FullyQualifiedName~Storage.Local.LocalStorageProviderTests|FullyQualifiedName~Storage.Ftp.FtpStorageProviderTests|FullyQualifiedName~Authentication.TenantContextTests'
 ```
 
-Evidence: `TestResults/tests/vc.Ifx.UnitTests/aaac73eca34f453db58063e5b2bf3ab0/tests.trx`.
+Evidence: `test-results/tests/vc.Ifx.UnitTests/aaac73eca34f453db58063e5b2bf3ab0/tests.trx`.
 The old hidden-output enumeration was also evaluated in an isolated in-memory
 module against the unchanged hidden fixture: it failed with the expected inventory
 mismatch, while the corrected module accepted the same fixture.
@@ -127,7 +127,7 @@ passed on Ubuntu 24.04. Actual tested merge revision:
 - Quality and package artifact uploads succeeded. Publication was skipped because
   this was a pull-request run, not a main/tag push.
 
-Exact hosted evidence directories under TestResults:
+Exact hosted evidence directories under test-results:
 
 - Build: `reporting/66036554747c4bc9ab504dd118bec729`.
 - Coverage: `coverage/full/19554890e94d4858ba513624e168af56`.
@@ -141,13 +141,13 @@ ZIP bytes against GitHub's independently retrieved artifact digests:
 | Validated packages | 10162175245 | `5c2c8a36d917fb10c4012ce8ab6a0c29c45c349fdcda7a4be806fa110f09fc8b` |
 | Quality evidence | 10162174614 | `cfb51a071168f008690e88b3f313a81152f582b6d09611ff50e9e8d0741f48d7` |
 
-Local copies are under `TestResults/external-acceptance/34501314692/`; package
+Local copies are under `test-results/external-acceptance/34501314692/`; package
 archives are extracted to its fresh `validated/` directory. Verified all 58 exact
 entries with the repository's real manifest verifier:
 
 ```powershell
 Import-Module ./scripts/packaging/PackageArtifactManifest.psm1 -Force
-Test-PackageArtifactManifest -Directory TestResults/external-acceptance/34501314692/validated -Revision 7586ccfaa2bbe96a9e7fcd76aed182afb461f381 -ManifestSha256 7a273758922643381abf550cf2dbae43be5e4e78a9500c12e3a854c9cb999a76
+Test-PackageArtifactManifest -Directory test-results/external-acceptance/34501314692/validated -Revision 7586ccfaa2bbe96a9e7fcd76aed182afb461f381 -ManifestSha256 7a273758922643381abf550cf2dbae43be5e4e78a9500c12e3a854c9cb999a76
 ```
 
 The expected manifest SHA came from the hosted job's final verification step, not

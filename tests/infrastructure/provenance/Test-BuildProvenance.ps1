@@ -10,7 +10,7 @@ $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.
 $mutex = [Threading.Mutex]::new($false, "vc.Ifx.FrameworkTests.$digest")
 $acquired = $false
 $checks = [Collections.Generic.List[string]]::new()
-$run = Join-Path $root "TestResults/provenance-regressions/$([Guid]::NewGuid().ToString('N'))"
+$run = Join-Path $root "test-results/provenance-regressions/$([Guid]::NewGuid().ToString('N'))"
 $fixture = Join-Path $run 'fixture'
 $build = Join-Path $run 'build'
 function Assert-Rejected([string] $Name, [scriptblock] $Action, [string] $Pattern) {

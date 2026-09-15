@@ -4,42 +4,12 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/.copilot/">
-    <File Path=".copilot/copilot-instructions.md" />
-    <File Path=".copilot/csharp.instructions.md" />
-    <File Path=".copilot/design-patterns.instructions.md" />
-    <File Path=".copilot/repo-standards.md" />
-  </Folder>
   <Folder Name="/.github/">
-    <File Path=".github/algorithms.instructions.md" />
     <File Path=".github/CSHARP-STANDARDS.md" />
-    <File Path=".github/angular.instructions.md" />
-    <File Path=".github/aspire.instructions.md" />
-    <File Path=".github/bash.instructions.md" />
-    <File Path=".github/cmd.instructions.md" />
     <File Path=".github/copilot-instructions.md" />
-    <File Path=".github/csharp.instructions.md" />
-    <File Path=".github/database.instructions.md" />
-    <File Path=".github/design-patterns.instructions.md" />
-    <File Path=".github/docker.instructions.md" />
-    <File Path=".github/git.instructions.md" />
-    <File Path=".github/graphql.instructions.md" />
-    <File Path=".github/html.instructions.md" />
-    <File Path=".github/integration.instructions.md" />
-    <File Path=".github/javascript.instructions.md" />
-    <File Path=".github/mlnet.instructions.md" />
-    <File Path=".github/notebooks.instructions.md" />
-    <File Path=".github/orleans.instructions.md" />
-    <File Path=".github/playwright.instructions.md" />
-    <File Path=".github/powershell.instructions.md" />
-    <File Path=".github/python.instructions.md" />
     <File Path=".github/readme.md" />
     <File Path=".github/repo-standards.md" />
     <File Path=".github/skills-index.md" />
-    <File Path=".github/sql.instructions.md" />
-    <File Path=".github/testing.instructions.md" />
-    <File Path=".github/utilities.instructions.md" />
-    <File Path=".github/web.instructions.md" />
   </Folder>
   <Folder Name="/.github/instructions/">
     <File Path=".github/instructions/algorithms.instructions.md" />
@@ -667,7 +637,7 @@
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/publish.yml" />
     <File Path=".github/workflows/update_changelog.yml" />
-    <File Path="verify-copilot-instructions.yml" />
+    <File Path=".github/workflows/verify-copilot-instructions.yml" />
   </Folder>
   <Folder Name="/.json/" />
   <Folder Name="/.json/schemas/">
@@ -681,13 +651,12 @@
     <Project Path="docs/docs.csproj" />
   </Folder>
   <Folder Name="/performance/">
-    <Project Path="performance/vc.Ifx.Core.Benchmarks/vc.Ifx.Core.Benchmarks.csproj" />
-    <Project Path="performance/vc.Ifx.Filtering.Benchmarks/vc.Ifx.Filtering.Benchmarks.csproj" />
-    <Project Path="performance/vc.Ifx.Proxy.Benchmarks/vc.Ifx.Proxy.Benchmarks.csproj" />
-    <Project Path="performance/vc.Ifx.Storage.Benchmarks/vc.Ifx.Storage.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Core.Benchmarks/Ifx.Core.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Filtering.Benchmarks/Ifx.Filtering.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Proxy.Benchmarks/Ifx.Proxy.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Storage.Benchmarks/Ifx.Storage.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
-    <File Path=".copilotignore" />
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
@@ -696,41 +665,84 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/vc.Ifx.Abstractions/vc.Ifx.Abstractions.csproj" />
-    <Project Path="src/vc.Ifx.Analyzers/vc.Ifx.Analyzers.csproj" />
-    <Project Path="src/vc.Ifx.CodeFixes/vc.Ifx.CodeFixes.csproj" />
-    <Project Path="src/vc.Ifx.Data.Azure.Tables/vc.Ifx.Data.Azure.Tables.csproj" />
-    <Project Path="src/vc.Ifx.Filtering/vc.Ifx.Filtering.csproj" />
-    <Project Path="src/vc.Ifx.Filtering.EntityFrameworkCore/vc.Ifx.Filtering.EntityFrameworkCore.csproj" />
-    <Project Path="src/vc.Ifx.Generators/vc.Ifx.Generators.csproj" />
-    <Project Path="src/vc.Ifx.Generators.Abstractions/vc.Ifx.Generators.Abstractions.csproj" />
-    <Project Path="src/vc.Ifx.Messaging.Azure.Queues/vc.Ifx.Messaging.Azure.Queues.csproj" />
-    <Project Path="src/vc.Ifx.Observability/vc.Ifx.Observability.csproj" />
-    <Project Path="src/vc.Ifx.Pipeline/vc.Ifx.Pipeline.csproj" />
-    <Project Path="src/vc.Ifx.Pipeline.Grpc/vc.Ifx.Pipeline.Grpc.csproj" />
-    <Project Path="src/vc.Ifx.Primitives/vc.Ifx.Primitives.csproj" />
-    <Project Path="src/vc.Ifx.Proxy/vc.Ifx.Proxy.csproj" />
-    <Project Path="src/vc.Ifx.Proxy.AspNetCore/vc.Ifx.Proxy.AspNetCore.csproj" />
-    <Project Path="src/vc.Ifx.Proxy.Http/vc.Ifx.Proxy.Http.csproj" />
-    <Project Path="src/vc.Ifx.Querying/vc.Ifx.Querying.csproj" />
-    <Project Path="src/vc.Ifx.Roslyn/vc.Ifx.Roslyn.csproj" />
-    <Project Path="src/vc.Ifx.Roslyn.Reporting/vc.Ifx.Roslyn.Reporting.csproj" />
-    <Project Path="src/vc.Ifx.Secrets.Abstractions/vc.Ifx.Secrets.Abstractions.csproj" />
-    <Project Path="src/vc.Ifx.Secrets.Azure.KeyVault/vc.Ifx.Secrets.Azure.KeyVault.csproj" />
-    <Project Path="src/vc.Ifx.Secrets.Local/vc.Ifx.Secrets.Local.csproj" />
-    <Project Path="src/vc.Ifx.Storage.Abstractions/vc.Ifx.Storage.Abstractions.csproj" />
-    <Project Path="src/vc.Ifx.Storage.Azure.Blobs/vc.Ifx.Storage.Azure.Blobs.csproj" />
-    <Project Path="src/vc.Ifx.Storage.Ftp/vc.Ifx.Storage.Ftp.csproj" />
-    <Project Path="src/vc.Ifx.Storage.Local/vc.Ifx.Storage.Local.csproj" />
-    <Project Path="src/vc.Ifx.WebApi/vc.Ifx.WebApi.csproj" />
-    <Project Path="src/vc.Ifx/vc.Ifx.csproj" />
+  <Folder Name="/src/" />
+  <Folder Name="/src/ifx/">
+    <Project Path="src/ifx/Ifx.Abstractions/Ifx.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Analyzers.Abstractions/Ifx.Analyzers.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Analyzers/Ifx.Analyzers.csproj" />
+    <Project Path="src/ifx/Ifx.CodeFixes/Ifx.CodeFixes.csproj" />
+    <Project Path="src/ifx/Ifx.Data.Azure.Tables/Ifx.Data.Azure.Tables.csproj" />
+    <Project Path="src/ifx/Ifx.Data.EntityFrameworkCore/Ifx.Data.EntityFrameworkCore.csproj" Id="1dace7f5-7109-4a0b-abf1-811df9552ce9" />
+    <Project Path="src/ifx/Ifx.Data/Ifx.Data.csproj" />
+    <Project Path="src/ifx/Ifx.Filtering.EntityFrameworkCore/Ifx.Filtering.EntityFrameworkCore.csproj" />
+    <Project Path="src/ifx/Ifx.Filtering/Ifx.Filtering.csproj" />
+    <Project Path="src/ifx/Ifx.Generators.Abstractions/Ifx.Generators.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Generators/Ifx.Generators.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.Abstractions/Ifx.Messaging.csproj" />
+    <Project Path="src/ifx/Ifx.Observability/Ifx.Observability.csproj" />
+    <Project Path="src/ifx/Ifx.Pipeline.Grpc/Ifx.Pipeline.Grpc.csproj" />
+    <Project Path="src/ifx/Ifx.Pipeline/Ifx.Pipeline.csproj" />
+    <Project Path="src/ifx/Ifx.Primitives/Ifx.Primitives.csproj" />
+    <Project Path="src/ifx/Ifx.Proxy.AspNetCore/Ifx.Proxy.AspNetCore.csproj" />
+    <Project Path="src/ifx/Ifx.Proxy.Http/Ifx.Proxy.Http.csproj" />
+    <Project Path="src/ifx/Ifx.Proxy.Interceptor/Ifx.Proxy.Interceptor.csproj" Id="9936b1da-9039-4343-964a-b338fcb4572f" />
+    <Project Path="src/ifx/Ifx.Proxy/Ifx.Proxy.csproj" />
+    <Project Path="src/ifx/Ifx.Querying/Ifx.Querying.csproj" />
+    <Project Path="src/ifx/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj" />
+    <Project Path="src/ifx/Ifx.Roslyn/Ifx.Roslyn.csproj" />
+    <Project Path="src/ifx/Ifx.Secrets.Azure.KeyVault/Ifx.Secrets.Azure.KeyVault.csproj" />
+    <Project Path="src/ifx/Ifx.Secrets.Local/Ifx.Secrets.Local.csproj" />
+    <Project Path="src/ifx/Ifx.Secrets/Ifx.Secrets.csproj" />
+    <Project Path="src/ifx/Ifx.Storage.Abstractions/Ifx.Storage.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Storage.Azure.Blobs/Ifx.Storage.Azure.Blobs.csproj" />
+    <Project Path="src/ifx/Ifx.Storage.Ftp/Ifx.Storage.Ftp.csproj" />
+    <Project Path="src/ifx/Ifx.Storage.Local/Ifx.Storage.Local.csproj" />
+    <Project Path="src/ifx/Ifx.Storage/Ifx.Storage.csproj" Id="c9568940-b764-442e-8aba-9a0527085743" />
+    <Project Path="src/ifx/Ifx.Web.Api/Ifx.Web.Api.csproj" />
+    <Project Path="src/ifx/Ifx.Web.AspNetCore/Ifx.Web.AspNetCore.csproj" />
+    <Project Path="src/ifx/Ifx.Web/Ifx.Web.csproj" Id="d2d36ef6-eed8-4ba4-a6e8-4d0fb6e54fb4" />
+    <Project Path="src/ifx/Ifx/Ifx.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/integration/vc.Ifx.IntegrationTests/vc.Ifx.IntegrationTests.csproj" />
-    <Project Path="tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj" />
+  <Folder Name="/src/util/" />
+  <Folder Name="/src/util/archiving/">
+    <Project Path="src/util/archiving/Util.Archiving.Abstraction/Util.Archiving.csproj" />
+    <Project Path="src/util/archiving/Util.Archiving.GZip/Util.Archiving.GZip.csproj" />
+    <Project Path="src/util/archiving/Util.Archiving.SevenZip/Util.Archiving.SevenZip.csproj" />
+    <Project Path="src/util/archiving/Util.Archiving.Tar/Util.Archiving.Tar.csproj" />
+    <Project Path="src/util/archiving/Util.Archiving.Zip/Util.Archiving.Zip.csproj" />
   </Folder>
+  <Folder Name="/src/util/messaging/">
+    <Project Path="src/ifx/Ifx.Messaging.Azure.Queues/Ifx.Messaging.Azure.Queues.csproj" />
+    <Project Path="src/util/messaging/Util.Messaging.Abstractions/Util.Messaging.csproj" />
+    <Project Path="src/util/messaging/Util.Messaging.Azure.ServiceBus/Util.Messaging.Azure.ServiceBus.csproj" />
+    <Project Path="src/util/messaging/Util.Messaging.Channels/Util.Messaging.Channels.csproj" />
+    <Project Path="src/util/messaging/Util.Messaging.Msmq/Util.Messaging.Msmq.csproj" />
+    <Project Path="src/util/messaging/Util.Messaging.RabbitMQ/Util.Messaging.RabbitMQ.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/scripts/" />
   <Folder Name="/scripts/reporting/">
     <Project Path="scripts/reporting/FrameworkReport.Host.csproj" />
+  </Folder>
+  <Folder Name="/tests/integration/" />
+  <Folder Name="/tests/integration/ifx/">
+    <Project Path="tests/integration/Ifx.IntegrationTests/Ifx.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/integration/util/" />
+  <Folder Name="/tests/unit/" />
+  <Folder Name="/tests/unit/ifx/">
+    <Project Path="tests/unit/Ifx.UnitTests/Ifx.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/unit/util/">
+    <Project Path="tests/unit/Util.UnitTests/Util.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/unit/util/archiving/">
+    <Project Path="tests/unit/Util.Archiving.GZip.UnitTests/Util.Archiving.GZip.UnitTests.csproj" />
+    <Project Path="tests/unit/Util.Archiving.SevenZip.UnitTests/Util.Archiving.SevenZip.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/unit/util/messaging/">
+    <Project Path="tests/unit/Util.Messaging.Azure.ServiceBus.UnitTests/Util.Messaging.Azure.ServiceBus.UnitTests.csproj" />
+    <Project Path="tests/unit/Util.Messaging.Msmq.UnitTests/Util.Messaging.Msmq.UnitTests.csproj" />
+    <Project Path="tests/unit/Util.Messaging.RabbitMQ.UnitTests/Util.Messaging.RabbitMQ.UnitTests.csproj" />
   </Folder>
 </Solution>

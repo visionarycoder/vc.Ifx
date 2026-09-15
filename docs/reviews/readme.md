@@ -22,8 +22,8 @@ This folder contains the **governance playbooks and review guides** that keep ou
 
 ## 🔗 Related Artifacts
 
-- [📡 Radar](../best-practices/radar.md)
-- [📦 Capsules](../best-practices/readme.md)
+- [📡 Radar](quarterly-radar-review.md)
+- [📦 Skills](../../.github/skills-index.md)
 - [📜 ADR Index](../adr/index.md)
 - [👩‍💻 Onboarding Guide](../onboarding/readme.md)
 

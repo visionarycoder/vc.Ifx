@@ -7,6 +7,6 @@
     <IsReportingHost>true</IsReportingHost>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/vc.Ifx.Roslyn.Reporting/vc.Ifx.Roslyn.Reporting.csproj" />
+    <ProjectReference Include="../../src/ifx/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj" />
   </ItemGroup>
 </Project>

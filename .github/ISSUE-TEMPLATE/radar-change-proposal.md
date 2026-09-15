@@ -24,7 +24,7 @@ last_updated: 2026-09-10
 ## Impact
 
 - Which teams or systems are affected?
-- Does this require updates to capsules (docs/best-practices/…)?
+- Does this require updates to specialist skills (`.github/skills/`)?
 - Does this require a new ADR?
 
 ## References
@@ -34,6 +34,6 @@ last_updated: 2026-09-10
 ## Next Steps
 
 - [ ] Review by specialty lead(s)
-- [ ] Update `docs/best-practices/radar.md`
+- [ ] Update `docs/reviews/quarterly-radar-review.md`
 - [ ] Update relevant capsule(s)
 - [ ] Create ADR if decision is significant
