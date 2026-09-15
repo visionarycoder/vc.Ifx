@@ -4,7 +4,7 @@ param([ValidateSet('Debug', 'Release')][string] $Configuration = 'Debug')
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$fixtureRoot = Join-Path $root "TestResults/reporting-host-tests/$([Guid]::NewGuid().ToString('N'))"
+$fixtureRoot = Join-Path $root "test-results/reporting-host-tests/$([Guid]::NewGuid().ToString('N'))"
 $runner = Join-Path $root 'scripts/reporting/Invoke-FrameworkReport.ps1'
 $package = 'vc.Ifx.Roslyn.Reporting'
 $script:passed = 0

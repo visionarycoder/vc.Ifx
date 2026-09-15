@@ -1,0 +1,10 @@
+global using FluentAssertions;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using Ifx;
+global using Ifx.Component;
+global using Ifx.Primitives;
+global using Ifx.Generators;
+global using Ifx.Generators.Endpoints;
+global using Ifx.Helpers;
+global using Ifx.Pipeline.Dispatch;
+global using Ifx.Pipeline.Grpc.Dispatch;

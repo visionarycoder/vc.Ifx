@@ -22,10 +22,13 @@ under the explicit Gate 3 documentation handoff.
 | IFX1000 | vc.Ifx.Analyzers | DiagnosticDebtCodeFixProvider | Document/project/solution, deduplicated edits | Add an explicit TODO disposition scaffold inside an ordinary line/block comment; XML documentation requires manual editing. Never fabricate an issue, owner or decision; TODO remains diagnosed. Preserve comment/code boundaries, encoding and newlines. Low runtime risk. | DiagnosticDebtCodeFixTests.cs, DebtSafetyTests.cs |
 | IFX1001 | vc.Ifx.Analyzers | DiagnosticDebtCodeFixProvider | Document/project/solution, deduplicated edits | Add TODO justification to the existing pragma or resolved SuppressMessage/UnconditionalSuppressMessage attribute. Do not introduce suppression, expand its scope, or claim it is justified. Low runtime risk. | DiagnosticDebtCodeFixTests.cs |
 | IFX005 | vc.Ifx.Analyzers, opt-in legacy rule | Ifx005ControllerAttributeOrderCodeFixProvider | No | Single reviewed reorder of separate lists containing only framework Authorize, AllowAnonymous, Route, ApiController attributes; never remove authorization/scope metadata. No action across directives, documentation trivia, ambiguous lists or unresolved/lookalike attributes. Attribute metadata order changes, so this remains opt-in and single-diagnostic. | ActiveProviderTests.cs |
+| IFX1200 | vc.Ifx.Analyzers | Ifx1200NoAsyncVoidMethodCodeFixProvider | No | Changes `async void` to `async Task` on the diagnosed method only, adding a `System.Threading.Tasks` using directive when absent. Declines when the method no longer matches the reported async-void shape or the document has other syntax errors. Does not touch recognized event handlers, overrides, or interface implementations because the analyzer does not report those. | Ifx1200NoAsyncVoidMethodCodeFixProviderTests.cs |
+| IFX1400 | vc.Ifx.Analyzers | Ifx1400NoUnderscorePrefixedIdentifierCodeFixProvider | No | Solution-wide `Renamer.RenameSymbolAsync` rename stripping the identifier's leading underscore(s) for private fields, parameters, and locals. Declines on empty replacement names or a name collision with another member/parameter/local/local-function/pattern-designation in scope. | Ifx1400NoUnderscorePrefixedIdentifierCodeFixProviderTests.cs |
 | CA1062 | Microsoft.CodeAnalysis.NetAnalyzers | Ca1062CodeFixProvider | No | Explicit opt-in null guard for the sole resolved reference parameter in an ordinary block-bodied public method. Reject async/iterator/ref/value/error/nullable-optional ambiguity and pre-existing guards; require framework ThrowIfNull API. Preserve statements and evaluation order. Null inputs now throw ArgumentNullException earlier; callers must review. | ActiveProviderTests.cs, CompilerEnvironmentTests.cs |
 
 The CA1062 selection is based on the upstream [rule/fix inventory](https://raw.githubusercontent.com/dotnet/roslyn-analyzers/main/src/NetAnalyzers/Microsoft.CodeAnalysis.NetAnalyzers.md#ca1062-validate-arguments-of-public-methods),
 which lists no code fix. Recheck upstream support before future release expansion.
+IFX1300 (synchronous blocking on Task/ValueTask) remains analyzer-only by design: a mechanical rewrite from blocking calls to `await` can change execution context, exception flattening and calling-method signatures in ways that require human review.
 The local integration test loads the actual analyzer from the SDK pinned in
 `global.json`, verifies its CA1062 location, compiles the action result, and proves
 the upstream diagnostic disappears. No surrogate CA1062 emitter is used for this check.
@@ -119,7 +122,7 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/
 
 - Strict gate passed: 96 tests, zero failures/skips, 194/194 lines and 176/176
   branches, full `vc.Ifx.CodeFixes` module at 100%; no new coverage exclusions.
-- Coverage evidence: `TestResults/coverage/vc.Ifx.CodeFixes/519d738e3ea74577b777bfa81c31bf07/summary.json`
+- Coverage evidence: `test-results/coverage/vc.Ifx.CodeFixes/519d738e3ea74577b777bfa81c31bf07/summary.json`
   and `vc.Ifx.UnitTests/coverage.opencover.xml`, `vc.Ifx.UnitTests/tests.trx` beneath it.
 - Release package project build passed with zero warnings and zero errors.
   CS8602 nullable flow is corrected; no warning was disabled.

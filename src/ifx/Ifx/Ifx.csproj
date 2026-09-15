@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Language Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <NoWarn>$(NoWarn);CS8981</NoWarn>
+    <!-- Build Output -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- Package Identity -->
+    <PackageId>Ifx</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Ivan</Authors>
+    <Company>VisionaryCoder / PraetorNexus</Company>
+    <Product>vc.Ifx</Product>
+    <!-- Package Metadata -->
+    <Title>vc.Ifx Framework Library</Title>
+    <Description>Core framework library providing foundational features and utilities for enterprise .NET applications.</Description>
+    <PackageTags>framework;core;library;microsoft;patterns;ifx</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See CHANGELOG.md or GitHub releases for detailed release notes.</PackageReleaseNotes>
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Data\Azure\NewFolder\**" />
+    <Compile Remove="Pipeline\**" />
+    <Compile Remove="Proxy\**" />
+    <EmbeddedResource Remove="Data\Azure\NewFolder\**" />
+    <EmbeddedResource Remove="Pipeline\**" />
+    <EmbeddedResource Remove="Proxy\**" />
+    <None Remove="Data\Azure\NewFolder\**" />
+    <None Remove="Pipeline\**" />
+    <None Remove="Proxy\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ifx.Abstractions\Ifx.Abstractions.csproj" />
+    <ProjectReference Include="..\Ifx.Data.Azure.Tables\Ifx.Data.Azure.Tables.csproj" />
+    <ProjectReference Include="..\Ifx.Filtering.EntityFrameworkCore\Ifx.Filtering.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\Ifx.Filtering\Ifx.Filtering.csproj" />
+    <ProjectReference Include="..\Ifx.Generators.Abstractions\Ifx.Generators.Abstractions.csproj" />
+    <ProjectReference Include="..\Ifx.Generators\Ifx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Ifx.Pipeline.Grpc\Ifx.Pipeline.Grpc.csproj" />
+    <ProjectReference Include="..\Ifx.Pipeline\Ifx.Pipeline.csproj" />
+    <ProjectReference Include="..\Ifx.Primitives\Ifx.Primitives.csproj" />
+    <ProjectReference Include="..\Ifx.Proxy.AspNetCore\Ifx.Proxy.AspNetCore.csproj" />
+    <ProjectReference Include="..\Ifx.Proxy.Http\Ifx.Proxy.Http.csproj" />
+    <ProjectReference Include="..\Ifx.Proxy\Ifx.Proxy.csproj" />
+    <ProjectReference Include="..\Ifx.Querying\Ifx.Querying.csproj" />
+    <ProjectReference Include="..\Ifx.Secrets.Azure.KeyVault\Ifx.Secrets.Azure.KeyVault.csproj" />
+    <ProjectReference Include="..\Ifx.Secrets.Local\Ifx.Secrets.Local.csproj" />
+    <ProjectReference Include="..\Ifx.Storage.Azure.Blobs\Ifx.Storage.Azure.Blobs.csproj" />
+    <ProjectReference Include="..\Ifx.Storage.Ftp\Ifx.Storage.Ftp.csproj" />
+    <ProjectReference Include="..\Ifx.Storage.Local\Ifx.Storage.Local.csproj" />
+  </ItemGroup>
+</Project>

@@ -48,11 +48,11 @@ remain explicitly separate unverified checks. No publication is claimed.
 - [x] Accept local package-host, CI, documentation-project and plan reviews;
   actual hosted/IDE checks remain separate external acceptance.
 
-Build evidence: `TestResults/reporting/global-20260910-03`.
+Build evidence: `test-results/reporting/global-20260910-03`.
 Coverage and test evidence:
-`TestResults/coverage/full/d27e86fffbba406da1c533510c9948fb`.
+`test-results/coverage/full/d27e86fffbba406da1c533510c9948fb`.
 Final package evidence:
-`TestResults/package-artifacts/59468a485ff34d26884375e111912ac6/validated`.
+`test-results/package-artifacts/59468a485ff34d26884375e111912ac6/validated`.
 All 56 version 1.0.0 archives pass, with 19 archive-validator checks and the exact
 58-file staged inventory (archives, SDK pin and manifest) verified.
 The full coverage run used the fresh complete build without rebuilding, no
@@ -130,7 +130,7 @@ validation must include it.
 - All library mission READMEs exist; implementation owners refine their contracts.
 - Four benchmark projects now contain 54 cases; all passed Dry execution and one
   Short job passed. These validate execution, not a reliable performance baseline.
-  Fresh integrated Dry evidence: `TestResults/benchmarks/dcba41ef8dca40d3b7cd9f484c8d472c`;
+  Fresh integrated Dry evidence: `test-results/benchmarks/dcba41ef8dca40d3b7cd9f484c8d472c`;
   Core 10, Filtering/Querying 20, Proxy/Pipeline/HTTP 16, Storage 8.
 - Current metadata validation passed for 28 libraries, six non-packable test and
   benchmark projects, and the separately checked non-packable reporting host.
@@ -158,14 +158,14 @@ Compiler-host packaging remediation passed 48 host checks, 19 archive-validator
 checks, six compiler probes and both fresh-cache NuGet consumers. Combined
 Analyzers/CodeFixes installation now emits IFX1000 exactly once; CodeFixes-only
 installation exposes fixes without IFX analyzers. Green evidence:
-`TestResults/compiler-host-packages/b096e65d29104d539734b3e9247c8502`.
+`test-results/compiler-host-packages/b096e65d29104d539734b3e9247c8502`.
 These five scoped archives are not the final 28-package release snapshot.
 
 ## Integration Checkpoint
 
 Latest complete combined Release run: 3,606/3,606 unit tests and 15/15 integration
 tests passed, zero skips, with warnings treated as errors. Evidence:
-`TestResults/coverage/full/04266acfb7c44db3b074f7eb74b28e38`.
+`test-results/coverage/full/04266acfb7c44db3b074f7eb74b28e38`.
 The strict global coverage gate correctly failed: 27 packages measured 100%, but
 Azure Tables reported zero despite its 25 tests passing. A fresh scoped Release
 rerun passed 25/25 and measured 218/218 lines, 98/98 branches
@@ -175,7 +175,7 @@ failed combined result.
 
 Prior complete Release unit run: 3,604/3,605 passed, one failed, zero skipped.
 Evidence:
-`TestResults/tests/vc.Ifx.UnitTests/552d822c04bc4a28aa6b4fef9b124ffa/tests.trx`.
+`test-results/tests/vc.Ifx.UnitTests/552d822c04bc4a28aa6b4fef9b124ffa/tests.trx`.
 The remaining failure was an outdated authentication validation message assertion;
 the corrected type/parameter contract passed a separate eight-test Release run
 (`41dc673d374949c0bfe24b837eb3a566`) and the subsequent full run above.
@@ -199,7 +199,7 @@ aggregator measurements below, but is not an unfiltered full-suite result.
 
 The first completed fresh full-unit run executed 3,413 tests: 3,412 passed,
 one failed, zero skipped. It no longer stalls in retries. Artifact:
-`TestResults/tests/vc.Ifx.UnitTests/47a993373052498286844a5ff586f458/tests.trx`.
+`test-results/tests/vc.Ifx.UnitTests/47a993373052498286844a5ff586f458/tests.trx`.
 The remaining timestamp assertion incorrectly used the test assembly instead of
 the framework assembly; corrected and awaiting the next complete run.
 
@@ -217,7 +217,7 @@ build is claimed by this checkpoint.
 The centralized integration project now passes 15/15 real tests with no filters,
 skips or build warnings: Proxy plus HTTP retry/cancellation/ownership, and real
 SQLite Filtering plus Querying translation/composition. Evidence:
-`TestResults/tests/vc.Ifx.IntegrationTests/6c57f007ce8b45949b8dadafe7146a9f/tests.trx`.
+`test-results/tests/vc.Ifx.IntegrationTests/6c57f007ce8b45949b8dadafe7146a9f/tests.trx`.
 These replaced the placeholder test; they are not a coverage measurement.
 
 Contract audit passed 35-project/28-library inventory and 16 validator probes.

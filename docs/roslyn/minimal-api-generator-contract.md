@@ -252,13 +252,13 @@ not establish these generator/runtime guarantees or Native AOT compatibility.
 Verified on 2026-09-09 using the existing repository mutex runner:
 
 ```powershell
-pwsh -NoProfile -File src/vc.Ifx.Generators/verification/Test-WebApiIntegration.ps1
-pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/vc.Ifx.Generators/verification/PackageSmoke.proj
+pwsh -NoProfile -File src/vc.Ifx.Generators/Verification/Test-WebApiIntegration.ps1
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/vc.Ifx.Generators/Verification/PackageSmoke.proj
 ```
 
 - Strict coverage gate: 134 passed, zero failed/skipped; 1,437/1,437 executable
   lines and 516/516 branches (100% each), measured across the entire generator DLL.
-  Artifacts: `TestResults/coverage/vc.Ifx.Generators/8c69b8bfb566437b8adb8a449ea31009`.
+  Artifacts: `test-results/coverage/vc.Ifx.Generators/8c69b8bfb566437b8adb8a449ea31009`.
 - Three ASP.NET in-memory host tests verify route constraints, route/query/header/
   body binding, DI, typed results, default/named authorization, authorized groups
   with explicit anonymous override, OpenAPI endpoint metadata, exception pass-through
@@ -275,7 +275,7 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/
   or accepted that metadata shape. Compiler-invalid declarations are tested without
   claiming successful consumer compilation.
 - Release package verification: zero warnings/errors, no NU5104 suppression.
-  Artifacts: `TestResults/generator-package/7307d7d14af848a6bb93da33263037b5`.
+  Artifacts: `test-results/generator-package/7307d7d14af848a6bb93da33263037b5`.
   The verifier checks extracted compiler-only contents and private dependency
   placement, then invokes the installed C# compiler using the actual packed marker
   DLL, analyzer DLLs and .NET 10 reference assemblies. Positive fixtures include

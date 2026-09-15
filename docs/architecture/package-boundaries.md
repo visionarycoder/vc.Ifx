@@ -136,7 +136,7 @@ needed for the published metric contract.
 
 Verification: `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Filter 'FullyQualifiedName~MethodNestingPolicyTests|FullyQualifiedName~Reporting.ReportEngineTests'`
 passed 35/35 tests, no skips. Evidence:
-`TestResults/tests/vc.Ifx.UnitTests/49c1e02655b747cba37d755d49533f48/tests.trx`.
+`test-results/tests/vc.Ifx.UnitTests/49c1e02655b747cba37d755d49533f48/tests.trx`.
 This reruns existing metric/property tests; it is not a new end-to-end SARIF build
 capture or a new coverage measurement. Reporting's previously recorded strict
 229/229 lines and 244/244 branches remain that worker's evidence, not this audit's.
@@ -175,7 +175,7 @@ pwsh -NoProfile -File scripts/Test-FrameworkDependencies.ps1 -SelfTest
 
 The live graph passed for 36 projects/28 source libraries. All 25 synthetic
 positive/negative probes passed; retained XML fixtures are under
-`TestResults/dependency-audit/112648a24d724a40a02974dae33cd863/`. The original 16
+`test-results/dependency-audit/112648a24d724a40a02974dae33cd863/`. The original 16
 boundary probes remain; nine additional probes cover docs inventory, declared
 packability, source-to-docs references and docs/host cycles. No build or coverage
 instrumentation is performed by this validator. No package implementation,
@@ -183,7 +183,7 @@ solution, central package/build file or test project was edited in Gate 3;
 the authorized Grpc README change is documentation only.
 
 The documentation owner separately passed 14 CLI checks in
-`TestResults/docs-project/97a0183382a744cb9ffcb6d700d3678c`, including recursive
+`test-results/docs-project/97a0183382a744cb9ffcb6d700d3678c`, including recursive
 relative items, no-output targets and a mixed SDK solution. See
 `docs/packaging/documentation-project-integration.md`. Static XML validation does
 not evaluate imported packability/references or prove Visual Studio behavior.
@@ -249,13 +249,13 @@ global acceptance remains In-flight with Orchestrator.
 1. **Authorization bridge implemented and accepted.** Proxy's
    `LegacyAuthorizationPolicyAdapter` and `AuthorizationExtensions` bridge legacy
    helpers to canonical IProxyAuthorizationPolicy. Real DI pipeline tests in
-   `tests/unit/vc.Ifx.UnitTests/Proxy/AuthorizationBridgeContractTests.cs` cover
+   `tests/unit/Ifx.UnitTests/Proxy/AuthorizationBridgeContractTests.cs` cover
    enforcement. Owner evidence: 463 tests, 2294/2294 lines, 692/692 branches,
-   `TestResults/coverage/vc.Ifx.Proxy/9dd7e51162384aa586c68073ef9dd05d`.
+   `test-results/coverage/vc.Ifx.Proxy/9dd7e51162384aa586c68073ef9dd05d`.
 2. **Named options and collection regression resolved.** Aggregator source freeze
    was accepted after Release and Debug verification: 1095 selected tests each;
    Release 1137/1137 lines and 803/803 branches in
-   `TestResults/coverage/vc.Ifx/68d0069ce1df4c438fd3c10454642b48`.
+   `test-results/coverage/vc.Ifx/68d0069ce1df4c438fd3c10454642b48`.
    RegistrationMatrixTests and the legacy collection tests preserve identities
    and supplied-input AddRange behavior; the original self-copy finding is closed.
 3. **Portable composition documented and tested.** Aggregator README explicitly
@@ -267,10 +267,10 @@ global acceptance remains In-flight with Orchestrator.
    extraction. This release does not claim a provider-free Proxy core.
 
 Observability README now explicitly documents `Observibility`; aggregator README
-documents the Wa.Wsdot public identities. Neither calls for a namespace rename.
+documents the vc.Ifx public identities. Neither calls for a namespace rename.
 The later Filtering TimeOnly review is also resolved by round-trip `O` formatting
 and TimeOnlyRoundTripTests; owner evidence is 357/357 lines, 354/354 branches in
-`TestResults/coverage/vc.Ifx.Filtering/59d0f9849c0b445993ae51def829e1eb`.
+`test-results/coverage/vc.Ifx.Filtering/59d0f9849c0b445993ae51def829e1eb`.
 These are accepted owner measurements, not new Gate 3 test runs. Final gate
 acceptance is handed to Orchestrator.
 
@@ -292,15 +292,15 @@ namespace is a different API even when the short type name is unchanged.
 
 | Surface and evidence | Classification / owner request |
 | --- | --- |
-| `src/vc.Ifx/Errors/{Error,ErrorsCollection,IsRecoverableErrorSpecification}.cs` use `Wa.Wsdot.Fin.Idl.Ifx.Errors`; `Generics/GenericReadOnlyCollection.cs` uses `Wa.Wsdot.Fin.Idl.Ifx.Generics` | Legacy organization-specific public identities in the aggregator, not newly introduced shared business-domain types. Aggregator owner is preserving binary compatibility and adding explicit README guidance. Keep those identities; test old consumer binding and collection behavior. Orchestrator reports the local AddRange self-copy bug is being fixed by that owner; this audit neither changes it nor claims its verification. |
-| `Pipeline/Observibility/Abstractions/{IMetrics,ITracer}.cs` and `Observability/Observibility/{OpenTelemetryMetrics,OpenTelemetryTracer}.cs` use `VisionaryCoder.Framework.Pipeline.Observibility[.Abstractions]` | Published spelling and namespace ownership differ from the Observability package name. Pipeline/Observability owners should document the deliberate compatibility spelling and lock adapter-to-port assignability. Do not fix the spelling by silently renaming public namespaces. |
-| Abstractions `Time/IClock.cs` uses `vc.Ifx.Abstractions.Time`; aggregator `Time/{SystemClock,NullClock}.cs` use `vc.Ifx.Time`, unlike most runtime packages' `VisionaryCoder.Framework` prefix | Mixed public naming convention, not duplicate clock contracts. Abstractions owns the port; aggregator owns implementations. Preserve current identities and document them in consumer examples; do not invent a second IClock solely for naming consistency. |
-| Storage.Azure.Blobs uses `VisionaryCoder.Framework.Storage.Azure.Blob`; Messaging.Azure.Queues uses `VisionaryCoder.Framework.Messaging.Azure.Queue`; Data.Azure.Tables uses `VisionaryCoder.Framework.Data.Azure.Table`; Filtering.EntityFrameworkCore uses `VisionaryCoder.Framework.Filtering.EFCore` | Singular/provider-short namespaces differ from package names but are established public identities. Provider/aggregator examples and registration code must use the actual namespaces. No rename or forwarding shim is requested by this audit. |
-| KeyVault `Azure/SecretOptions.cs` uses `VisionaryCoder.Framework.Secrets.Azure`; retained KeyVaultOptions uses `VisionaryCoder.Framework.Secrets.Azure.KeyVault` but is declared in Secrets.Abstractions | Two passive legacy options APIs with different ownership/behavior. KeyVault README explicitly says SecretOptions is not implicitly mapped or consumed by registration. Keep the distinction; no automatic merge or type move. |
+| `src/vc.Ifx/Errors/{Error,ErrorsCollection,IsRecoverableErrorSpecification}.cs` use `vc.Ifx.Errors` | Legacy organization-specific public identities in the aggregator, not newly introduced shared business-domain types. `ErrorsReadOnlyCollection` was refactored to a constructor-populated, genuinely immutable `IReadOnlyCollection<Error>`; the former `Generics/GenericReadOnlyCollection<T>` base (public `Add`/`AddRange` mutating a type advertised as read-only) was a fake-read-only anti-pattern and has been removed. |
+| `Pipeline/Observibility/Abstractions/{IMetrics,ITracer}.cs` and `Observability/Observibility/{OpenTelemetryMetrics,OpenTelemetryTracer}.cs` use `vc.Ifx.Pipeline.Observibility[.Abstractions]` | Published spelling and namespace ownership differ from the Observability package name. Pipeline/Observability owners should document the deliberate compatibility spelling and lock adapter-to-port assignability. Do not fix the spelling by silently renaming public namespaces. |
+| Abstractions `Time/IClock.cs` uses `vc.Ifx.Abstractions.Time`; aggregator `Time/{SystemClock,NullClock}.cs` use `vc.Ifx.Time`, unlike most runtime packages' `vc.Ifx` prefix | Mixed public naming convention, not duplicate clock contracts. Abstractions owns the port; aggregator owns implementations. Preserve current identities and document them in consumer examples; do not invent a second IClock solely for naming consistency. |
+| Storage.Azure.Blobs uses `vc.Ifx.Storage.Azure.Blob`; Messaging.Azure.Queues uses `Ifx.Messaging.Azure.Queues`; Data.Azure.Tables uses `vc.Ifx.Data.Azure.Table`; Filtering.EntityFrameworkCore uses `vc.Ifx.Filtering.EFCore` | Messaging.Azure.Queues now matches its project/package naming. The other provider-short namespaces remain established public identities, so provider/aggregator examples and registration code must use each package's actual namespace. |
+| KeyVault `SecretOptions.cs` uses `Ifx.Secrets.Azure.KeyVault`; retained `KeyVaultOptions` remains declared in Secrets.Abstractions under the same namespace | Two passive options APIs with different ownership/behavior. KeyVault README explicitly says `SecretOptions` is not implicitly mapped or consumed by registration. Keep the distinction; no automatic merge or type move. |
 | IFX001 recognizes `Ifx.Proxy.ProxyContractAttribute`; IFX002 recognizes `Wsdot.Idl.Ifx.Attributes.RefactorAttribute` | External legacy metadata hooks retained by the analyzer audit. No declarations of these attribute identities were found in active source; consumers must supply the legacy attributes. They are not aliases for current generator markers. Any new attribute migration is a separate versioned owner decision, not a namespace sweep. |
-| MapperGenerator contains `namespace Generated.Mappers` inside emitted-source text; Roslyn/Generators/Reporting use `vc.Ifx.*` namespaces | Generated output contract and tooling namespace convention, respectively. Neither is evidence of an accidental runtime domain namespace. Generator-owned output naming and IFX2000-2007 remain unchanged. |
+| MapperGenerator emits generated code inside `namespace Generated.Mappers`; Roslyn/Generators/Reporting use `vc.Ifx.*` namespaces | Generated output contract and tooling namespace convention, respectively. Neither is evidence of an accidental runtime domain namespace. The generator is attribute-driven (`[GenerateMapper(typeof(Target))]`, not name-convention scanning); IFX2000-2007 remain unchanged, `GEN001` now also reports unmatched/mismatched mapper members. |
 
-Only the four aggregator source files above retain the `Wa.Wsdot.Fin.Idl.Ifx`
+Only the four aggregator source files above retain the `vc.Ifx`
 namespace in the audited active source set. The table preserves original owner
 requests; the resolution annotations above close their implementation follow-ups.
 Remaining compatibility identities are deliberate exceptions, not unassigned API

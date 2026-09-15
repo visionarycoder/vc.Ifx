@@ -59,7 +59,7 @@ attempt to launch a longer reflection-based package probe was denied by the host
 before execution; it supplies no package-test evidence and was not worked around.
 No new package test or coverage run is claimed here.
 
-Existing proof gap: `tests/unit/vc.Ifx.UnitTests/Filtering/FilterContractTests.cs:244`
+Existing proof gap: `tests/unit/Ifx.UnitTests/Filtering/FilterContractTests.cs:244`
 only builds a TimeOnly condition from explicit text `10:30:00` against a
 minute-aligned value. It never translates a captured TimeOnly containing seconds
 or fractions. The general round-trip matrix at line 59 does not include TimeOnly.
@@ -101,12 +101,12 @@ these are previous runs, not coverage rerun by this reviewer:
 | Querying | 110/110 | 323/323 | 156/156 | `dc028f14b3b347e5b0476b6f9d04a1d3` |
 | Primitives | 376/376 | 403/403 | 196/196 | `20868752736d4279bd5e812d8b3a35bf` |
 
-Artifacts live under `TestResults/coverage/<package>/<run>/`. Each inspected TRX
+Artifacts live under `test-results/coverage/<package>/<run>/`. Each inspected TRX
 records zero failures and zero not-executed cases. Inspected regression source
 includes Filtering's full predicate matrix and malformed-node tests, Querying's
 schema/operator/SQLite tests, and Primitives' parsing, JSON, EF metadata and binder
 tests. The accepted Gate 1 integration run
-`TestResults/tests/vc.Ifx.IntegrationTests/6c57f007ce8b45949b8dadafe7146a9f/tests.trx`
+`test-results/tests/vc.Ifx.IntegrationTests/6c57f007ce8b45949b8dadafe7146a9f/tests.trx`
 also contains five real SQLite cross-package cases, but none tests TimeOnly.
 
 ## Residual Risks And Deliberate Boundaries
@@ -197,7 +197,7 @@ schemes to satisfy the guard.
 
 Inspected all WebApi implementation files, its response catalog and README, plus
 catalog, mapper/options, handler, DI and resilience regression source. Read
-`TestResults/coverage/vc.Ifx.WebApi/6cd18b8e77bc466983bc22bc05992885/summary.json`
+`test-results/coverage/vc.Ifx.WebApi/6cd18b8e77bc466983bc22bc05992885/summary.json`
 and adjacent `vc.Ifx.UnitTests/tests.trx`: 98/98 passed, zero failures/not-executed,
 327/327 lines and 116/116 branches. These are existing measurements, not a new run.
 
@@ -239,18 +239,18 @@ The original finding and earlier review checkpoints above remain historical.
 
 `src/vc.Ifx.Filtering/ExpressionToFilterNode.cs:214` now formats TimeOnly with
 `time.ToString("O", CultureInfo.InvariantCulture)`, retaining seconds and ticks.
-`tests/unit/vc.Ifx.UnitTests/Filtering/TimeOnlyRoundTripTests.cs` compares original,
+`tests/unit/Ifx.UnitTests/Filtering/TimeOnlyRoundTripTests.cs` compares original,
 portable and JSON-restored predicates for fractional ticks, the minute-aligned
 false-positive case, nullable captured membership including null, and collection
 Contains for both TimeOnly and nullable TimeOnly elements.
 
 Verified recorded evidence:
 
-- Red: `TestResults/tests/vc.Ifx.UnitTests/2600a53caad24de7a1e718c9d0f5dd14/tests.trx`,
+- Red: `test-results/tests/vc.Ifx.UnitTests/2600a53caad24de7a1e718c9d0f5dd14/tests.trx`,
   one regression executed and failed.
-- Green: `TestResults/tests/vc.Ifx.UnitTests/b7ffc55d0a4f4c73875231c60f4894b2/tests.trx`,
+- Green: `test-results/tests/vc.Ifx.UnitTests/b7ffc55d0a4f4c73875231c60f4894b2/tests.trx`,
   the regression passed, zero failures/skips.
-- Strict Filtering: `TestResults/coverage/vc.Ifx.Filtering/59d0f9849c0b445993ae51def829e1eb/summary.json`
+- Strict Filtering: `test-results/coverage/vc.Ifx.Filtering/59d0f9849c0b445993ae51def829e1eb/summary.json`
   and adjacent `vc.Ifx.UnitTests/tests.trx`: 86/86 passed, zero failures/not-executed;
   357/357 lines and 354/354 branches, both 100%. This selection includes four
   EF adapter tests; it is not separate full EF-package coverage proof.
@@ -265,9 +265,9 @@ separate WebApi findings awaiting Orchestrator's resolution.
 Date: 2026-09-10, subsequent checkpoint. The reviewer inspected both consumer
 coverage summaries and their adjacent `vc.Ifx.UnitTests/tests.trx` files:
 
-- Querying: `TestResults/coverage/vc.Ifx.Querying/5db3e65db1004c6aa9daaaf79c08bce7/summary.json`;
+- Querying: `test-results/coverage/vc.Ifx.Querying/5db3e65db1004c6aa9daaaf79c08bce7/summary.json`;
   110/110 tests passed, 323/323 lines and 156/156 branches, strict 100%.
-- EF adapter: `TestResults/coverage/vc.Ifx.Filtering.EntityFrameworkCore/8b6981c89bc6411ab27c23943e64ab5d/summary.json`;
+- EF adapter: `test-results/coverage/vc.Ifx.Filtering.EntityFrameworkCore/8b6981c89bc6411ab27c23943e64ab5d/summary.json`;
   4/4 tests passed, 14/14 lines and 4/4 branches, strict 100%.
 
 Both TRX files record zero failures and zero not-executed cases. These results
@@ -291,7 +291,7 @@ findings and evidence above remain historical. Global acceptance stays with
 Orchestrator.
 
 The reviewer read the revised README, response catalog, DI extension/direct handler,
-and `tests/unit/vc.Ifx.UnitTests/WebApi/HostingPipelineContractTests.cs`. The hosting
+and `tests/unit/Ifx.UnitTests/WebApi/HostingPipelineContractTests.cs`. The hosting
 extension still calls built-in UseExceptionHandler; the handler's executable
 cancellation/header checks remain unchanged. New source remarks accurately scope
 their guarantees to the direct-handler boundary.
@@ -319,7 +319,7 @@ service and default exception mapper behind the observing/custom wrapper. They d
 not merely call IExceptionHandler directly, and they do not start a listener.
 
 Evidence independently inspected:
-`TestResults/coverage/vc.Ifx.WebApi/aa310c6abd184df4b7fed25be48871a1/summary.json`,
+`test-results/coverage/vc.Ifx.WebApi/aa310c6abd184df4b7fed25be48871a1/summary.json`,
 `run-context.json`, and `vc.Ifx.UnitTests/tests.trx`. The context records Release,
 source scope WebApi, test package vc.Ifx.WebApi and filter
 `FullyQualifiedName~Tests.WebApi.`. All 109 tests passed with zero failures or

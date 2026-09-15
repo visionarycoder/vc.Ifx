@@ -830,7 +830,7 @@ pwsh -NoProfile -File scripts/Test-FrameworkDependencies.ps1
 pwsh -NoProfile -File scripts/Test-FrameworkDependencies.ps1 -SelfTest
 
 # Orchestrator only, after all benchmark/mutation/AOT/build-input writes have stopped.
-$build = Join-Path $PWD ("TestResults/reporting/optimization-" + [Guid]::NewGuid().ToString('N'))
+$build = Join-Path $PWD ("test-results/reporting/optimization-" + [Guid]::NewGuid().ToString('N'))
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly `
   -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
 $env:IFX_REPORT_BUILD = $build

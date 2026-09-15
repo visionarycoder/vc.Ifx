@@ -39,14 +39,14 @@ are unchanged. Selection fingerprints do not prove freshness after source edits.
   own generated entry point is explicitly accounted for when InitialTargets runs.
   Symlink/junction, malformed selector, full-scope guard, hash/key tampering and
   provenance regressions passed. Artifacts:
-  `TestResults/coverage-infrastructure/1ad49a43611c435e8ff7c1ac755be15e`.
+  `test-results/coverage-infrastructure/1ad49a43611c435e8ff7c1ac755be15e`.
 - `./tests/infrastructure/reporting/Test-ReportingInfrastructure.ps1`: all eight
   existing host checks passed; zero build warnings. Artifacts:
-  `TestResults/reporting-host-tests/a99db00925df413cab051d50bb0f44f8`.
+  `test-results/reporting-host-tests/a99db00925df413cab051d50bb0f44f8`.
 - `./scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Filtering.EntityFrameworkCore -TestSourceScope 'Filtering/EntityFrameworkCore;Infrastructure' -TestPackage vc.Ifx.Filtering.EntityFrameworkCore -WarningsAsErrors`:
   five passed, zero failed/skipped, zero build warnings; exact 14/14 lines and 4/4
   branches. Fresh JSON/OpenCover/TRX/context:
-  `TestResults/coverage/vc.Ifx.Filtering.EntityFrameworkCore/e22a277ba26d4877b0ee90d3f74b9b69`.
+  `test-results/coverage/vc.Ifx.Filtering.EntityFrameworkCore/e22a277ba26d4877b0ee90d3f74b9b69`.
 - Earlier SQLite-native-only diagnostic collection passed one test but exercised
   0/14 package lines and 0/4 branches. It correctly retained BelowThreshold status
   with ReportOnly; artifact `2ac597fa6a1d47e5b94a270d9dfad08d` under that package's
@@ -64,7 +64,7 @@ only those source folders, and use CoveragePackage to select the measured module
 Coordinate the resulting dependency build with Orchestrator.
 
 The attempted five-folder/Proxy-only build stopped before discovery with CS0234
-Logging errors (`TestResults/tests/vc.Ifx.UnitTests/f2a386a79cd243dc9281cb63ec6548db`).
+Logging errors (`test-results/tests/vc.Ifx.UnitTests/f2a386a79cd243dc9281cb63ec6548db`).
 The four-folder attempt without Logging also stopped before discovery because
 Authentication needed the ASP.NET Core provider reference
 (`03d3b62e7f8749968493e45b15c29800`). These are reference-selection failures, not

@@ -28,7 +28,7 @@ than one child. Value is a string or null; IN/NotIn encode a JSON array of strin
 or null values inside that field. Application-level field allowlists, size/depth
 limits and authorization are still required for externally supplied filters.
 
-The schema is embedded as VisionaryCoder.Framework.Schemas.queryfilter.schema.json.
+The schema is embedded as vc.Ifx.Schemas.queryfilter.schema.json.
 Schema validation and deserialization share the structural reader; runtime member
 types are validated during rehydration. Unknown schema versions are not silently
 accepted: a future format requires an explicit converter/versioned entry point.

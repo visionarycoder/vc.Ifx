@@ -6,7 +6,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $UnderFrameworkMutex) { throw 'Use Invoke-FrameworkTests.ps1 -BuildOnly -Project scripts/packaging/CompilerHostSmoke.proj to hold the repository mutex.' }
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$artifacts = Join-Path $repo "TestResults/compiler-host-packages/$([Guid]::NewGuid().ToString('N'))"
+$artifacts = Join-Path $repo "test-results/compiler-host-packages/$([Guid]::NewGuid().ToString('N'))"
 $null = New-Item -ItemType Directory -Path $artifacts
 Write-Host "Compiler host package artifacts: $artifacts"
 Start-Transcript -Path (Join-Path $artifacts 'verification.log') | Out-Null
@@ -104,7 +104,7 @@ try {
             $source = Join-Path $PSScriptRoot 'compiler-host/AnalyzerConsumer.cs.txt'
         } else {
             $arguments += "/reference:`"$artifacts/vc.Ifx.Generators.Abstractions/lib/net10.0/vc.Ifx.Generators.Abstractions.dll`""
-            $source = Join-Path $repo 'src/vc.Ifx.Generators/verification/EndpointConsumer.cs.txt'
+            $source = Join-Path $repo 'src/vc.Ifx.Generators/Verification/EndpointConsumer.cs.txt'
         }
         $arguments += "`"$source`""
         $response = Join-Path $out 'compiler.rsp'
@@ -127,7 +127,7 @@ try {
     $consumer = Join-Path $artifacts 'nuget-consumer'
     $null = New-Item -ItemType Directory -Path $consumer
     Copy-Item (Join-Path $PSScriptRoot 'compiler-host/NuGetConsumer.csproj.template') (Join-Path $consumer 'NuGetConsumer.csproj')
-    Copy-Item (Join-Path $repo 'src/vc.Ifx.Generators/verification/EndpointConsumer.cs.txt') (Join-Path $consumer 'EndpointConsumer.cs')
+    Copy-Item (Join-Path $repo 'src/vc.Ifx.Generators/Verification/EndpointConsumer.cs.txt') (Join-Path $consumer 'EndpointConsumer.cs')
     Copy-Item (Join-Path $PSScriptRoot 'compiler-host/RoslynConsumer.cs.txt') (Join-Path $consumer 'RoslynConsumer.cs')
     Copy-Item (Join-Path $PSScriptRoot 'compiler-host/AnalyzerConsumer.cs.txt') (Join-Path $consumer 'AnalyzerConsumer.cs')
     # Map vc.Ifx exclusively to these fresh archives, never an existing same-version cache/feed.

@@ -15,22 +15,16 @@ This repository captures **industry best practices**, **design patterns**, and a
 
 See the current maturity map of practices across specialties:
 
-👉 [Solution Architect Radar](best-practices/radar.md)
+👉 [Architecture Governance Reviews](reviews/quarterly-radar-review.md)
 
 ---
 
 ## 🏗️ Best Practice Capsules
 
-Each specialty has its own capsule with principles, patterns, anti-patterns, and maturity levels:
+Specialist guidance is maintained as discoverable skills:
 
-- [Software Architecture](best-practices/software-architecture/readme.md)
-- [Security](best-practices/security/readme.md)
-- [Cloud Architecture](best-practices/cloud-architecture/readme.md)
-- [DevOps & Platform Engineering](best-practices/devops/readme.md)
-- [Data & Analytics](best-practices/data-analytics/readme.md)
-- [Integration & APIs](best-practices/integration/readme.md)
-- [Observability](best-practices/observability/readme.md)
-- [Specialty Template](best-practices/templates/readme.md)
+- [Skills catalog](../.github/skills-index.md)
+- [Repository instructions](../.github/copilot-instructions.md)
 
 ---
 
@@ -46,7 +40,7 @@ Guides for AI-assisted development:
 ## 📚 Supporting Docs
 
 - [Onboarding Guide](./onboarding/readme.md)
-- [Architecture Decision Records](./adr/README.md)
+- [Architecture Decision Records](./adr/index.md)
 - [Roslyn Diagnostic Debt Analyzer](./roslyn/diagnostic-debt-analyzer.md)
 - [Architecture Governance Reviews](./reviews/readme.md)
 

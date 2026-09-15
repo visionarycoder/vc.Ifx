@@ -70,7 +70,7 @@ Agent calculates CRAP scores for a targeted .NET scope.
 
 | Step | Agent action | Test | Pass |
 |---|---|---|---|
-| 1 | Agent finds Cobertura data or generates it. | Read `TestResults` or run the coverage command. | Cobertura XML exists. |
+| 1 | Agent finds Cobertura data or generates it. | Read `test-results` or run the coverage command. | Cobertura XML exists. |
 | 2 | Agent reads the target source scope and counts decision points per method. | Read the complexity table. | Each method has a complexity value of `>= 1`. |
 | 3 | Agent maps Cobertura coverage to each method. | Read the coverage table. | Each method has a coverage percentage or documented gap. |
 | 4 | Agent computes CRAP for each method in scope. | Spot-check one method with the formula. | Calculated score matches the formula. |

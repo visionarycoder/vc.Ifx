@@ -9,11 +9,11 @@ last_updated: 2026-09-10
 # Copilot Base Instructions
 
 ## Purpose
-Provide a concise, modular hub for AI-assisted code and documentation generation, extending the global `.github/copilot-instructions.md` and linking domain capsules under `docs/best-practices/`.
+Provide a concise, modular hub for AI-assisted code and documentation generation, extending the global `.github/copilot-instructions.md` and linking domain skills under `.github/skills/`.
 
 ## Precedence & Composition
 1. Domain-specific instruction files (e.g., `design-patterns.instructions.md`) override base guidance for that scope.
-2. This file (`.copilot/copilot-instructions.md`) supplies aggregation + shared rules.
+2. This file (`.github/instructions/copilot-instructions.md`) supplies aggregation + shared rules.
 3. Global file (`.github/copilot-instructions.md`) supplies enterprise baseline.
 4. Repository standards (`repo-standards.md`) apply to structure, hygiene, and workflow.
 When in doubt, favor the most specific applicable file.
@@ -46,17 +46,10 @@ These topics extend baseline guidelines with generation heuristics.
 ## Domain Index
 | Domain | Capsule | Description |
 |--------|---------|-------------|
-| Architecture (General) | `docs/best-practices/software-architecture/readme.md` | Structural & logical design principles |
-| Cloud Architecture | `docs/best-practices/cloud-architecture/readme.md` | Cloud-specific topologies & deployment patterns |
-| Security | `docs/best-practices/security/readme.md` | AuthZ/AuthN, secret management, hardening |
-| Integration & APIs | `docs/best-practices/integration/readme.md` | REST/gRPC/GraphQL/messaging guidelines |
-| Observability | `docs/best-practices/observability/readme.md` | Logging, tracing, metrics, AIOps |
-| DevOps & Delivery | `docs/best-practices/devops/readme.md` | Pipelines, environment strategy, automation |
-| Data & Analytics | `docs/best-practices/data-analytics/readme.md` | Data lifecycle, analytics principles |
-| Templates & Scaffolding | `docs/best-practices/templates/readme.md` | Boilerplate, reusable module templates |
-| Radar | `docs/best-practices/radar.md` | Capability maturity tracking |
-| Design Patterns | `.copilot/design-patterns.instructions.md` | Modern C# pattern implementations |
-| Core C# | `.copilot/csharp.instructions.md` | Extended C# generation heuristics |
+| Domain skills | `.github/skills-index.md` | Modular specialist guidance |
+| Architecture reviews | `docs/reviews/quarterly-radar-review.md` | Capability maturity tracking |
+| Design Patterns | `.github/instructions/design-patterns.instructions.md` | Modern C# pattern implementations |
+| Core C# | `.github/instructions/csharp.instructions.md` | Extended C# generation heuristics |
 
 ## Output Quality Checklist
 Before finalizing AI-generated output:
@@ -79,15 +72,15 @@ Reject or refactor if output includes:
 - Hard-coded secrets, credentials, or environment paths.
 
 ## Contribution Guidance for New Domains
-1. Create capsule folder under `docs/best-practices/<domain>/` with `readme.md`.
+1. Create a skill folder under `.github/skills/<domain>/` with `SKILL.md`.
 2. Add entry to Domain Index table here.
 3. Include: Scope, Principles, Do/Don't, Example snippet, Cross-cutting concerns.
 4. Reference corresponding ADRs if introducing architectural shifts.
 
 ## References
 - Global Enterprise Guidelines: `.github/copilot-instructions.md`
-- Repository Standards: `.copilot/repo-standards.md`
-- Design Patterns: `.copilot/design-patterns.instructions.md`
+- Repository Standards: `.github/repo-standards.md`
+- Design Patterns: `.github/instructions/design-patterns.instructions.md`
 
 ---
 *This base file evolves alongside architecture decisions; keep changes atomic and traceable (link ADR in commit message).*

@@ -50,7 +50,7 @@ Agent analyzes .NET coverage data and ranks risky low-coverage code.
 | Source scope | Yes | Project or solution path |
 | Cobertura files | No | Reuse existing files first |
 | Coverage thresholds | No | Use when the user gives pass bands |
-| Output path | No | Default to `TestResults/coverage-analysis/` |
+| Output path | No | Default to `test-results/coverage-analysis/` |
 
 ## Workflow
 
@@ -58,10 +58,10 @@ Agent analyzes .NET coverage data and ranks risky low-coverage code.
 |---|---|---|---|
 | 1 | Agent reads the scope and looks for Cobertura XML. | Run `rg -n "coverage\.cobertura\.xml|cobertura" <scope>`. | Existing coverage files are listed or none are found. |
 | 2 | Agent reuses existing coverage files when files exist. | Read the selected file paths. | Agent skips new test runs. |
-| 3 | Agent generates coverage only when no usable Cobertura file exists. | Run the repo coverage command or `dotnet test` coverage command. | A Cobertura XML file exists under `TestResults`. |
-| 4 | Agent preserves raw inputs under `TestResults/coverage-analysis/raw/`. | Read `TestResults/coverage-analysis/raw/`. | Raw coverage files exist. |
+| 3 | Agent generates coverage only when no usable Cobertura file exists. | Run the repo coverage command or `dotnet test` coverage command. | A Cobertura XML file exists under `test-results`. |
+| 4 | Agent preserves raw inputs under `test-results/coverage-analysis/raw/`. | Read `test-results/coverage-analysis/raw/`. | Raw coverage files exist. |
 | 5 | Agent computes line coverage, branch coverage, and hotspot ranking. | Read the generated summary. | Summary includes overall coverage and hotspot rows. |
-| 6 | Agent writes `TestResults/coverage-analysis/coverage-analysis.md`. | Read the markdown file. | File exists and contains summary, hotspots, and next steps. |
+| 6 | Agent writes `test-results/coverage-analysis/coverage-analysis.md`. | Read the markdown file. | File exists and contains summary, hotspots, and next steps. |
 | 7 | Agent generates HTML or CSV only when the user asks. | Read the user prompt. | Extra artifacts exist only for explicit requests. |
 
 ## Report Content
@@ -88,5 +88,5 @@ Agent analyzes .NET coverage data and ranks risky low-coverage code.
 |---|---|
 | Agent runs expensive tests first | Agent reads for Cobertura files first. |
 | Agent reports percentages only | Agent adds hotspot ranking and next steps. |
-| Agent overwrites user files | Agent writes under `TestResults/coverage-analysis/`. |
+| Agent overwrites user files | Agent writes under `test-results/coverage-analysis/`. |
 | Agent generates HTML by default | Agent writes the markdown summary first. |

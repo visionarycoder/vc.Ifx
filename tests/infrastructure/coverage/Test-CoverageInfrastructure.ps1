@@ -12,7 +12,7 @@ try { $acquired = $mutex.WaitOne([TimeSpan]::FromMinutes(20)) }
 catch [Threading.AbandonedMutexException] { $acquired = $true; throw 'Abandoned framework mutex; rebuild before verification.' }
 if (-not $acquired) { throw 'Framework mutex timeout.' }
 $validator = Join-Path $repoRoot 'scripts/coverage/Test-CoverageReport.ps1'
-$output = Join-Path $repoRoot "TestResults/coverage-infrastructure/$([Guid]::NewGuid().ToString('N'))"
+$output = Join-Path $repoRoot "test-results/coverage-infrastructure/$([Guid]::NewGuid().ToString('N'))"
 $null = New-Item -ItemType Directory -Path $output -Force
 $fixture = Join-Path $output 'coverage.json'
 $script:passed = 0
@@ -56,7 +56,7 @@ $duplicate = $complete.Clone()
 $duplicate['other/vc.Ifx.Fixture.dll'] = $complete['vc.Ifx.Fixture.dll']
 Assert-Report 'duplicate-module' $duplicate @('vc.Ifx.Fixture') $false ''
 
-foreach ($project in @('tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj', 'tests/integration/vc.Ifx.IntegrationTests/vc.Ifx.IntegrationTests.csproj')) {
+foreach ($project in @('tests/unit/Ifx.UnitTests/Ifx.UnitTests.csproj', 'tests/integration/Ifx.IntegrationTests/Ifx.IntegrationTests.csproj')) {
     $evaluation = & dotnet msbuild (Join-Path $repoRoot $project) '-getProperty:LangVersion,IsTestProject,IsPackable,GeneratePackageOnBuild,GenerateDocumentationFile,CollectCoverage,Threshold,ThresholdStat,ThresholdType,ExcludeByAttribute,SkipAutoProps,ExcludeAssembliesWithoutSources' '-m:1' '-p:BuildInParallel=false'
     if ($LASTEXITCODE -ne 0) { throw "MSBuild evaluation failed: $project" }
     $properties = ($evaluation | ConvertFrom-Json -AsHashtable).Properties
@@ -72,7 +72,7 @@ foreach ($project in @('tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj', 't
     $script:passed++
     Write-Host "PASS: evaluated test configuration $project"
 }
-$testProject = Join-Path $repoRoot 'tests/unit/vc.Ifx.UnitTests/vc.Ifx.UnitTests.csproj'
+$testProject = Join-Path $repoRoot 'tests/unit/Ifx.UnitTests/Ifx.UnitTests.csproj'
 $scopedJson = & dotnet msbuild $testProject '-p:IfxTestSourceScope=Filtering' '-p:IfxTestPackage=vc.Ifx.Filtering' '-getItem:Compile,ProjectReference' '-getProperty:OutputPath,MSBuildProjectExtensionsPath' '-m:1' '-p:BuildInParallel=false'
 if ($LASTEXITCODE -ne 0) { throw 'Scoped test evaluation failed.' }
 $scoped = $scopedJson | ConvertFrom-Json
@@ -149,7 +149,7 @@ Assert-Rejected 'package without sources' { Resolve-IfxTestSelection -ProjectPat
 $pathFixture = Join-Path $output 'path-fixture'
 $outsideFixture = Join-Path $output 'outside-fixture'
 $null = New-Item -ItemType Directory -Path $pathFixture, $outsideFixture, (Join-Path $pathFixture 'Nested')
-$fixtureProject = Join-Path $pathFixture 'vc.Ifx.UnitTests.csproj'
+$fixtureProject = Join-Path $pathFixture 'Ifx.UnitTests.csproj'
 '<Project />' | Set-Content -LiteralPath $fixtureProject -Encoding utf8
 $linkType = if ($IsWindows) { 'Junction' } else { 'SymbolicLink' }
 $null = New-Item -ItemType $linkType -Path (Join-Path $pathFixture 'Linked') -Target $outsideFixture

@@ -1,10 +1,10 @@
 ---
-title: VisionaryCoder Framework - License Information
+title: Ifx - License Information
 doc_type: reference
 status: active
 last_updated: 2026-09-10
 ---
-# VisionaryCoder Framework - License Information
+# Ifx - License Information
 
 ## MIT License
 
@@ -15,7 +15,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 When creating new source files, include this header at the top:
 
 ```csharp
-// Copyright (c) 2025 VisionaryCoder. All rights reserved.
+// Copyright (c) 2025 vc.Ifx. All rights reserved.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 ```
 

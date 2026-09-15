@@ -53,7 +53,7 @@ if ($NoBuild) {
 }
 
 # All coverage invocations share build outputs; refuse concurrent instrumentation in this checkout.
-$resultsRoot = Join-Path $repoRoot 'TestResults/coverage'
+$resultsRoot = Join-Path $repoRoot 'test-results/coverage'
 $null = New-Item -ItemType Directory -Path $resultsRoot -Force
 $lockPath = Join-Path $resultsRoot 'coverage.lock'
 try { $coverageLock = [IO.File]::Open($lockPath, 'OpenOrCreate', 'ReadWrite', 'None') }

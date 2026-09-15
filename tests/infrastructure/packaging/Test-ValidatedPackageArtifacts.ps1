@@ -4,7 +4,7 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$evidence = Join-Path $repository "TestResults/package-wrapper-tests/$([Guid]::NewGuid().ToString('N'))"
+$evidence = Join-Path $repository "test-results/package-wrapper-tests/$([Guid]::NewGuid().ToString('N'))"
 $revision = 'a' * 40
 $passed = 0
 
@@ -56,7 +56,7 @@ param($RepositoryRoot, $PackageDirectory)
         [IO.File]::WriteAllBytes($path, [Text.Encoding]::UTF8.GetBytes("tested $name"))
         @{ path = $path; sha256 = (Get-FileHash -LiteralPath $path).Hash.ToLowerInvariant() }
     })
-    $projects = @(foreach ($name in @('src/vc.Ifx.Sample/vc.Ifx.Sample.csproj', 'tests/unit/vc.Ifx.UnitTests.csproj', 'tests/integration/vc.Ifx.IntegrationTests.csproj')) {
+    $projects = @(foreach ($name in @('src/vc.Ifx.Sample/vc.Ifx.Sample.csproj', 'tests/unit/Ifx.UnitTests.csproj', 'tests/integration/Ifx.IntegrationTests.csproj')) {
         $path = Join-Path $root $name
         '<Project />' | Set-Content -LiteralPath $path
         @{ name = [IO.Path]::GetFileNameWithoutExtension($path); projectPath = $path; targetPath = (Join-Path $outputDirectory 'vc.Ifx.Sample.dll')

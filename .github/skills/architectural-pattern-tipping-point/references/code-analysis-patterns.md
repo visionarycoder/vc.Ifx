@@ -16,13 +16,13 @@ Agent scans codebase for bounded context indicators to determine modular monolit
 
 ```csharp
 // Namespace boundaries align with business domains
-namespace Wa.Wsdot.Fin.Idl.Accounting
+namespace vc.Ifx.Accounting
 {
     public class Journal { }
     public class GeneralLedger { }
 }
 
-namespace Wa.Wsdot.Fin.Idl.Payroll
+namespace vc.Ifx.Payroll
 {
     public class PayPeriod { }
     public class TimeEntry { }
@@ -37,7 +37,7 @@ namespace Wa.Wsdot.Fin.Idl.Payroll
 
 ```csharp
 // Everything in one namespace
-namespace Wa.Wsdot.Fin.Idl.Services
+namespace vc.Ifx.Services
 {
     public class AccountingService { }
     public class PayrollService { }
@@ -59,16 +59,16 @@ Agent analyzes project dependencies to detect deployment domain readiness.
 
 ```
 // Deployment Domain 1: Portal (UI + API)
-Wa.Wsdot.Fin.Idl.Client.Portal.WebApi
-  → Wa.Wsdot.Fin.Idl.Manager.Transport
-  → Wa.Wsdot.Fin.Idl.Engine.Extracting
-  → Wa.Wsdot.Fin.Idl.Access.Storage
+vc.Ifx.Client.Portal.WebApi
+  → vc.Ifx.Manager.Transport
+  → vc.Ifx.Engine.Extracting
+  → vc.Ifx.Access.Storage
 
 // Deployment Domain 2: Scheduler (Background jobs)
-Wa.Wsdot.Fin.Idl.Client.Scheduler.WebApp
-  → Wa.Wsdot.Fin.Idl.Engine.Converting
-  → Wa.Wsdot.Fin.Idl.Engine.Materializing
-  → Wa.Wsdot.Fin.Idl.Access.Advantage
+vc.Ifx.Client.Scheduler.WebApp
+  → vc.Ifx.Engine.Converting
+  → vc.Ifx.Engine.Materializing
+  → vc.Ifx.Access.Advantage
 
 // ✅ No circular dependencies between domains
 // ✅ Each domain has its own entry point
@@ -147,7 +147,7 @@ Agent identifies shared code that complicates deployment independence.
 
 ```csharp
 // Common utilities used by all modules
-namespace Wa.Wsdot.Fin.Idl.Util
+namespace vc.Ifx.Util
 {
     public static class DateHelper { }
     public static class ValidationHelper { }
@@ -166,8 +166,8 @@ namespace Wa.Wsdot.Fin.Idl.Util
 
 ```csharp
 // Extract stable shared code to NuGet package
-// Wa.Wsdot.Fin.Idl.SharedKernel (NuGet)
-namespace Wa.Wsdot.Fin.Idl.SharedKernel
+// vc.Ifx.SharedKernel (NuGet)
+namespace vc.Ifx.SharedKernel
 {
     public static class DateHelper { }
     public static class CurrencyHelper { }

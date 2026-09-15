@@ -22,19 +22,19 @@ not current repository-wide counts or outstanding agent assignments.
 
 - `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Roslyn.Reporting -TestSourceScope Reporting -TestPackage vc.Ifx.Roslyn.Reporting -WarningsAsErrors`
   passed 9/9 tests, no skips, strict 229/229 lines and 244/244 branches (100%).
-  Evidence: `TestResults/coverage/vc.Ifx.Roslyn.Reporting/83965187fcd14149931c73851dda53c3/summary.json`.
+  Evidence: `test-results/coverage/vc.Ifx.Roslyn.Reporting/83965187fcd14149931c73851dda53c3/summary.json`.
 - `pwsh -NoProfile -File tests/infrastructure/reporting/Test-ReportingInfrastructure.ps1`
-  passed 8 host checks. Synthetic fixtures: `TestResults/reporting-host-tests/570036ba64eb454eb54834279103f1fd/`.
+  passed 8 host checks. Synthetic fixtures: `test-results/reporting-host-tests/570036ba64eb454eb54834279103f1fd/`.
 - `pwsh -NoProfile -File tests/infrastructure/coverage/Test-CoverageInfrastructure.ps1`
   passed 15 checks, including dynamic 28-package references and scoped/full isolation.
-  Evidence: `TestResults/coverage-infrastructure/1290e240d0eb405a9fdb043eae0dea3a/`.
+  Evidence: `test-results/coverage-infrastructure/1290e240d0eb405a9fdb043eae0dea3a/`.
 - A mutex build of the reporting package with `-ReportBuildDirectory` produced
   actual compiler SARIF, Compile fingerprints, symbols and build-complete metadata,
   with zero warnings/errors. The script host produced a passed scoped report from
   this actual SARIF and strict current-run coverage:
-  `TestResults/reporting/reporting-smoke-20260909-v3/report-v1/`.
+  `test-results/reporting/reporting-smoke-20260909-v3/report-v1/`.
   This is scoped evidence, not full-integration evidence.
-- Mutex-wrapped `scripts/packaging/Validate-Packages.ps1 -PackageId vc.Ifx.Roslyn.Reporting -Pack -SkipDocsCheck -PackageDirectory TestResults/reporting-pack-final`
+- Mutex-wrapped `scripts/packaging/Validate-Packages.ps1 -PackageId vc.Ifx.Roslyn.Reporting -Pack -SkipDocsCheck -PackageDirectory test-results/reporting-pack-final`
   validated the 1.0.0 package/symbol pair and 6 existing non-packable test/benchmark
   projects. The first attempt correctly rejected leaked build-analyzer dependencies;
   an explicit private Microsoft.CodeAnalysis.Analyzers reference fixed that leak.
@@ -54,7 +54,7 @@ not current repository-wide counts or outstanding agent assignments.
 
 - `src/vc.Ifx.Roslyn.Reporting/`: project, README, request/report records,
   ReportEngine and SourceMetrics.
-- `tests/unit/vc.Ifx.UnitTests/Reporting/ReportEngineTests.cs`.
+- `tests/unit/Ifx.UnitTests/Reporting/ReportEngineTests.cs`.
 - `scripts/reporting/`: non-packable host project, Report.cs and PowerShell runner.
 - `tests/infrastructure/reporting/Test-ReportingInfrastructure.ps1`.
 - `docs/reporting/`: design contract, usage and this verification record.
@@ -70,9 +70,9 @@ not current repository-wide counts or outstanding agent assignments.
 - Centralized the generator's private Microsoft.AspNetCore.Routing 2.3.12 pin in
   `Directory.Packages.props`; removed only its local VersionOverride, retaining
   PrivateAssets=all, netstandard2.0 and analyzer-only bundling. Shared-wrapper
-  `-BuildOnly -Project src/vc.Ifx.Generators/verification/PackageSmoke.proj -WarningsAsErrors`
+  `-BuildOnly -Project src/vc.Ifx.Generators/Verification/PackageSmoke.proj -WarningsAsErrors`
   passed with zero warnings/errors. Fresh package/extracted consumer evidence:
-  `TestResults/generator-package/f5fd4aaa8c2d47809d68c693141ad04e/`. The generator
+  `test-results/generator-package/f5fd4aaa8c2d47809d68c693141ad04e/`. The generator
   archive has zero public dependencies and zero lib/ref/runtimes assets; both
   Routing DLLs occur only under analyzers/dotnet/cs. Resolved Routing remains 2.3.12.
   Generator behavior/coverage was not rerun for this version-location-only change.

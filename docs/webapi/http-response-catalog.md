@@ -15,7 +15,7 @@ Include permanent RFC registrations, including 103 and 425 even where ASP.NET co
 
 ## Immutable Contract
 
-Namespace: VisionaryCoder.Framework.WebApi.Responses.
+Namespace: vc.Ifx.WebApi.Responses.
 HttpResponseCatalog.All is an immutable, status-ordered read-only list. Get(int) throws ArgumentOutOfRangeException for unknown codes; TryGet(int, out HttpResponseDefinition?) returns false/null. Entries have get-only StatusCode, ReasonPhrase, DefaultTitle, SafeDetail, Type, Retryability, IsDetailSafeForClients, and AllowsBody properties. DefaultTitle equals ReasonPhrase; every SafeDetail below is safe for clients. Type is the absolute RFC link below. Common typed properties: Unauthorized, Forbidden, NotFound, Conflict, UnprocessableContent, TooManyRequests, InternalServerError, BadGateway, ServiceUnavailable, GatewayTimeout.
 
 Retryability is NeverByDefault for every entry except 408/429/502/503/504, which are PotentiallyTransient. Neither classification establishes replay safety. Never automatically retry arbitrary 5xx, authentication failures, cancellation, or 425 (requires early-data context). Applications must establish operation idempotency, replayable content, retry budget, and any Retry-After timing.
@@ -112,7 +112,7 @@ TryAdd registrations preserve application mapper/classifier/factory/time-provide
 
 ## Verification Gates
 
-Tests belong exclusively to tests/unit/vc.Ifx.UnitTests/WebApi. Required evidence is measured package-only 100% line and branch coverage, targeted tests, warning-free package build, plus orchestrator-owned full solution build/suite and package metadata checks. Shared framework/language and test project changes remain infrastructure-owned. Infrastructure has applied stable C# 14.0 globally; the package inherits net10.0. The shared tests currently reference both Polly 7 and Polly.Core 8, so timeout tests assert the exception's runtime type and assembly to avoid ambiguous compile-time names.
+Tests belong exclusively to tests/unit/Ifx.UnitTests/WebApi. Required evidence is measured package-only 100% line and branch coverage, targeted tests, warning-free package build, plus orchestrator-owned full solution build/suite and package metadata checks. Shared framework/language and test project changes remain infrastructure-owned. Infrastructure has applied stable C# 14.0 globally; the package inherits net10.0. The shared tests currently reference both Polly 7 and Polly.Core 8, so timeout tests assert the exception's runtime type and assembly to avoid ambiguous compile-time names.
 
 Verified 2026-09-09 using the infrastructure serialization wrapper:
 
@@ -121,13 +121,13 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.
 pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project src/vc.Ifx.WebApi/vc.Ifx.WebApi.csproj -NoRestore
 ```
 
-98 tests passed; measured coverage is 327/327 lines and 116/116 branches (both 100%), with 100% methods. No custom coverage exclusions were introduced. OpenCover evidence: `TestResults/coverage/vc.Ifx.WebApi/6cd18b8e77bc466983bc22bc05992885/vc.Ifx.UnitTests/coverage.opencover.xml`. Package build: zero warnings/errors. The project remains In-flight for the orchestrator's whole-solution build, full test suite/global coverage, and final packaged artifact verification.
+98 tests passed; measured coverage is 327/327 lines and 116/116 branches (both 100%), with 100% methods. No custom coverage exclusions were introduced. OpenCover evidence: `test-results/coverage/vc.Ifx.WebApi/6cd18b8e77bc466983bc22bc05992885/vc.Ifx.UnitTests/coverage.opencover.xml`. Package build: zero warnings/errors. The project remains In-flight for the orchestrator's whole-solution build, full test suite/global coverage, and final packaged artifact verification.
 
 ### Hosting Review Verification: 2026-09-10
 
 F2/F3 are addressed by the hosting boundary corrections above and eleven real
 Production WebApplication/ApplicationBuilder pipeline regressions in
-`tests/unit/vc.Ifx.UnitTests/WebApi/HostingPipelineContractTests.cs`. These tests
+`tests/unit/Ifx.UnitTests/WebApi/HostingPipelineContractTests.cs`. These tests
 build and invoke UseIfxWebApiExceptionHandling, not just the direct handler.
 They cover aborted OperationCanceledException/IOException (499, no mapper/body),
 uncanceled OperationCanceledException identity/propagation, all four pre-throw
@@ -142,12 +142,12 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Filter FullyQualifiedNa
 Strict Release package proof: 109/109 tests, zero skips or build/test warnings;
 280/280 lines, 116/116 branches and 100% methods. Release optimization accounts
 for the line-count difference from the preserved Debug checkpoint above.
-Evidence: `TestResults/coverage/vc.Ifx.WebApi/aa310c6abd184df4b7fed25be48871a1/summary.json`
+Evidence: `test-results/coverage/vc.Ifx.WebApi/aa310c6abd184df4b7fed25be48871a1/summary.json`
 and adjacent `vc.Ifx.UnitTests/tests.trx`. The second command compiled the full
 unscoped test assembly and passed all eleven hosting tests, zero skips/warnings:
-`TestResults/tests/vc.Ifx.UnitTests/723f918ac5ba4b0bb68da8600e2da0b7/tests.trx`.
+`test-results/tests/vc.Ifx.UnitTests/723f918ac5ba4b0bb68da8600e2da0b7/tests.trx`.
 The initial scoped eleven-test Release run also passed:
-`TestResults/tests/vc.Ifx.UnitTests/77ea4339d28847c69c8529a2ee2c47a6/tests.trx`.
+`test-results/tests/vc.Ifx.UnitTests/77ea4339d28847c69c8529a2ee2c47a6/tests.trx`.
 These are package/targeted results, not a new full-suite run or proof for every
 ASP.NET servicing runtime. Built-in middleware, executable package behavior,
 public signatures and dependencies are unchanged; no coverage exclusions added.

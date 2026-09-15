@@ -8,7 +8,7 @@ pwsh -NoProfile -File tests/infrastructure/packaging/Test-PackageArtifactManifes
 pwsh -NoProfile -File tests/infrastructure/packaging/Test-ValidatedPackageArtifacts.ps1
 ```
 
-The wrapper suite uses a temporary repository beneath `TestResults`, with its own
+The wrapper suite uses a temporary repository beneath `test-results`, with its own
 repository-path mutex. Native Git/MSBuild/pack and the separately tested package
 layout validator are stubbed. The wrapper, build provenance assertions, test
 selection module and archive manifest module execute unchanged. This is not
@@ -19,7 +19,7 @@ The wrapper requires `--no-build --no-restore` and
 references to collect private assets; without the latter property the SDK can
 invoke a referenced project's Build target and reject the operation with NETSDK1085.
 The real first all-package attempt reproduced this failure at
-`TestResults/package-artifacts/b9e8e1bc02b0445388f82933ca6bd4c3` before the
+`test-results/package-artifacts/b9e8e1bc02b0445388f82933ca6bd4c3` before the
 argument correction. The wrapper regression also fails if that flag is removed.
 
 ## Payload Identity

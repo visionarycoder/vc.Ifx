@@ -16,7 +16,7 @@ benchmarks, and missing measurements fail the command.
 
 Each run retains its arguments, SDK/runtime details, revision, before/after
 worktree inventory, build logs, BenchmarkDotNet logs, JSON, Markdown, CSV and HTML
-under a fresh `TestResults/benchmarks/<run-id>` directory. No repository cleanup
+under a fresh `test-results/benchmarks/<run-id>` directory. No repository cleanup
 is performed. BenchmarkDotNet generated builds live under benchmark `bin` paths.
 For reproducible comparisons, use a frozen source revision, record any dirty
 changes separately, use matching runtime/hardware/power settings, and reserve an

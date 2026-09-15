@@ -53,7 +53,7 @@ preview. NU5104 was fixed through dependency privacy, not warning suppression.
 There are now 28 source package projects, including `vc.Ifx.Roslyn.Reporting`.
 Mutex-serialized `./scripts/packaging/Validate-Packages.ps1 -MetadataOnly
 -SkipDocsCheck` passed for all 28 source projects and six non-packable
-test/benchmark projects. Log: `TestResults/packaging-metadata-refresh-20260909.log`.
+test/benchmark projects. Log: `test-results/packaging-metadata-refresh-20260909.log`.
 This refresh performs evaluation only: no package archive or docs rebuild was
 produced. Separate `dotnet msbuild scripts/reporting/FrameworkReport.Host.csproj
 -getProperty:IsPackable,GeneratePackageOnBuild -m:1 -p:BuildInParallel=false`

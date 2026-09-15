@@ -134,7 +134,7 @@ Agent uses this skill to keep namespaces aligned with project identity, folder s
 
 |---|---|
 
-| Root namespace | Agent keeps `Wa.Wsdot.Fin.Idl` intact and correctly cased. |
+| Root namespace | Agent keeps `vc.Ifx` intact and correctly cased. |
 
 | Folder alignment | Agent maps meaningful folders to namespace segments. |
 

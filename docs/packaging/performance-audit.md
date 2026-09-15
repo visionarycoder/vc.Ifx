@@ -34,7 +34,7 @@ remain separate gates; successful benchmark setup assertions are not unit covera
 
 All commands below run from the repository root, use the shared mutex, build
 Release with `-m:1 -p:BuildInParallel=false`, and disable automatic packaging.
-Artifact IDs are subdirectories of `TestResults/benchmarks/` and contain exact
+Artifact IDs are subdirectories of `test-results/benchmarks/` and contain exact
 arguments, build/console logs, JSON/Markdown/CSV/HTML results and SDK/worktree data.
 
 | Command arguments to `./scripts/Invoke-FrameworkBenchmarks.ps1` | Result | Artifact ID |
