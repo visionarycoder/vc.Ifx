@@ -75,12 +75,13 @@ public sealed class MapperGenerator : IIncrementalGenerator
 
         foreach (var targetProperty in WritableProperties(target))
         {
+            if (HasAttribute(targetProperty, MapIgnoreAttributeFullName)) { continue; }
+
             var sourceName = GetMapFromSourceName(targetProperty);
             sourceName ??= targetProperty.Name;
 
             if (!sourceProperties.TryGetValue(sourceName, out var sourceProperty))
             {
-                if (HasAttribute(targetProperty, MapIgnoreAttributeFullName)) { continue; }
                 context.ReportDiagnostic(Diagnostic.Create(MappingError, GetDiagnosticLocation(targetProperty, location),
                     $"'{target.ToDisplayString()}.{targetProperty.Name}' has no matching member '{sourceName}' on '{source.ToDisplayString()}'. Add [MapFrom] to redirect it or [MapIgnore] to exclude it."));
                 continue;

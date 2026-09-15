@@ -179,6 +179,18 @@ public sealed class LegacyGeneratorTests
     }
 
     [TestMethod]
+    public void MapperIgnoreSkipsMatchingMemberEvenWhenSourceHasSameNamedProperty()
+    {
+        var result = GeneratorHarness.Run(Header + """
+            namespace Target { public class RemoteOrder { public int Id { get; set; } [MapIgnore] public string? Extra { get; set; } } }
+            namespace Source { [GenerateMapper(typeof(Target.RemoteOrder))] public class LocalOrder { public int Id { get; set; } public string? Extra { get; set; } } }
+            """, new MapperGenerator());
+        result.AssertCompiles();
+        result.Diagnostics.Should().BeEmpty();
+        result.Source.Should().NotContain("Extra");
+    }
+
+    [TestMethod]
     [DataRow("""
         namespace Target { public class RemoteOrder { public int Id { get; set; } } }
         namespace Source { [GenerateMapper] public class LocalOrder { public int Id { get; set; } } }
