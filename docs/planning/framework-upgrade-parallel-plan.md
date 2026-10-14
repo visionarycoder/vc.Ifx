@@ -2,7 +2,7 @@
 title: vc.Ifx Parallel Upgrade Plan
 doc_type: plan
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-10-14
 ---
 
 # vc.Ifx Parallel Upgrade Plan
@@ -86,7 +86,7 @@ Use these waves as coordination hints. The dispatch readiness rules below determ
 2. Pure framework logic:
    `vc.Ifx.Filtering`, `vc.Ifx.Querying`, `vc.Ifx.Pipeline`.
 3. Provider packages:
-   `vc.Ifx.Storage.Local`, `vc.Ifx.Storage.Ftp`, `vc.Ifx.Storage.Azure.Blobs`, `vc.Ifx.Secrets.Local`, `vc.Ifx.Secrets.Azure.KeyVault`, `vc.Ifx.Data.Azure.Tables`, `vc.Ifx.Messaging.Azure.Queues`, `vc.Ifx.Proxy.Http`, `vc.Ifx.Proxy.AspNetCore`, `vc.Ifx.Filtering.EntityFrameworkCore`, `vc.Ifx.Pipeline.Grpc`.
+   `vc.Ifx.Storage.Local`, `vc.Ifx.Storage.Ftp`, `vc.Ifx.Storage.Azure.Blobs`, `vc.Ifx.Secrets.Local`, `vc.Ifx.Secrets.Azure.KeyVault`, `vc.Ifx.Storage.Azure.Tables`, `vc.Ifx.Messaging.Azure.Queues`, `vc.Ifx.Proxy.Http`, `vc.Ifx.Proxy.AspNetCore`, `vc.Ifx.Filtering.EntityFrameworkCore`, `vc.Ifx.Pipeline.Grpc`.
 4. Cross-cutting packages:
    `vc.Ifx.Proxy`, `vc.Ifx.WebApi`, `vc.Ifx.Observability`, `vc.Ifx.Analyzers`, `vc.Ifx.CodeFixes`, `vc.Ifx.Generators`, `vc.Ifx.Reporting` or `vc.Ifx.Roslyn.Reporting`.
 5. Aggregator:
@@ -308,11 +308,11 @@ Prior owner record: Owner: Agent C (implementation ready; final verification han
 - [x] Define fallback behavior to local secrets if retained.
 - [x] Add 100% tests with fake Key Vault adapter for caching, misses, disabled secrets, failures, retry, cancellation, and options validation. SDK client fakes and an in-memory HTTP handler verify provider behavior and actual SDK retry counts.
 
-### vc.Ifx.Data.Azure.Tables
+### vc.Ifx.Storage.Azure.Tables
 
 Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
 Owner: Orchestrator (accepted worker handoff); Updated: 2026-09-10; Notes: API, boundary, README and metadata reviews accepted; exact Release coverage 218/218 lines and 98/98 branches. Command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors, with IFX_REPORT_BUILD pointing to global-20260910-03. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
-Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn after explicit Agent J handoff); Updated: 2026-09-09; Notes: IMPLEMENTATION READY; retained J's provider/options/README and completed tests. ITableStorageProvider signatures stable; virtual SDK clients, lazy serialized initialization, all-page escaped queries, conditional ETags and atomic validated batches. Fixed trailing-newline table names, empty ETag interpretation, semaphore disposal and post-SDK/stream cancellation. Strict serialized command `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Data.Azure.Tables -TestSourceScope Data/AzureTables -TestPackage vc.Ifx.Data.Azure.Tables -Filter FullyQualifiedName~Data.AzureTables -WarningsAsErrors` passed 25/25 tests with 100% line 281/281, branch 98/98, method; evidence `test-results/coverage/vc.Ifx.Data.Azure.Tables/31e7f1544a6c4db6b3a8e2fe3236d64f/vc.Ifx.UnitTests/coverage.opencover.xml`. Strict package/test build clean; SDK owns retries; no live Azure or emulator. Scope source/tests Data/AzureTables/README only; no shared refs or metadata changes. Remains In-flight for Orchestrator final solution/full-suite/integration and metadata-owner package refresh; worker released to Queues.
+Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn after explicit Agent J handoff); Updated: 2026-09-09; Notes: IMPLEMENTATION READY; retained J's provider/options/README and completed tests. ITableStorageProvider signatures stable; virtual SDK clients, lazy serialized initialization, all-page escaped queries, conditional ETags and atomic validated batches. Fixed trailing-newline table names, empty ETag interpretation, semaphore disposal and post-SDK/stream cancellation. Strict serialized command `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Storage.Azure.Tables -TestSourceScope Data/AzureTables -TestPackage vc.Ifx.Storage.Azure.Tables -Filter FullyQualifiedName~Data.AzureTables -WarningsAsErrors` passed 25/25 tests with 100% line 281/281, branch 98/98, method; evidence `test-results/coverage/vc.Ifx.Storage.Azure.Tables/31e7f1544a6c4db6b3a8e2fe3236d64f/vc.Ifx.UnitTests/coverage.opencover.xml`. Strict package/test build clean; SDK owns retries; no live Azure or emulator. Scope source/tests Data/AzureTables/README only; no shared refs or metadata changes. Remains In-flight for Orchestrator final solution/full-suite/integration and metadata-owner package refresh; worker released to Queues.
 
 - [x] Wrap Azure Tables SDK behind adapter interfaces. SDK virtual clients are the seam; no redundant wrapper.
 - [x] Define table, partition, row key, paging, and concurrency behavior.
@@ -322,7 +322,7 @@ Prior owner record: Owner: Orchestrator (final integration; implementation Agent
 ### vc.Ifx.Messaging.Azure.Queues
 
 Status: [ ] Ready [ ] In-flight [x] Blocked [ ] Complete
-Owner: Copilot; Updated: 2026-09-14; Notes: Ifx.Messaging.Azure.Queues rename/path updates are applied and the renamed project builds in Release with zero warnings/errors. Consumer verification is blocked by pre-existing dependency graph failures outside this package: Ifx.Storage pulls Ifx.Data.Azure.Tables, which fails on missing ComponentBase<> during project-reference build, and Ifx.UnitTests restore fails with an existing _GenerateRestoreProjectPathWalk cycle under Ifx.Secrets.Local.
+Owner: Copilot; Updated: 2026-09-14; Notes: Ifx.Messaging.Azure.Queues rename/path updates are applied and the renamed project builds in Release with zero warnings/errors. Consumer verification is blocked by pre-existing dependency graph failures outside this package: Ifx.Storage pulls Ifx.Storage.Azure.Tables, which fails on missing ComponentBase<> during project-reference build, and Ifx.UnitTests restore fails with an existing _GenerateRestoreProjectPathWalk cycle under Ifx.Secrets.Local.
 Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn); Updated: 2026-09-09; Notes: IMPLEMENTATION READY. Frozen legacy interface/constructor; additive borrowed QueueClient and receipt-returning update APIs. Correct SDK Base64 wiring, UTF-8/encoded payload limits, TTL -1, visibility/pop receipts, lazy single-flight creation, cancellation/disposal, and SDK-only bounded retries; failures never acknowledged or swallowed. `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Messaging.Azure.Queues -TestSourceScope Messaging/AzureQueues -TestPackage vc.Ifx.Messaging.Azure.Queues -Filter FullyQualifiedName~Messaging.AzureQueues -WarningsAsErrors` passed 17/17 tests, 248/248 lines, 72/72 branches (100% methods), exit 0. Evidence: test-results/coverage/vc.Ifx.Messaging.Azure.Queues/0182bec1f2dc45b3acf54858ef43bea5/vc.Ifx.UnitTests/coverage.opencover.xml. Virtual SDK clients and real SDK in-memory transport only, no live Azure; no metadata/shared refs changed. Explicitly hand off final solution/full-suite/package verification to Orchestrator; retain In-flight until global gates proven. Worker released; ask user before claiming Proxy.Http.
 
 - [x] Isolate Azure Queue transport behind existing provider interface and SDK virtual QueueClient seam; no redundant wrapper per accepted contract.
@@ -532,6 +532,16 @@ Prior owner record: Owner: Aggregator worker (Nash, explicit Orchestrator handof
 - [x] Keep direct dependencies intentional and documented.
 - [x] Avoid reintroducing implementation dependencies into abstraction-only consumers.
 - [x] Add integration-style unit tests for package-level extension methods and aggregate DI registration.
+
+### Utility project regrouping
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Copilot; Updated: 2026-10-14; Notes: Regrouped archive and messaging packages under src/ifx with vc.Ifx namespaces where in scope, matching project/package/test identities, and preserved provider dependency boundaries. `dotnet sln vc.Ifx.slnx list` passed; metadata-only validation passed for 10 packages and 12 non-packable test/benchmark projects. Serialized Release builds passed for all 10 regrouped packages and the Azure Service Bus consumer; six affected test suites passed 230/230 tests with warnings as errors. Coverage and full-solution gates were not rerun; the existing solution inventory issue remains separate.
+
+### Solution project inclusion
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Copilot; Updated: 2026-10-14; Notes: Added the missing Filtering.Abstractions, Pipeline.Abstractions, and Proxy.Interceptor.Abstractions projects. XML inventory comparison passed: all 60 projects under `src`, `tests`, `performance`, and `scripts` appear exactly once and every solution path exists; `dotnet sln vc.Ifx.slnx list` and whitespace checks passed.
 
 ## Parallel Assignment Map
 

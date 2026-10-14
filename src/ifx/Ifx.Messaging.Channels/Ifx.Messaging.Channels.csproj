@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Ifx.Messaging.Channels</PackageId>
+    <Description>In-memory channels messaging provider for Ifx.</Description>
+    <PackageTags>ifx;messaging;channels;in-memory</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ifx.Messaging.Abstractions/Ifx.Messaging.Abstractions.csproj" />
+    <ProjectReference Include="../Ifx.Messaging.ProviderSupport/Ifx.Messaging.ProviderSupport.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

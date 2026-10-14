@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Ifx.Proxy\Ifx.Proxy.csproj" />
+    <ProjectReference Include="..\Ifx.Proxy.Abstractions\Ifx.Proxy.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="README.md" Pack="true" PackagePath="/" />

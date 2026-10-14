@@ -647,9 +647,7 @@
   <Folder Name="/.nuget/NuGet/">
     <File Path=".nuget/NuGet/NuGet.config" />
   </Folder>
-  <Folder Name="/docs/">
-    <Project Path="docs/docs.csproj" />
-  </Folder>
+  <Folder Name="/docs/" />
   <Folder Name="/performance/">
     <Project Path="performance/Ifx.Core.Benchmarks/Ifx.Core.Benchmarks.csproj" />
     <Project Path="performance/Ifx.Filtering.Benchmarks/Ifx.Filtering.Benchmarks.csproj" />
@@ -671,20 +669,22 @@
     <Project Path="src/ifx/Ifx.Analyzers.Abstractions/Ifx.Analyzers.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Analyzers/Ifx.Analyzers.csproj" />
     <Project Path="src/ifx/Ifx.CodeFixes/Ifx.CodeFixes.csproj" />
-    <Project Path="src/ifx/Ifx.Data.Azure.Tables/Ifx.Data.Azure.Tables.csproj" />
+    <Project Path="src/ifx/Ifx.Storage.Azure.Tables/Ifx.Storage.Azure.Tables.csproj" />
     <Project Path="src/ifx/Ifx.Data.EntityFrameworkCore/Ifx.Data.EntityFrameworkCore.csproj" Id="1dace7f5-7109-4a0b-abf1-811df9552ce9" />
-    <Project Path="src/ifx/Ifx.Data/Ifx.Data.csproj" />
+    <Project Path="src/ifx/Ifx.Filtering.Abstractions/Ifx.Filtering.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Filtering.EntityFrameworkCore/Ifx.Filtering.EntityFrameworkCore.csproj" />
     <Project Path="src/ifx/Ifx.Filtering/Ifx.Filtering.csproj" />
     <Project Path="src/ifx/Ifx.Generators.Abstractions/Ifx.Generators.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Generators/Ifx.Generators.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Abstractions/Ifx.Messaging.csproj" />
-    <Project Path="src/ifx/Ifx.Observability/Ifx.Observability.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.Abstractions/Ifx.Messaging.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Pipeline.Abstractions/Ifx.Pipeline.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Pipeline.Grpc/Ifx.Pipeline.Grpc.csproj" />
     <Project Path="src/ifx/Ifx.Pipeline/Ifx.Pipeline.csproj" />
     <Project Path="src/ifx/Ifx.Primitives/Ifx.Primitives.csproj" />
     <Project Path="src/ifx/Ifx.Proxy.AspNetCore/Ifx.Proxy.AspNetCore.csproj" />
+    <Project Path="src/ifx/Ifx.Proxy.Abstractions/Ifx.Proxy.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Proxy.Http/Ifx.Proxy.Http.csproj" />
+    <Project Path="src/ifx/Ifx.Proxy.Interceptor.Abstractions/Ifx.Proxy.Interceptor.Abstractions.csproj" />
     <Project Path="src/ifx/Ifx.Proxy.Interceptor/Ifx.Proxy.Interceptor.csproj" Id="9936b1da-9039-4343-964a-b338fcb4572f" />
     <Project Path="src/ifx/Ifx.Proxy/Ifx.Proxy.csproj" />
     <Project Path="src/ifx/Ifx.Querying/Ifx.Querying.csproj" />
@@ -700,24 +700,22 @@
     <Project Path="src/ifx/Ifx.Storage/Ifx.Storage.csproj" Id="c9568940-b764-442e-8aba-9a0527085743" />
     <Project Path="src/ifx/Ifx.Web.Api/Ifx.Web.Api.csproj" />
     <Project Path="src/ifx/Ifx.Web.AspNetCore/Ifx.Web.AspNetCore.csproj" />
-    <Project Path="src/ifx/Ifx.Web/Ifx.Web.csproj" Id="d2d36ef6-eed8-4ba4-a6e8-4d0fb6e54fb4" />
     <Project Path="src/ifx/Ifx/Ifx.csproj" />
   </Folder>
-  <Folder Name="/src/util/" />
-  <Folder Name="/src/util/archiving/">
-    <Project Path="src/util/archiving/Util.Archiving.Abstraction/Util.Archiving.csproj" />
-    <Project Path="src/util/archiving/Util.Archiving.GZip/Util.Archiving.GZip.csproj" />
-    <Project Path="src/util/archiving/Util.Archiving.SevenZip/Util.Archiving.SevenZip.csproj" />
-    <Project Path="src/util/archiving/Util.Archiving.Tar/Util.Archiving.Tar.csproj" />
-    <Project Path="src/util/archiving/Util.Archiving.Zip/Util.Archiving.Zip.csproj" />
+  <Folder Name="/src/ifx/archiving/">
+    <Project Path="src/ifx/Ifx.Archiving.Abstractions/Ifx.Archiving.Abstractions.csproj" />
+    <Project Path="src/ifx/Ifx.Archiving.GZip/Ifx.Archiving.GZip.csproj" />
+    <Project Path="src/ifx/Ifx.Archiving.SevenZip/Ifx.Archiving.SevenZip.csproj" />
+    <Project Path="src/ifx/Ifx.Archiving.Tar/Ifx.Archiving.Tar.csproj" />
+    <Project Path="src/ifx/Ifx.Archiving.Zip/Ifx.Archiving.Zip.csproj" />
   </Folder>
-  <Folder Name="/src/util/messaging/">
+  <Folder Name="/src/ifx/messaging/">
+    <Project Path="src/ifx/Ifx.Messaging.ProviderSupport/Ifx.Messaging.ProviderSupport.csproj" />
     <Project Path="src/ifx/Ifx.Messaging.Azure.Queues/Ifx.Messaging.Azure.Queues.csproj" />
-    <Project Path="src/util/messaging/Util.Messaging.Abstractions/Util.Messaging.csproj" />
-    <Project Path="src/util/messaging/Util.Messaging.Azure.ServiceBus/Util.Messaging.Azure.ServiceBus.csproj" />
-    <Project Path="src/util/messaging/Util.Messaging.Channels/Util.Messaging.Channels.csproj" />
-    <Project Path="src/util/messaging/Util.Messaging.Msmq/Util.Messaging.Msmq.csproj" />
-    <Project Path="src/util/messaging/Util.Messaging.RabbitMQ/Util.Messaging.RabbitMQ.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.Azure.ServiceBus/Ifx.Messaging.Azure.ServiceBus.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.Channels/Ifx.Messaging.Channels.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.Msmq/Ifx.Messaging.Msmq.csproj" />
+    <Project Path="src/ifx/Ifx.Messaging.RabbitMQ/Ifx.Messaging.RabbitMQ.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/scripts/" />
@@ -733,16 +731,14 @@
   <Folder Name="/tests/unit/ifx/">
     <Project Path="tests/unit/Ifx.UnitTests/Ifx.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/unit/util/">
-    <Project Path="tests/unit/Util.UnitTests/Util.UnitTests.csproj" />
+  <Folder Name="/tests/unit/ifx/archiving/">
+    <Project Path="tests/unit/Ifx.Archiving.GZip.UnitTests/Ifx.Archiving.GZip.UnitTests.csproj" />
+    <Project Path="tests/unit/Ifx.Archiving.SevenZip.UnitTests/Ifx.Archiving.SevenZip.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/unit/util/archiving/">
-    <Project Path="tests/unit/Util.Archiving.GZip.UnitTests/Util.Archiving.GZip.UnitTests.csproj" />
-    <Project Path="tests/unit/Util.Archiving.SevenZip.UnitTests/Util.Archiving.SevenZip.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/tests/unit/util/messaging/">
-    <Project Path="tests/unit/Util.Messaging.Azure.ServiceBus.UnitTests/Util.Messaging.Azure.ServiceBus.UnitTests.csproj" />
-    <Project Path="tests/unit/Util.Messaging.Msmq.UnitTests/Util.Messaging.Msmq.UnitTests.csproj" />
-    <Project Path="tests/unit/Util.Messaging.RabbitMQ.UnitTests/Util.Messaging.RabbitMQ.UnitTests.csproj" />
+  <Folder Name="/tests/unit/ifx/messaging/">
+    <Project Path="tests/unit/Ifx.Messaging.ProviderSupport.UnitTests/Ifx.Messaging.ProviderSupport.UnitTests.csproj" />
+    <Project Path="tests/unit/Ifx.Messaging.Azure.ServiceBus.UnitTests/Ifx.Messaging.Azure.ServiceBus.UnitTests.csproj" />
+    <Project Path="tests/unit/Ifx.Messaging.Msmq.UnitTests/Ifx.Messaging.Msmq.UnitTests.csproj" />
+    <Project Path="tests/unit/Ifx.Messaging.RabbitMQ.UnitTests/Ifx.Messaging.RabbitMQ.UnitTests.csproj" />
   </Folder>
 </Solution>

@@ -1,4 +1,4 @@
-namespace Ifx.Messaging.Abstractions;
+namespace vc.Ifx.Messaging.Abstractions;
 
 /// <summary>
 /// Interface for publishing messages to a message bus.

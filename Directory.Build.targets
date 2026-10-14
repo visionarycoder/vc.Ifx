@@ -11,9 +11,9 @@
     <CollectCoverage Condition="'$(CollectCoverage)' == ''">false</CollectCoverage>
     <CoverletOutputFormat>json,opencover</CoverletOutputFormat>
     <CoverletOutput>$(MSBuildProjectDirectory)/test-results/coverage/$(Configuration)/</CoverletOutput>
-    <Include>[Ifx*]*,[Util*]*</Include>
+    <Include>[Ifx*]*</Include>
     <Include Condition="'$(IfxCoveragePackage)' != ''">[$(IfxCoveragePackage)]*</Include>
-    <Exclude>[Ifx.UnitTests]*,[Ifx.IntegrationTests]*,[Util.UnitTests]*,[*.UnitTests]*,[*.IntegrationTests]*,[*.Benchmarks]*</Exclude>
+    <Exclude>[Ifx.UnitTests]*,[Ifx.IntegrationTests]*,[*.UnitTests]*,[*.IntegrationTests]*,[*.Benchmarks]*</Exclude>
     <ExcludeByFile>**/obj/**/*.cs</ExcludeByFile>
     <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
     <ExcludeAssembliesWithoutSources>None</ExcludeAssembliesWithoutSources>
@@ -27,7 +27,7 @@
   <ItemGroup Condition="'$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true'">
     <InternalsVisibleTo Include="Ifx.UnitTests" />
     <InternalsVisibleTo Include="Ifx.IntegrationTests" />
-    <InternalsVisibleTo Include="Util.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.ProviderSupport.UnitTests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(IfxTestSourceScope)' != ''">

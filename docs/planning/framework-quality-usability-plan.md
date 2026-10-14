@@ -445,7 +445,7 @@ An applicability decision does not require a speculative source rewrite.
 | vc.Ifx.Secrets.Abstractions | P3-04 common lookup/absence/cancellation expectations. |
 | vc.Ifx.Secrets.Local | P3-03 configuration feedback; P3-04 lookup conformance; P3-07 synthetic recipe. |
 | vc.Ifx.Secrets.Azure.KeyVault | P3-03 local validation versus remote readiness; P3-04/06 cache/client lifecycle. |
-| vc.Ifx.Data.Azure.Tables | P3-03 setup clarity; P3-04 advertised SDK adapter behavior; P3-05 optimistic-concurrency diagnosis. |
+| vc.Ifx.Storage.Azure.Tables | P3-03 setup clarity; P3-04 advertised SDK adapter behavior; P3-05 optimistic-concurrency diagnosis. |
 | vc.Ifx.Messaging.Azure.Queues | P3-03 configuration; P3-04 delivery/encoding contract; P3-06 cancellation cleanup. |
 | vc.Ifx.Pipeline | P3-02 invocation call sites; P3-03 registrations; P3-06 repeated dispatch/teardown. |
 | vc.Ifx.Pipeline.Grpc | P3-05 framing/transport troubleshooting; P3-06 channel lifecycle and ownership. |

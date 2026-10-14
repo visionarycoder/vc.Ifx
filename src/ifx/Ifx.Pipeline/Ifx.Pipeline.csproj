@@ -17,7 +17,8 @@
     <PackageReference Include="Polly.RateLimiting" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Ifx.Abstractions\Ifx.Abstractions.csproj" />
+    <ProjectReference Include="../Ifx.Abstractions/Ifx.Abstractions.csproj" />
+    <ProjectReference Include="../Ifx.Pipeline.Abstractions/Ifx.Pipeline.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="README.md" Pack="true" PackagePath="/" />

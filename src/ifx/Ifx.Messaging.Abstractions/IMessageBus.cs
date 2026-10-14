@@ -1,4 +1,4 @@
-namespace Ifx.Messaging.Abstractions;
+namespace vc.Ifx.Messaging.Abstractions;
 
 /// <summary>
 /// Unified interface for message bus operations.

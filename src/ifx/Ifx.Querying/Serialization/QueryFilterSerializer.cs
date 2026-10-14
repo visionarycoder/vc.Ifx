@@ -6,7 +6,7 @@ namespace Ifx.Querying.Serialization;
 /// <summary>Reads and writes the version-1 structural query-filter format.</summary>
 public static class QueryFilterSerializer
 {
-    private static readonly JsonSerializerOptions Options = new()
+    private static readonly JsonSerializerOptions options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
@@ -17,7 +17,7 @@ public static class QueryFilterSerializer
     public static string Serialize(FilterNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        string json = JsonSerializer.Serialize(node, Options);
+        string json = JsonSerializer.Serialize(node, options);
         Deserialize(json);
         return json;
     }
@@ -26,7 +26,7 @@ public static class QueryFilterSerializer
     public static FilterNode? Deserialize(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
-        return JsonSerializer.Deserialize<FilterNode>(json, Options)
+        return JsonSerializer.Deserialize<FilterNode>(json, options)
             ?? throw new JsonException("A filter must be a JSON object.");
     }
 

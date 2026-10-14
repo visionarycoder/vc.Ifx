@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Ifx.Data.Azure.Tables;
+using Ifx.Storage.Azure.Tables;
 using Ifx.Messaging.Azure.Queues;
 using Ifx.Storage.Azure.Blobs;
 using Ifx.Storage.Ftp;

@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>Ifx.Tests</RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- Disable Roslyn/.NET analyzers for test project -->
@@ -49,7 +48,6 @@
     <ProjectReference Include="..\..\..\src\ifx\Ifx.Messaging.Azure.Queues\Ifx.Messaging.Azure.Queues.csproj" />
     <ProjectReference Include="..\..\..\src\ifx\Ifx.Storage\Ifx.Storage.csproj" />
     <ProjectReference Include="..\..\..\src\ifx\Ifx.Storage.Local\Ifx.Storage.Local.csproj" />
-    <ProjectReference Include="..\..\..\src\ifx\Ifx.Web\Ifx.Web.csproj" />
     <ProjectReference Include="..\..\..\src\ifx\Ifx.Web.Api\Ifx.Web.Api.csproj" />
     <ProjectReference Include="..\..\..\src\ifx\Ifx.Web.AspNetCore\Ifx.Web.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\src\ifx\Ifx\Ifx.csproj" />

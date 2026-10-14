@@ -1,4 +1,4 @@
-namespace Ifx.Messaging.Abstractions;
+namespace vc.Ifx.Messaging.Abstractions;
 
 /// <summary>
 /// Marker interface for all messages.

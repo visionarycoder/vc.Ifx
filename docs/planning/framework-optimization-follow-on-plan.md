@@ -789,7 +789,7 @@ record per-package commands/results in their workstream artifact before handoff.
 | vc.Ifx.Secrets.Abstractions | P2-11 absence/cancellation/default contracts; preserve compatibility options. |
 | vc.Ifx.Secrets.Local | P2-11 missing/empty/configuration semantics and deterministic lookup invariants. |
 | vc.Ifx.Secrets.Azure.KeyVault | P2-02 cache/clock measurements; P2-11 version/cache isolation; SDK-owned resilience. |
-| vc.Ifx.Data.Azure.Tables | P2-03 SDK/generic reflection inventory; P2-11 concurrency-token/error mapping. |
+| vc.Ifx.Storage.Azure.Tables | P2-03 SDK/generic reflection inventory; P2-11 concurrency-token/error mapping. |
 | vc.Ifx.Messaging.Azure.Queues | P2-08 metadata-driven message JSON; P2-11 encoding/cancellation parity. |
 | vc.Ifx.Pipeline | P2-08 serializer metadata; P2-11 dispatch/retry/return-shape properties. |
 | vc.Ifx.Pipeline.Grpc | P2-02 framing/serialization scenarios; P2-03 generated/SDK AOT support; P2-11 transport parity. |

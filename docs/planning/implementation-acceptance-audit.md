@@ -261,7 +261,7 @@ missing branch-coverage report. Local evidence exists for all 28 source librarie
 | vc.Ifx.Abstractions | 95/95 | 18/18 | cde87fa6abca4fc18cd2f20ecb8d9c14 |
 | vc.Ifx.Analyzers | 2024/2024 | 1090/1090 | 4803bd0e0a104e059b89cc2595043c1c |
 | vc.Ifx.CodeFixes | 194/194 | 176/176 | 519d738e3ea74577b777bfa81c31bf07 |
-| vc.Ifx.Data.Azure.Tables | 281/281 | 98/98 | 31e7f1544a6c4db6b3a8e2fe3236d64f |
+| vc.Ifx.Storage.Azure.Tables | 281/281 | 98/98 | 31e7f1544a6c4db6b3a8e2fe3236d64f |
 | vc.Ifx.Filtering | 357/357 | 354/354 | 59d0f9849c0b445993ae51def829e1eb |
 | vc.Ifx.Filtering.EntityFrameworkCore | 14/14 | 4/4 | e22a277ba26d4877b0ee90d3f74b9b69 |
 | vc.Ifx.Generators | 1437/1437 | 516/516 | 8c69b8bfb566437b8adb8a449ea31009 |

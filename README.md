@@ -48,6 +48,7 @@ for compiler-host compatibility. All use C# 14.0.
 | [vc.Ifx.Pipeline.Grpc](src/vc.Ifx.Pipeline.Grpc/README.md) | gRPC pipeline transport |
 | [vc.Ifx.Proxy](src/vc.Ifx.Proxy/README.md) | Proxy policies and contracts |
 | [vc.Ifx.Proxy.AspNetCore](src/vc.Ifx.Proxy.AspNetCore/README.md) | ASP.NET Core proxy integration |
+| [vc.Ifx.Proxy.Abstractions](src/vc.Ifx.Proxy.Abstractions/README.md) | Proxy contracts |
 | [vc.Ifx.Proxy.Http](src/vc.Ifx.Proxy.Http/README.md) | HTTP proxy transport |
 | [vc.Ifx.WebApi](src/vc.Ifx.WebApi/README.md) | Exception handling and stable HTTP response messages |
 | [vc.Ifx.Storage.Abstractions](src/vc.Ifx.Storage.Abstractions/README.md) | Storage provider contracts |
@@ -57,7 +58,7 @@ for compiler-host compatibility. All use C# 14.0.
 | [vc.Ifx.Secrets.Abstractions](src/vc.Ifx.Secrets.Abstractions/README.md) | Secret provider contracts |
 | [vc.Ifx.Secrets.Local](src/vc.Ifx.Secrets.Local/README.md) | Local secret provider |
 | [vc.Ifx.Secrets.Azure.KeyVault](src/vc.Ifx.Secrets.Azure.KeyVault/README.md) | Azure Key Vault secrets |
-| [vc.Ifx.Data.Azure.Tables](src/vc.Ifx.Data.Azure.Tables/README.md) | Azure Table data access |
+| [vc.Ifx.Storage.Azure.Tables](src/vc.Ifx.Storage.Azure.Tables/README.md) | Azure Table data access |
 | [vc.Ifx.Messaging.Azure.Queues](src/vc.Ifx.Messaging.Azure.Queues/README.md) | Azure Queue messaging |
 | [vc.Ifx.Observability](src/vc.Ifx.Observability/README.md) | Pipeline tracing and metrics adapters |
 | [vc.Ifx.Roslyn](src/vc.Ifx.Roslyn/README.md) | Shared compiler tooling contracts |

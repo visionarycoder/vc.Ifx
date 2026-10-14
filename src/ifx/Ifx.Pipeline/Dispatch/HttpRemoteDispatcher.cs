@@ -24,7 +24,7 @@ public sealed class HttpRemoteDispatcher(HttpClient http, ISerializer serializer
         cancellationToken.ThrowIfCancellationRequested();
         if (endpoint.IsLocal)
             throw new ArgumentException("A remote endpoint is required.", nameof(endpoint));
-        Uri uri = PipelineGuard.HttpUri(endpoint.Uri!);
+        Uri uri = Ifx.Pipeline.Abstractions.PipelineGuard.HttpUri(endpoint.Uri!);
         using var message = new HttpRequestMessage(HttpMethod.Post, uri)
         {
             Content = new StringContent(serializer.Serialize(request), Encoding.UTF8, "application/json")

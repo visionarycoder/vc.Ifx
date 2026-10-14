@@ -1,7 +1,7 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Ifx.Data.Azure.Tables;
+using Ifx.Storage.Azure.Tables;
 using Ifx.Messaging.Azure.Queues;
 using Ifx.Storage;
 using Ifx.Storage.Azure.Blobs;

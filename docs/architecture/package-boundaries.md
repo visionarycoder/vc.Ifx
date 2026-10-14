@@ -2,7 +2,7 @@
 title: Package Contract Boundaries
 doc_type: reference
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-10-14
 ---
 # Package Contract Boundaries
 
@@ -29,11 +29,23 @@ after adding or changing project references.
 | vc.Ifx.Storage.Azure.Blobs | Blob storage behavior | Abstractions, Storage.Abstractions |
 | vc.Ifx.Secrets.Local | Configuration-backed lookup | Secrets.Abstractions |
 | vc.Ifx.Secrets.Azure.KeyVault | Vault authentication, versioning, caching and optional local fallback | Secrets.Abstractions, Secrets.Local |
-| vc.Ifx.Data.Azure.Tables | Table persistence and optimistic concurrency | Abstractions |
+| vc.Ifx.Storage.Azure.Tables | Table persistence and optimistic concurrency | Abstractions |
+| vc.Ifx.Messaging.Abstractions | Provider-neutral message, publisher, consumer and bus contracts | None |
 | vc.Ifx.Messaging.Azure.Queues | Queue delivery, encoding and visibility | Abstractions |
+| vc.Ifx.Messaging.ProviderSupport | Shared envelopes, retry policy and messaging option validation for providers | Messaging.Abstractions; Polly.Core |
+| vc.Ifx.Messaging.Azure.ServiceBus | Azure Service Bus provider | Messaging.Abstractions, Messaging.ProviderSupport; Azure SDK dependencies stay package-local |
+| vc.Ifx.Messaging.Channels | In-memory channels provider | Messaging.Abstractions, Messaging.ProviderSupport |
+| vc.Ifx.Messaging.Msmq | Windows MSMQ provider | Messaging.Abstractions, Messaging.ProviderSupport; Windows-only transport dependency stays package-local |
+| vc.Ifx.Messaging.RabbitMQ | RabbitMQ provider | Messaging.Abstractions, Messaging.ProviderSupport; RabbitMQ.Client stays package-local |
+| vc.Ifx.Archiving.Abstractions | Provider-neutral archive contracts | None |
+| vc.Ifx.Archiving.GZip | GZip archive provider | Archiving.Abstractions |
+| vc.Ifx.Archiving.SevenZip | 7z archive provider | Archiving.Abstractions; SharpCompress stays package-local |
+| vc.Ifx.Archiving.Tar | TAR archive provider | Archiving.Abstractions |
+| vc.Ifx.Archiving.Zip | ZIP archive provider | Archiving.Abstractions |
 | vc.Ifx.Filtering.EntityFrameworkCore | EF expression translation | Filtering |
 | vc.Ifx.Proxy | Proxy invocation and interceptor contracts | Abstractions, Querying, Secrets.Abstractions |
-| vc.Ifx.Proxy.Http | HTTP proxy transport | Proxy |
+| vc.Ifx.Proxy.Abstractions | Proxy pipeline, interceptor and transport contracts | Abstractions |
+| vc.Ifx.Proxy.Http | HTTP proxy transport | Proxy.Abstractions |
 | vc.Ifx.Proxy.AspNetCore | Host identity and tenant extraction | Proxy, Secrets.Abstractions |
 | vc.Ifx.Pipeline.Grpc | gRPC transport and serialization adapters | Pipeline |
 | vc.Ifx.Observability | Activity and metric implementations of pipeline observation ports | Pipeline |
@@ -51,6 +63,12 @@ Keep public interfaces minimal and add abstractions only for observed variation.
 Do not introduce a shared business-domain object package. Application boundaries
 exchange explicit commands, facts, records and results; framework implementation
 objects and provider SDK objects remain behind the owning boundary.
+
+The 2026-10-14 regroup moved the five archive projects and five messaging utility
+projects from `src/util/` into `src/ifx/`. The provider-support package stays separate
+from `Messaging.Abstractions` because its shared retry policy requires `Polly.Core`;
+provider SDK dependencies remain in their matching provider packages. The aggregator
+does not gain references to these packages as part of the regroup.
 
 ## Stable Contracts and Compatibility
 
