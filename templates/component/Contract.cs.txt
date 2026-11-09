@@ -1,0 +1,12 @@
+using Ifx.Proxy;
+
+namespace Example;
+
+public sealed record Request(string Id);
+public sealed record Response(string Value);
+
+[ProxyContract]
+public interface IComponent
+{
+    Task<Response> ExecuteAsync(Request request, CancellationToken cancellationToken);
+}

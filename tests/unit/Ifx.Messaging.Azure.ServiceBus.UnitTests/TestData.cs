@@ -1,5 +1,5 @@
 using System.Text.Json;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 
 namespace vc.Ifx.Messaging.Azure.ServiceBus.UnitTests;
 

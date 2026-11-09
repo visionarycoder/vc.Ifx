@@ -1,5 +1,5 @@
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using Moq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

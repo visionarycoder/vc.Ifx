@@ -1,4 +1,4 @@
-using Ifx.Analyzers.Abstractions;
+using Ifx.Roslyn;
 using Ifx.CodeFixes.Providers;
 
 namespace Ifx.Tests.Roslyn.CodeFixes;

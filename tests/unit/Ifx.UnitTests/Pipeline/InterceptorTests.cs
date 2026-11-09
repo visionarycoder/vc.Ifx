@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Ifx.Pipeline;
-using Ifx.Pipeline.Abstractions;
 using Ifx.Proxy.Interceptor;
 
 namespace Ifx.Tests.Pipeline;
@@ -12,7 +11,7 @@ public sealed class InterceptorTests
     [TestMethod]
     public async Task EveryInterceptorGuardsDelegatesRequestsAndPreCancellation()
     {
-        Ifx.Pipeline.Abstractions.IInterceptor[] interceptors = [new AuthInterceptor(new AuthFake()), new CachingInterceptor(new CacheFake(), r => "key", TimeSpan.FromSeconds(1)),
+        Ifx.Pipeline.IInterceptor[] interceptors = [new AuthInterceptor(new AuthFake()), new CachingInterceptor(new CacheFake(), r => "key", TimeSpan.FromSeconds(1)),
             new LoggingInterceptor(new LoggerFake()), new MetricsInterceptor(new MetricsFake()), new TracingInterceptor(new TracerFake()),
             new ResilienceInterceptor(ResiliencePipeline.Empty), new LegacyInterceptor()];
         using var source = new CancellationTokenSource();

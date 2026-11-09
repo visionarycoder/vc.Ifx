@@ -8,7 +8,7 @@ using Ifx.Filtering;
 using Ifx.Filtering.EntityFrameworkCore;
 using Ifx.Querying;
 using Ifx.Querying.Serialization;
-using PortableNode = Ifx.Filtering.Abstractions.FilterNode;
+using PortableNode = Ifx.Filtering.FilterNode;
 
 namespace Ifx.IntegrationTests;
 

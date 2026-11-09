@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\ifx\Ifx.Archiving.GZip\Ifx.Archiving.GZip.csproj" />
+    <ProjectReference Include="../../../src/ifx/Ifx.csproj" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MSTest.TestAdapter" />

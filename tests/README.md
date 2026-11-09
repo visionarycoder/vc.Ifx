@@ -1,10 +1,20 @@
 # Framework Tests
 
-The two centralized MSTest projects directly reference all 28 source projects. Unit
-tests belong in package-specific folders under `unit/vc.Ifx.UnitTests`; integration
-tests belong under `integration/vc.Ifx.IntegrationTests`. Shared deterministic
-helpers should be introduced only when a real test needs them. This workstream adds
-no speculative clock, network, or SDK abstractions.
+Eight MSTest projects exercise the eight production libraries. Central unit tests
+belong under `unit/Ifx.UnitTests`, cross-component tests under
+`integration/Ifx.IntegrationTests`, and provider tests remain in their named test
+projects. Run all tests through the serialized wrapper:
+
+```powershell
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors
+```
+
+The compressed layout originally passed 4,037 tests. The owner removed mandatory
+exact 100% coverage from release acceptance on 2026-11-08. The legacy coverage
+runner below retains old inventory assumptions and package names; those commands
+are historical optional diagnostics. See [current ownership](../docs/architecture/root-library-consolidation.md).
+
+## Historical coverage and source-selection notes
 
 ## Serialized Commands
 

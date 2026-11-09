@@ -5,7 +5,7 @@ namespace Ifx.Tests.Generators.Implementation;
 [TestClass]
 public sealed class LegacyGeneratorTests
 {
-    private const string Header = "using System; using System.Threading.Tasks; using Ifx.Generators.Abstractions.Attributes; ";
+    private const string Header = "using System; using System.Threading.Tasks; using Ifx.Generators.Attributes; ";
     private const string EnumerationBase = "namespace Ifx.Primitives { public abstract class Enumeration(int id, string name) { public int Id { get; } = id; public string Name { get; } = name; } }";
 
     [TestMethod]
@@ -66,7 +66,7 @@ public sealed class LegacyGeneratorTests
 
     [TestMethod]
     public void InterceptorIgnoresIncompatibleServiceArrayMetadata() => GeneratorHarness.Run(Header + """
-        namespace Ifx.Generators.Abstractions.Attributes { public sealed class GenerateInterceptorsAttribute(string source, string services) : Attribute { } }
+        namespace Ifx.Generators.Attributes { public sealed class GenerateInterceptorsAttribute(string source, string services) : Attribute { } }
         [GenerateInterceptors("source", "not an array")] public class Marker { }
         """, new InterceptorsGenerator(), includeAttributes: false).Source.Should().BeEmpty();
 

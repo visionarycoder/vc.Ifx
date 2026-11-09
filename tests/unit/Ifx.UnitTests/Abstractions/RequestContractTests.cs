@@ -1,4 +1,4 @@
-using Ifx.Abstractions;
+using Ifx;
 
 namespace Ifx.Tests.Abstractions;
 

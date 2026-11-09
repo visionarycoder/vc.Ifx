@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Text.Json;
 using Ifx.Filtering;
-using Ifx.Filtering.Abstractions;
 using Ifx.Filtering.Poco;
 
 namespace Ifx.Tests.Filtering;

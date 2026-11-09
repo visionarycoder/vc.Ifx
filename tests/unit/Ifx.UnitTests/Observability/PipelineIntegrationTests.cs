@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using Ifx.Abstractions;
+using Ifx;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ifx.Pipeline;
-using Ifx.Pipeline.Abstractions;
 using Ifx.Proxy.Interceptor;
 using Ifx.Pipeline.Observibility;
 

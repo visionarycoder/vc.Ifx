@@ -2,7 +2,7 @@
 title: Developer Onboarding
 doc_type: readme
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-08
 ---
 # Developer Onboarding
 
@@ -37,62 +37,33 @@ work. Do not reclaim a completed workstream based on an older verification note.
 
 ## Build And Run All Tests
 
-Coordinate full-suite runs with other agents. From the repository root:
+Run from the repository root; all builds and tests use the shared serialized runner.
 
 ```powershell
-$build = Join-Path $PWD ('test-results/reporting/' + [Guid]::NewGuid().ToString('N'))
-pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly `
-  -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors -ReportBuildDirectory $build
-if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
-$env:IFX_REPORT_BUILD = $build
-pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage `
-  -Configuration Release -NoBuild -WarningsAsErrors
-if ($LASTEXITCODE -ne 0) { throw 'Full coverage failed.' }
+python scripts/Test-ProjectHierarchy.py
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors
+pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project scripts/packaging/CompilerHostSmoke.proj -Configuration Release -WarningsAsErrors
 ```
 
-The build restores dependencies and captures a fresh identity. The full run uses
-those same binaries, executes both centralized test projects, and requires exact
-100% line and branch coverage for every library. Stop on failure; do not continue
-to reporting or packaging with failed evidence.
+The final command checks all eight package/symbol pairs, rejects malformed packages,
+and loads extracted compiler extensions and IDE code fixes in isolated hosts.
+It does not assert installed IDE UI behavior or publication.
 
-Retain the exact build directory and the coverage directory printed by the runner.
-Do not edit captured inputs, rebuild, run output-mutating checks, or commit between
-capture and consumption. A new Git revision invalidates the old capture even when
-source text is unchanged. Repeat the sequence with a fresh directory after changes.
+## Choose A Project
 
-## Targeted Development
+Use [current project ownership](../architecture/root-library-consolidation.md).
+Ifx owns core runtime behavior. General, Azure, and Windows integrations have
+separate dependency boundaries. Shared Roslyn support, analyzers, generators, and
+code fixes have separate projects. Ifx.Roslyn.Reporting is a supporting executable
+for report I/O. Tests and benchmarks remain supporting projects.
 
-For a smaller feedback loop, run package tests through the same shared runner:
+## Coverage And Release Acceptance
 
-```powershell
-pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Filtering `
-  -Filter 'FullyQualifiedName~Filtering' -Configuration Release -WarningsAsErrors
-```
-
-This retains all test references; it is package evidence, not full-suite acceptance.
-The [test guide](../../tests/README.md) explains narrower source selection and its
-reference constraints. Never insert targeted builds between a captured full build
-and its coverage/report/package sequence.
-
-## Reports, Packages, And Documentation
-
-- [Reporting](../reporting/README.md) consumes the exact captured build and fresh
-  coverage run; it does not discover the newest directory automatically.
-- [CI and packaging](../../.infra/yaml/README.md) defines infrastructure checks,
-  tested-binary packaging, manifest validation, and publishing rules.
-- [Benchmarks](../../performance/README.md) run separately. Dry smoke runs prove
-  execution, not representative performance.
-- Open [docs.csproj](../docs.csproj) for documentation-only browsing. Files are
-  automatically included in relative folders without producing obj/bin outputs.
-  Hands-on IDE acceptance remains open; the CLI contract has been checked.
-
-## Troubleshooting
-
-If SDK resolution fails, compare the installed SDK with global.json. If another
-agent holds the verification lock, coordinate rather than bypassing the wrapper.
-For restore failures, inspect the configured feed and credentials; publish keys
-are not needed for local tests. A coverage or provenance failure requires fresh,
-matching evidence, not relaxed thresholds or reuse of historical results.
-
-The [dated local checkpoint](../planning/local-verification-20260910.md) records
-completed local acceptance and distinguishes remaining hosted/IDE checks.
+The owner removed mandatory exact 100% coverage and report-provenance gates on
+2026-11-08. The release workflow builds and runs every solution test project,
+checks dependency boundaries, validates packages and isolated compiler consumers,
+and verifies release versions and artifact hashes before publication. Coverage and
+reporting remain optional diagnostics. Their legacy full-evidence scripts retain
+old inventory assumptions and are not release requirements. Local checks do not
+establish hosted workflow execution or publication.

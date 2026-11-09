@@ -26,7 +26,7 @@ public class FrameworkInfoProviderTests
         string version = provider.Version;
 
         // Assert
-        version.Should().StartWith(Constants.Version, "version should start with the semantic version");
+        version.Should().StartWith(IfxConstants.Version, "version should start with the semantic version");
         version.Should().NotBeNullOrWhiteSpace();
     }
 

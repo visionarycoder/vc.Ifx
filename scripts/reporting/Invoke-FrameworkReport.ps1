@@ -27,6 +27,7 @@ try {
     if (-not $acquired) { throw 'Timed out waiting for framework build/test access.' }
     if (Test-Path -LiteralPath $output) { throw 'Report output already exists. Use fresh build evidence; no reports are overwritten.' }
     $projects = @(Get-ChildItem (Join-Path $root 'src') -Recurse -Filter '*.csproj' -File | Where-Object FullName -NotMatch '[\\/](obj|bin)[\\/]')
+    $projects = @($projects | Where-Object { [xml] $definition = Get-Content -LiteralPath $_.FullName -Raw; $null -eq $definition.SelectSingleNode('//IsPackable[text()="false"]') })
     $expected = @($projects.BaseName | Sort-Object)
     $scope = 'full'
     if ($Package) {
@@ -82,10 +83,10 @@ try {
     $requestPath = Join-Path $build 'report-request.json'
     $request | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $requestPath -Encoding utf8
     if (-not $boundBuild) {
-        & dotnet build (Join-Path $PSScriptRoot 'FrameworkReport.Host.csproj') -c $Configuration '-m:1' '-p:BuildInParallel=false' '-p:GeneratePackageOnBuild=false'
+        & dotnet build (Join-Path $root 'src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj') -c $Configuration '-m:1' '-p:BuildInParallel=false' '-p:GeneratePackageOnBuild=false'
         if ($LASTEXITCODE -ne 0) { throw 'Reporting host build failed.' }
     }
-    & dotnet run --project (Join-Path $PSScriptRoot 'FrameworkReport.Host.csproj') --no-build -c $Configuration -- $requestPath $output
+    & dotnet run --project (Join-Path $root 'src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj') --no-build -c $Configuration -- $requestPath $output
     if ($LASTEXITCODE -ne 0) { throw "Reporting failed (exit $LASTEXITCODE). See $output." }
 }
 finally {

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Ifx.Pipeline.Abstractions;
+using Ifx.Pipeline;
 using Ifx.Pipeline.Routing;
 
 namespace Ifx.Tests.Pipeline;

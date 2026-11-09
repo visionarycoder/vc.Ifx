@@ -4,9 +4,15 @@ Run from the repository root in PowerShell 7 with SDK 10.0.401:
 
 ```powershell
 ./scripts/Invoke-FrameworkBenchmarks.ps1 -ListOnly
-./scripts/Invoke-FrameworkBenchmarks.ps1 -Project Core,Filtering,Proxy,Storage -Job Dry
-./scripts/Invoke-FrameworkBenchmarks.ps1 -Project Filtering -Filter '*FilteringExecutionBenchmarks*' -Job Short
+./scripts/Invoke-FrameworkBenchmarks.ps1 -Project Ifx,Ifx.Integrations -Job Dry
+./scripts/Invoke-FrameworkBenchmarks.ps1 -Project Ifx -Filter '*FilteringExecutionBenchmarks*' -Job Short
 ```
+
+The projects follow their production counterparts. Ifx.Benchmarks references only
+Ifx and contains Core, Filtering, Pipeline, and Storage cases.
+Ifx.Integrations.Benchmarks references Ifx.Integrations and contains proxy
+caching/interceptor cases. Every existing benchmark is retained. No empty
+benchmark projects are created for unmeasured platform or compiler capabilities.
 
 The runner shares the framework test mutex, builds Release with one MSBuild node,
 disables automatic packaging, and checks stable framework/language and

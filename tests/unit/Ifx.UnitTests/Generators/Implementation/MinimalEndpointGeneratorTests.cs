@@ -7,7 +7,7 @@ namespace Ifx.Tests.Generators.Implementation;
 [TestClass]
 public sealed class MinimalEndpointGeneratorTests
 {
-    private const string Header = "using System; using System.Threading; using System.Threading.Tasks; using Ifx.Generators.Abstractions.Attributes; ";
+    private const string Header = "using System; using System.Threading; using System.Threading.Tasks; using Ifx.Generators.Attributes; ";
 
     [TestMethod]
     public void SimpleRegistryMatchesGoldenSourceAndCompiles()
@@ -263,7 +263,7 @@ public sealed class MinimalEndpointGeneratorTests
     public void IncompatibleMarkerMetadataIsDiagnosedWithoutCrashing(string option)
     {
         var result = GeneratorHarness.Run(Header + $$"""
-            namespace Ifx.Generators.Abstractions.Attributes
+            namespace Ifx.Generators.Attributes
             {
                 public sealed class GenerateEndpointAttribute(string route, string method) : Attribute
                 {

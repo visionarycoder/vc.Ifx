@@ -1,4 +1,4 @@
-using Ifx.Analyzers.Abstractions;
+using Ifx.Roslyn;
 
 namespace Ifx.Tests.Analyzers.Abstractions;
 
@@ -10,7 +10,7 @@ public sealed class AbstractionsAssemblySmokeTests
     {
         var assembly = typeof(ProjectType).Assembly;
 
-        assembly.GetName().Name.Should().Be("Ifx.Analyzers.Abstractions");
+        assembly.GetName().Name.Should().Be("Ifx.Roslyn");
         typeof(DiagnosticIds).Assembly.Should().BeSameAs(assembly);
         Enum.GetValues<ProjectType>().Should().Contain(ProjectType.Infrastructure);
         Enum.GetValues<Layer>().Should().Contain(Layer.Client);

@@ -3,9 +3,8 @@ using System.Net;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
-using Ifx.Abstractions;
+using Ifx;
 using Ifx.Pipeline;
-using Ifx.Pipeline.Abstractions;
 
 namespace Ifx.Tests.PipelineGrpc;
 

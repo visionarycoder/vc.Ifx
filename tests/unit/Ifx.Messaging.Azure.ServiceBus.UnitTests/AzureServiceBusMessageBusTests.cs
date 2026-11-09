@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

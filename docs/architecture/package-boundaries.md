@@ -2,9 +2,13 @@
 title: Package Contract Boundaries
 doc_type: reference
 status: active
-last_updated: 2026-10-14
+last_updated: 2026-11-08
 ---
 # Package Contract Boundaries
+
+The 2026-11-08 owner-requested [root consolidation](root-library-consolidation.md)
+is the current package ownership and dependency policy. The package table and
+acceptance notes below describe the earlier layout and are retained as history.
 
 Owner: Nash, Contract Boundaries; Updated: 2026-09-10; Status: bounded implementation/docs reconciliation ready; final verification handed to Orchestrator, global gates In-flight.
 
@@ -13,17 +17,18 @@ the parallel plan are guidance; a later-listed package may be a direct prerequis
 of an earlier-listed package. Run `pwsh -File scripts/Test-FrameworkDependencies.ps1`
 after adding or changing project references.
 
-## Ownership
+## Historical ownership before consolidation
 
 | Owner | Contract and variation isolated | Direct framework prerequisites |
 | --- | --- | --- |
 | vc.Ifx.Abstractions | Existing service results, requests, and service lifecycle compatibility | None |
 | vc.Ifx.Primitives | Identifiers, value validation, serialization and existing conversion adapters | None |
 | vc.Ifx.Storage.Abstractions | Provider-neutral storage operations and compatibility configuration | None |
+| vc.Ifx.Storage | Storage component and DI registration bundle | Abstractions, Storage.Abstractions, Local, FTP, Azure Blobs, Azure Tables, Azure Queues |
 | vc.Ifx.Secrets.Abstractions | Secret lookup, missing-secret and cancellation semantics | None |
-| vc.Ifx.Filtering | Predicate composition and portable filter AST, independent of database execution | None |
+| vc.Ifx.Filtering | Predicate composition, portable filter AST, operators, and execution strategy | None |
 | vc.Ifx.Querying | Query specifications, serialization and explicit portable AST adaptation | Filtering (now directly referenced) |
-| vc.Ifx.Pipeline | Invocation, handler, interceptor, routing, cache and observation ports | None |
+| vc.Ifx.Pipeline | Invocation, handler, interceptor, routing, cache and observation ports | Abstractions, Pipeline.Abstractions |
 | vc.Ifx.Storage.Local | Local filesystem behavior | Storage.Abstractions |
 | vc.Ifx.Storage.Ftp | FTP transport behavior | Abstractions, Storage.Abstractions |
 | vc.Ifx.Storage.Azure.Blobs | Blob storage behavior | Abstractions, Storage.Abstractions |
@@ -37,14 +42,12 @@ after adding or changing project references.
 | vc.Ifx.Messaging.Channels | In-memory channels provider | Messaging.Abstractions, Messaging.ProviderSupport |
 | vc.Ifx.Messaging.Msmq | Windows MSMQ provider | Messaging.Abstractions, Messaging.ProviderSupport; Windows-only transport dependency stays package-local |
 | vc.Ifx.Messaging.RabbitMQ | RabbitMQ provider | Messaging.Abstractions, Messaging.ProviderSupport; RabbitMQ.Client stays package-local |
-| vc.Ifx.Archiving.Abstractions | Provider-neutral archive contracts | None |
-| vc.Ifx.Archiving.GZip | GZip archive provider | Archiving.Abstractions |
-| vc.Ifx.Archiving.SevenZip | 7z archive provider | Archiving.Abstractions; SharpCompress stays package-local |
-| vc.Ifx.Archiving.Tar | TAR archive provider | Archiving.Abstractions |
-| vc.Ifx.Archiving.Zip | ZIP archive provider | Archiving.Abstractions |
+| vc.Ifx.Archiving | Archive contracts and BCL GZip, TAR, and ZIP providers | Microsoft.Extensions.DependencyInjection |
+| vc.Ifx.Archiving.SevenZip | Optional 7z archive provider | Archiving; SharpCompress stays package-local |
 | vc.Ifx.Filtering.EntityFrameworkCore | EF expression translation | Filtering |
-| vc.Ifx.Proxy | Proxy invocation and interceptor contracts | Abstractions, Querying, Secrets.Abstractions |
-| vc.Ifx.Proxy.Abstractions | Proxy pipeline, interceptor and transport contracts | Abstractions |
+| vc.Ifx.Proxy | Proxy invocation pipeline and service registration | Proxy.Abstractions; Microsoft.Extensions.Caching.Memory; Microsoft.Extensions.DependencyInjection |
+| vc.Ifx.Proxy.Abstractions | Proxy pipeline, authorization, interceptor and transport contracts | Abstractions |
+| vc.Ifx.Proxy.Interceptor | Authorization, caching, resilience, authentication, and configuration interceptors | Abstractions, Pipeline, Proxy, Querying, Secrets.Local; Azure, Microsoft.Extensions, Polly, and JWT packages |
 | vc.Ifx.Proxy.Http | HTTP proxy transport | Proxy.Abstractions |
 | vc.Ifx.Proxy.AspNetCore | Host identity and tenant extraction | Proxy, Secrets.Abstractions |
 | vc.Ifx.Pipeline.Grpc | gRPC transport and serialization adapters | Pipeline |
@@ -64,11 +67,13 @@ Do not introduce a shared business-domain object package. Application boundaries
 exchange explicit commands, facts, records and results; framework implementation
 objects and provider SDK objects remain behind the owning boundary.
 
-The 2026-10-14 regroup moved the five archive projects and five messaging utility
-projects from `src/util/` into `src/ifx/`. The provider-support package stays separate
-from `Messaging.Abstractions` because its shared retry policy requires `Polly.Core`;
-provider SDK dependencies remain in their matching provider packages. The aggregator
-does not gain references to these packages as part of the regroup.
+The 2026-10-14 regroup moved archive and messaging utility projects from `src/util/`
+into `src/ifx/`. The archive contracts and BCL-backed GZip, TAR, and ZIP providers
+now share `Ifx.Archiving`; the optional SevenZip provider retains its own package so
+`SharpCompress` stays out of the root archive package. The provider-support package
+stays separate from `Messaging.Abstractions` because its shared retry policy requires
+`Polly.Core`; provider SDK dependencies remain in their matching packages. The
+aggregator does not gain references to these packages as part of the regroup.
 
 ## Stable Contracts and Compatibility
 
@@ -91,9 +96,11 @@ do not enable both implementations or use the archive as a new dependency.
 Pipeline observation ports belong to Pipeline; Observability implements them.
 Proxy transport ports belong to Proxy; HTTP and ASP.NET integrations consume them.
 Do not move these contracts into general Abstractions solely to share a name.
-Provider-specific Azure configuration in Proxy is an approved 1.x compatibility
-retention. Preserve public identity and document the minimum dependency footprint;
-any extraction is a future versioned migration, not part of this release.
+The Filtering AST remains in the `Ifx.Filtering.Abstractions` namespace after its
+source joins the Filtering assembly. The authorization service contract keeps its
+`Ifx.Proxy.Interceptor.Abstractions` namespace after joining Proxy.Abstractions.
+Core Proxy owns only the invocation pipeline; Azure, Polly, and token-validation
+dependencies remain with the interceptor or provider packages that use them.
 
 Primitives deliberately retains EF converters and ASP.NET model binders in its
 existing assembly. Its EF package and ASP.NET framework reference are not evidence

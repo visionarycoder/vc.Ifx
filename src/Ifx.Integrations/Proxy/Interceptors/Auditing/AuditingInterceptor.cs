@@ -1,0 +1,108 @@
+using Ifx;
+using Ifx.Component;
+using Ifx.Pipeline;
+using Ifx.Proxy.Exceptions;
+using Ifx.Querying;
+using Ifx.Querying.Serialization;
+using Ifx.Secrets;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using System.Threading.RateLimiting;
+
+// Copyright (c) 2025 Ifx. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for license information.
+
+using Microsoft.Extensions.Logging;
+
+namespace Ifx.Proxy.Interceptor.Auditing;
+/// <summary>
+/// Auditing interceptor that emits audit records for proxy operations.
+/// Order: 300 (executes last in the pipeline).
+/// </summary>
+/// <param name="logger">The logger instance.</param>
+/// <param name="auditSinks">The audit sinks.</param>
+public sealed class AuditingInterceptor(ILogger<AuditingInterceptor> logger, IEnumerable<IAuditSink> auditSinks) : IOrderedProxyInterceptor
+{
+    private readonly ILogger<AuditingInterceptor> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IEnumerable<IAuditSink> auditSinks = auditSinks ?? throw new ArgumentNullException(nameof(auditSinks));
+    /// <inheritdoc />
+    public int Order => 300;
+    public async Task<ProxyResponse<T>> InvokeAsync<T>(ProxyContext context, ProxyDelegate<T> next, CancellationToken cancellationToken = default)
+    {
+        string requestType = context.Request?.GetType().Name ?? "Unknown";
+        string correlationId = context.Items.TryGetValue("CorrelationId", out object? corrId) ?
+            corrId?.ToString() ?? Guid.NewGuid().ToString("D") :
+            Guid.NewGuid().ToString("D");
+
+        DateTime startTime = DateTime.UtcNow;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            ProxyResponse<T> result = await next(context, cancellationToken);
+
+            stopwatch.Stop();
+            // Create audit record
+            var auditRecord = new AuditRecord
+            {
+                CorrelationId = correlationId,
+                MethodName = $"Proxy.{requestType}",
+                Timestamp = startTime,
+                Success = result.IsSuccess,
+                ErrorMessage = result.IsSuccess ? null : "Operation failed",
+                Duration = stopwatch.Elapsed,
+                CompletedAt = DateTime.UtcNow
+            };
+            // Emit to all audit sinks
+            await EmitAuditRecord(auditRecord, cancellationToken);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            // Create audit record for exception
+            var auditRecord = new AuditRecord
+            {
+                CorrelationId = correlationId,
+                MethodName = $"Proxy.{requestType}",
+                Timestamp = startTime,
+                Success = false,
+                ErrorMessage = ex.Message,
+                Duration = stopwatch.Elapsed,
+                CompletedAt = DateTime.UtcNow,
+                ExceptionType = ex.GetType().Name
+            };
+            // Emit to all audit sinks (best effort, don't let audit failure affect the operation)
+            try
+            {
+                await EmitAuditRecord(auditRecord, cancellationToken);
+            }
+            catch (Exception auditEx)
+            {
+                logger.LogWarning(auditEx, "Failed to emit audit record for failed operation");
+            }
+            throw;
+        }
+    }
+    private async Task EmitAuditRecord(AuditRecord auditRecord, CancellationToken cancellationToken = default)
+    {
+        foreach (IAuditSink sink in auditSinks)
+        {
+            try
+            {
+                await sink.WriteAsync(auditRecord, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to emit audit record to sink {SinkType}", sink.GetType().Name);
+            }
+        }
+    }
+}

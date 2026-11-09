@@ -1,0 +1,63 @@
+using Ifx;
+using Ifx.Component;
+using Ifx.Pipeline;
+using Ifx.Proxy.Exceptions;
+using Ifx.Querying;
+using Ifx.Querying.Serialization;
+using Ifx.Secrets;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using System.Threading.RateLimiting;
+
+namespace Ifx.Proxy.Interceptor.Retries;
+
+/// Exception thrown when retry operations fail.
+public class RetryException : ProxyException
+{
+    /// <summary>
+    /// Gets the number of retry attempts made.
+    /// </summary>
+    public int AttemptCount { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RetryException"/> class.
+    /// </summary>
+    /// <param name="attemptCount">The number of retry attempts made.</param>
+    public RetryException(int attemptCount)
+        : base($"Operation failed after {attemptCount} retry attempts")
+    {
+        AttemptCount = attemptCount;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RetryException"/> class with a specified error message.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="attemptCount">The number of retry attempts made.</param>
+    public RetryException(string message, int attemptCount)
+        : base(message)
+    {
+        AttemptCount = attemptCount;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RetryException"/> class with a specified error message and inner exception.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="attemptCount">The number of retry attempts made.</param>
+    /// <param name="innerException">The exception that is the cause of the current exception.</param>
+    public RetryException(string message, int attemptCount, Exception innerException)
+        : base(message, innerException)
+    {
+        AttemptCount = attemptCount;
+    }
+}

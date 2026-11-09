@@ -4,13 +4,13 @@ title: CA Design Quality Fixes
 description: Remediate Roslyn CA design/API-surface diagnostics (CA1051, CA1062, CA1303, CA1413) via in-repo code-fix providers plus manual guidance
 doc_type: skill
 status: active
-last_updated: 2026-08-31
+last_updated: 2026-11-08
 target_audience: ai
 complexity: low
 estimated_tokens: 1550
 prerequisites:
   - .NET SDK with Roslyn analyzers enabled
-  - src/ifx/Ifx.CodeFixes wired via Directory.Build.props
+  - src/Ifx.Roslyn.CodeFixes; verify compiler-host integration separately
   - ste-agent-writing-standard
   - terminology-dictionary
 related_skills:
@@ -142,5 +142,5 @@ Agent produces:
 
 ## References
 
-- Fix providers: `src/ifx/Ifx.CodeFixes/Providers/CA/Ca{1051,1062,1303,1413}CodeFixProvider.cs`
+- Fix providers: `src/Ifx.Roslyn.CodeFixes/Providers/Ca{1051,1062,1303,1413}CodeFixProvider.cs`
 - Rule docs: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca<id>

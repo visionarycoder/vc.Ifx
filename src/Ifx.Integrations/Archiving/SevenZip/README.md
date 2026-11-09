@@ -1,0 +1,26 @@
+# Ifx.Archiving.SevenZip
+
+7z archive helpers for listing and extracting `.7z` files.
+
+`Ifx.Archiving.SevenZip` exposes read-only 7z operations for `Ifx.Archiving`.
+The provider supports archive listing and extraction through `IArchiveProvider`.
+It does not add 7z archive creation APIs to this package. `SharpCompress` remains
+an optional dependency of this package and is not added to `Ifx.Archiving`.
+
+## Usage
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using vc.Ifx.Archiving;
+using vc.Ifx.Archiving.SevenZip;
+
+ServiceCollection services = new();
+services.AddSevenZipArchiving();
+
+using ServiceProvider provider = services.BuildServiceProvider();
+IArchiveProvider archiveProvider = provider.GetRequiredService<IArchiveProvider>();
+
+ArchiveExtractionResult result = await archiveProvider.ExtractAsync(
+    archivePath: @"C:\archives\sample.7z",
+    destinationDirectory: @"C:\output");
+```

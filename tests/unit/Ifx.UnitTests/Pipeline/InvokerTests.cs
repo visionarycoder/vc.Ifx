@@ -1,6 +1,5 @@
-﻿using Polly;
+using Polly;
 using Ifx.Pipeline;
-using Ifx.Pipeline.Abstractions;
 using Ifx.Proxy.Interceptor;
 
 namespace Ifx.Tests.Pipeline;
@@ -14,7 +13,7 @@ public sealed class InvokerTests
         var events = new List<string>();
         var resolver = new ResolverFake();
         var local = new LocalFake { Call = (request, token) => { events.Add("dispatch"); return Task.FromResult<object?>("answer"); } };
-        var interceptors = new List<Ifx.Pipeline.Abstractions.IInterceptor> { new Ordered("a", events), new Ordered("b", events) };
+        var interceptors = new List<Ifx.Pipeline.IInterceptor> { new Ordered("a", events), new Ordered("b", events) };
         var invoker = new PipelineInvoker(interceptors, resolver, local, new LegacyRemote());
         interceptors.Clear();
         Assert.AreEqual("answer", await invoker.InvokeAsync<ReadQuery, string?>(new()));
@@ -92,7 +91,7 @@ public sealed class InvokerTests
         Assert.ThrowsExactly<ArgumentException>(() => new PipelineInvoker([resilience, resilience], new ResolverFake(), new LocalFake(), new LegacyRemote()));
     }
 
-    private sealed class Ordered(string name, List<string> events) : Ifx.Pipeline.Abstractions.IInterceptor
+    private sealed class Ordered(string name, List<string> events) : Ifx.Pipeline.IInterceptor
     {
         public async Task<TResponse> InvokeAsync<TRequest, TResponse>(TRequest request, Func<TRequest, Task<TResponse>> next) where TRequest : IRequest<TResponse>
         {

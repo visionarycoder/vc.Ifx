@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace vc.Ifx.Messaging.Azure.ServiceBus.UnitTests;

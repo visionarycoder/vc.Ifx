@@ -2,11 +2,14 @@
 title: Living Architecture Playbook
 doc_type: reference
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-08
 ---
 # Living Architecture Playbook
 
-Welcome to the **Architecture Playbook**.  
+For the current Ifx source layout, see
+[project ownership and migration](architecture/root-library-consolidation.md).
+
+Welcome to the **Architecture Playbook**.
 This repository captures **industry best practices**, **design patterns**, and a **Solution Architect Radar** to guide decision-making across specialties.
 
 ---
@@ -48,7 +51,7 @@ Guides for AI-assisted development:
 
 ## 🔄 How to Use
 
-1. **Start with the Radar** → See what’s Adopt/Trial/Assess/Hold.  
-2. **Dive into Capsules** → Learn best practices for each specialty.  
-3. **Check Copilot Instructions** → Ensure AI-generated code/docs align with standards.  
-4. **Capture Decisions** → Use ADRs for context-specific trade-offs.  
+1. **Start with the Radar** → See what’s Adopt/Trial/Assess/Hold.
+2. **Dive into Capsules** → Learn best practices for each specialty.
+3. **Check Copilot Instructions** → Ensure AI-generated code/docs align with standards.
+4. **Capture Decisions** → Use ADRs for context-specific trade-offs.

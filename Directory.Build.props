@@ -31,6 +31,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
         <!-- NuGet Package Settings -->
+        <VersionPrefix>0.1.0</VersionPrefix>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <!-- Single shared package output so every project in this repo, and other solutions
              that add this folder as a local NuGet source, resolve packages from one place. -->

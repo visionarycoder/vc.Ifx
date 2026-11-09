@@ -1,5 +1,5 @@
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 
 namespace vc.Ifx.Messaging.RabbitMQ.UnitTests;
 

@@ -649,10 +649,8 @@
   </Folder>
   <Folder Name="/docs/" />
   <Folder Name="/performance/">
-    <Project Path="performance/Ifx.Core.Benchmarks/Ifx.Core.Benchmarks.csproj" />
-    <Project Path="performance/Ifx.Filtering.Benchmarks/Ifx.Filtering.Benchmarks.csproj" />
-    <Project Path="performance/Ifx.Proxy.Benchmarks/Ifx.Proxy.Benchmarks.csproj" />
-    <Project Path="performance/Ifx.Storage.Benchmarks/Ifx.Storage.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Benchmarks/Ifx.Benchmarks.csproj" />
+    <Project Path="performance/Ifx.Integrations.Benchmarks/Ifx.Integrations.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
@@ -663,65 +661,19 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/src/" />
-  <Folder Name="/src/ifx/">
-    <Project Path="src/ifx/Ifx.Abstractions/Ifx.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Analyzers.Abstractions/Ifx.Analyzers.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Analyzers/Ifx.Analyzers.csproj" />
-    <Project Path="src/ifx/Ifx.CodeFixes/Ifx.CodeFixes.csproj" />
-    <Project Path="src/ifx/Ifx.Storage.Azure.Tables/Ifx.Storage.Azure.Tables.csproj" />
-    <Project Path="src/ifx/Ifx.Data.EntityFrameworkCore/Ifx.Data.EntityFrameworkCore.csproj" Id="1dace7f5-7109-4a0b-abf1-811df9552ce9" />
-    <Project Path="src/ifx/Ifx.Filtering.Abstractions/Ifx.Filtering.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Filtering.EntityFrameworkCore/Ifx.Filtering.EntityFrameworkCore.csproj" />
-    <Project Path="src/ifx/Ifx.Filtering/Ifx.Filtering.csproj" />
-    <Project Path="src/ifx/Ifx.Generators.Abstractions/Ifx.Generators.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Generators/Ifx.Generators.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Abstractions/Ifx.Messaging.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Pipeline.Abstractions/Ifx.Pipeline.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Pipeline.Grpc/Ifx.Pipeline.Grpc.csproj" />
-    <Project Path="src/ifx/Ifx.Pipeline/Ifx.Pipeline.csproj" />
-    <Project Path="src/ifx/Ifx.Primitives/Ifx.Primitives.csproj" />
-    <Project Path="src/ifx/Ifx.Proxy.AspNetCore/Ifx.Proxy.AspNetCore.csproj" />
-    <Project Path="src/ifx/Ifx.Proxy.Abstractions/Ifx.Proxy.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Proxy.Http/Ifx.Proxy.Http.csproj" />
-    <Project Path="src/ifx/Ifx.Proxy.Interceptor.Abstractions/Ifx.Proxy.Interceptor.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Proxy.Interceptor/Ifx.Proxy.Interceptor.csproj" Id="9936b1da-9039-4343-964a-b338fcb4572f" />
-    <Project Path="src/ifx/Ifx.Proxy/Ifx.Proxy.csproj" />
-    <Project Path="src/ifx/Ifx.Querying/Ifx.Querying.csproj" />
-    <Project Path="src/ifx/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj" />
-    <Project Path="src/ifx/Ifx.Roslyn/Ifx.Roslyn.csproj" />
-    <Project Path="src/ifx/Ifx.Secrets.Azure.KeyVault/Ifx.Secrets.Azure.KeyVault.csproj" />
-    <Project Path="src/ifx/Ifx.Secrets.Local/Ifx.Secrets.Local.csproj" />
-    <Project Path="src/ifx/Ifx.Secrets/Ifx.Secrets.csproj" />
-    <Project Path="src/ifx/Ifx.Storage.Abstractions/Ifx.Storage.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Storage.Azure.Blobs/Ifx.Storage.Azure.Blobs.csproj" />
-    <Project Path="src/ifx/Ifx.Storage.Ftp/Ifx.Storage.Ftp.csproj" />
-    <Project Path="src/ifx/Ifx.Storage.Local/Ifx.Storage.Local.csproj" />
-    <Project Path="src/ifx/Ifx.Storage/Ifx.Storage.csproj" Id="c9568940-b764-442e-8aba-9a0527085743" />
-    <Project Path="src/ifx/Ifx.Web.Api/Ifx.Web.Api.csproj" />
-    <Project Path="src/ifx/Ifx.Web.AspNetCore/Ifx.Web.AspNetCore.csproj" />
-    <Project Path="src/ifx/Ifx/Ifx.csproj" />
-  </Folder>
-  <Folder Name="/src/ifx/archiving/">
-    <Project Path="src/ifx/Ifx.Archiving.Abstractions/Ifx.Archiving.Abstractions.csproj" />
-    <Project Path="src/ifx/Ifx.Archiving.GZip/Ifx.Archiving.GZip.csproj" />
-    <Project Path="src/ifx/Ifx.Archiving.SevenZip/Ifx.Archiving.SevenZip.csproj" />
-    <Project Path="src/ifx/Ifx.Archiving.Tar/Ifx.Archiving.Tar.csproj" />
-    <Project Path="src/ifx/Ifx.Archiving.Zip/Ifx.Archiving.Zip.csproj" />
-  </Folder>
-  <Folder Name="/src/ifx/messaging/">
-    <Project Path="src/ifx/Ifx.Messaging.ProviderSupport/Ifx.Messaging.ProviderSupport.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Azure.Queues/Ifx.Messaging.Azure.Queues.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Azure.ServiceBus/Ifx.Messaging.Azure.ServiceBus.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Channels/Ifx.Messaging.Channels.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.Msmq/Ifx.Messaging.Msmq.csproj" />
-    <Project Path="src/ifx/Ifx.Messaging.RabbitMQ/Ifx.Messaging.RabbitMQ.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Ifx.Integrations.Azure/Ifx.Integrations.Azure.csproj" />
+    <Project Path="src/Ifx.Integrations.Windows/Ifx.Integrations.Windows.csproj" />
+    <Project Path="src/Ifx.Integrations/Ifx.Integrations.csproj" />
+    <Project Path="src/Ifx.Roslyn.Analyzers/Ifx.Roslyn.Analyzers.csproj" />
+    <Project Path="src/Ifx.Roslyn.CodeFixes/Ifx.Roslyn.CodeFixes.csproj" />
+    <Project Path="src/Ifx.Roslyn.Generators/Ifx.Roslyn.Generators.csproj" />
+    <Project Path="src/Ifx.Roslyn/Ifx.Roslyn.csproj" />
+    <Project Path="src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj" />
+    <Project Path="src/ifx/Ifx.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/scripts/" />
-  <Folder Name="/scripts/reporting/">
-    <Project Path="scripts/reporting/FrameworkReport.Host.csproj" />
-  </Folder>
   <Folder Name="/tests/integration/" />
   <Folder Name="/tests/integration/ifx/">
     <Project Path="tests/integration/Ifx.IntegrationTests/Ifx.IntegrationTests.csproj" />

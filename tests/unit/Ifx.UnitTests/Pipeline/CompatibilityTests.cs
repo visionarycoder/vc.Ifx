@@ -1,6 +1,6 @@
-﻿using Ifx.Abstractions;
-using Ifx.Pipeline.Abstractions;
-using Ifx.Proxy.Interceptor.Abstractions;
+using Ifx;
+using Ifx.Pipeline;
+using Ifx.Proxy;
 
 namespace Ifx.Tests.Pipeline;
 

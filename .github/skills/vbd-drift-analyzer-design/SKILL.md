@@ -108,7 +108,7 @@ Agent designs enforcement that catches architectural drift early and fixes only 
 
 | 4. Control adoption | Agent sets severity, message, and rollout guidance that fit existing repo policy. | Inspect diagnostic metadata and defaults. | Severity and message align with the intended adoption path. |
 
-| 5. Verify performance and compatibility | Agent keeps `src/ifx/` work compatible with `netstandard2.0` and C# 8. | Run existing build and analyzer tests in scope. | Zero build errors, zero failing tests, zero newer-language syntax in `src/ifx/`. |
+| 5. Verify performance and compatibility | Agent keeps `src/` work compatible with `netstandard2.0` and C# 8. | Run existing build and analyzer tests in scope. | Zero build errors, zero failing tests, zero newer-language syntax in `src/`. |
 
 
 
@@ -124,7 +124,7 @@ Agent designs enforcement that catches architectural drift early and fixes only 
 
 | Code-fix verification | Run existing code-fix tests in scope. | Fix output matches expected text exactly. |
 
-| Build verification | Run existing build command for touched `src/ifx/` projects. | Zero build errors. |
+| Build verification | Run existing build command for touched `src/` projects. | Zero build errors. |
 
 
 

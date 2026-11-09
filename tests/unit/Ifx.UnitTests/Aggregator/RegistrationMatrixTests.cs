@@ -16,14 +16,14 @@ public sealed class RegistrationMatrixTests
     [TestMethod]
     public void EveryNamedProviderCapturesItsOwnOptionsWithoutRebindingDefaults()
     {
-        CheckRegistration<IStorageProvider, FtpStorageOptions>(StorageExtensions.AddFtpStorage,
-            StorageExtensions.AddNamedFtpStorage, Ftp("default"), Ftp("first"), Ftp("second"));
-        CheckRegistration<IStorageProvider, AzureBlobStorageOptions>(StorageExtensions.AddAzureBlobStorage,
-            StorageExtensions.AddNamedAzureBlobStorage, Blob("default"), Blob("first"), Blob("second"));
-        CheckRegistration<IQueueStorageProvider, AzureQueueStorageOptions>(StorageExtensions.AddAzureQueueStorage,
-            StorageExtensions.AddNamedAzureQueueStorage, Queue("default"), Queue("first"), Queue("second"));
-        CheckRegistration<ITableStorageProvider, AzureTableStorageOptions>(StorageExtensions.AddAzureTableStorage,
-            StorageExtensions.AddNamedAzureTableStorage, Table("Default"), Table("First"), Table("Second"));
+        CheckRegistration<IStorageProvider, FtpStorageOptions>(FtpStorageExtensions.AddFtpStorage,
+            FtpStorageExtensions.AddNamedFtpStorage, Ftp("default"), Ftp("first"), Ftp("second"));
+        CheckRegistration<IStorageProvider, AzureBlobStorageOptions>(AzureBlobStorageExtensions.AddAzureBlobStorage,
+            AzureBlobStorageExtensions.AddNamedAzureBlobStorage, Blob("default"), Blob("first"), Blob("second"));
+        CheckRegistration<IQueueStorageProvider, AzureQueueStorageOptions>(AzureQueueStorageExtensions.AddAzureQueueStorage,
+            AzureQueueStorageExtensions.AddNamedAzureQueueStorage, Queue("default"), Queue("first"), Queue("second"));
+        CheckRegistration<ITableStorageProvider, AzureTableStorageOptions>(AzureTableStorageExtensions.AddAzureTableStorage,
+            AzureTableStorageExtensions.AddNamedAzureTableStorage, Table("Default"), Table("First"), Table("Second"));
     }
 
     [TestMethod]

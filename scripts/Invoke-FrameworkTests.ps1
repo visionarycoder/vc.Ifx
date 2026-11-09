@@ -88,7 +88,8 @@ try {
         if ($Filter) { $arguments += @('--filter', $Filter) }
         if (-not $BuildOnly) {
             $results = Join-Path $repoRoot "test-results/tests/$([IO.Path]::GetFileNameWithoutExtension($projectPath))/$([Guid]::NewGuid().ToString('N'))"
-            $arguments += @('--logger', 'trx;LogFileName=tests.trx', '--results-directory', $results,
+            $trxLogger = if ([IO.Path]::GetExtension($projectPath) -in @('.sln', '.slnx')) { 'trx' } else { 'trx;LogFileName=tests.trx' }
+            $arguments += @('--logger', $trxLogger, '--results-directory', $results,
                 '--blame-hang', '--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none')
             Write-Host "Test artifacts: $results"
             $null = New-Item -ItemType Directory -Path $results -Force
@@ -99,14 +100,17 @@ try {
         }
         & dotnet @arguments
         $testExitCode = $LASTEXITCODE
-        if (-not $BuildOnly -and (Test-Path -LiteralPath (Join-Path $results 'tests.trx'))) {
-            [xml] $trx = Get-Content -LiteralPath (Join-Path $results 'tests.trx') -Raw
+        $trxFiles = @(if (-not $BuildOnly) { Get-ChildItem -LiteralPath $results -Filter '*.trx' -File })
+        if (-not $BuildOnly -and $trxFiles.Count -gt 0) {
+          foreach ($trxFile in $trxFiles) {
+            [xml] $trx = Get-Content -LiteralPath $trxFile.FullName -Raw
             $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
             if ($null -eq $counters -or [long] $counters.executed -eq 0) { throw 'Zero tests executed.' }
             Write-Host "Recorded test results: total=$($counters.total), executed=$($counters.executed), passed=$($counters.passed), failed=$($counters.failed), notExecuted=$($counters.notExecuted)"
             $trx.SelectNodes('//*[local-name()="UnitTestResult"][@outcome="Failed"]') | ForEach-Object {
                 Write-Host "FAILED: $($_.testName)"
             }
+          }
         }
         elseif (-not $BuildOnly -and $testExitCode -eq 0) { throw 'Missing test results; zero-test success is not accepted.' }
         if ($testExitCode -ne 0) { throw "Framework $verb failed (exit $testExitCode)." }

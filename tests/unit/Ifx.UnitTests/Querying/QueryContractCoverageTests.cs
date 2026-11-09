@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using FilterNode = Ifx.Querying.Serialization.FilterNode;
 using System.Text.Json;
 using Ifx.Filtering;
 using Ifx.Querying;

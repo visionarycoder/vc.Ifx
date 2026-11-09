@@ -60,7 +60,7 @@ public sealed class MapperGeneratorInternalBranchCoverageTests
     public void AttributeHelperMatchesExactAttributeNames()
     {
         var compilation = GeneratorHarness.Compilation("""
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             using System;
 
             namespace Example
@@ -85,17 +85,17 @@ public sealed class MapperGeneratorInternalBranchCoverageTests
         var detachedSymbol = new Mock<ISymbol>();
         detachedSymbol.Setup(symbol => symbol.GetAttributes()).Returns([new Mock<AttributeData>().Object]);
 
-        Invoke<bool>(hasAttribute, ignoredProperty, "Ifx.Generators.Abstractions.Attributes.MapIgnoreAttribute").Should().BeTrue();
-        Invoke<bool>(hasAttribute, includedProperty, "Ifx.Generators.Abstractions.Attributes.MapIgnoreAttribute").Should().BeFalse();
-        Invoke<bool>(hasAttribute, decoratedProperty, "Ifx.Generators.Abstractions.Attributes.MapIgnoreAttribute").Should().BeFalse();
-        Invoke<bool>(hasAttribute, detachedSymbol.Object, "Ifx.Generators.Abstractions.Attributes.MapIgnoreAttribute").Should().BeFalse();
+        Invoke<bool>(hasAttribute, ignoredProperty, "Ifx.Generators.Attributes.MapIgnoreAttribute").Should().BeTrue();
+        Invoke<bool>(hasAttribute, includedProperty, "Ifx.Generators.Attributes.MapIgnoreAttribute").Should().BeFalse();
+        Invoke<bool>(hasAttribute, decoratedProperty, "Ifx.Generators.Attributes.MapIgnoreAttribute").Should().BeFalse();
+        Invoke<bool>(hasAttribute, detachedSymbol.Object, "Ifx.Generators.Attributes.MapIgnoreAttribute").Should().BeFalse();
     }
 
     [TestMethod]
     public void MapFromHelperReturnsRedirectOnlyForMatchingAttribute()
     {
         var compilation = GeneratorHarness.Compilation("""
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             using System;
 
             namespace Example
@@ -130,7 +130,7 @@ public sealed class MapperGeneratorInternalBranchCoverageTests
     public void GeneratorAttributeHelpersInterpretBidirectionalFlagsAndFallbackLocations()
     {
         var compilation = GeneratorHarness.Compilation("""
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
 
             namespace Target
             {

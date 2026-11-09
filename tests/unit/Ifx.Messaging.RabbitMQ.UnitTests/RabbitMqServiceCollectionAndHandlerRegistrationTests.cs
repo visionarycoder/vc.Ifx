@@ -1,5 +1,5 @@
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

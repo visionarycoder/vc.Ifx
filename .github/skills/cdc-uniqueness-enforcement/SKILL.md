@@ -18,7 +18,7 @@ related_skills:
 related_docs:
   - https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-data-capture-sql-server
 source_paths:
-  - tools/Journal.Loader/src/ifx/Ifx.JournalLoader/Simulators/CdcCompositeKey.cs
+  - tools/Journal.Loader/src/Ifx.JournalLoader/Simulators/CdcCompositeKey.cs
   - tools/Journal.Loader/src/component/engine/materializing/Engine.Materializing.Service/MaterializingEngine.cs
   - tools/Journal.Loader/src/component/engine/materializing/Engine.Materializing.Service/Simulators/MaterializingEngineSimulator.cs
   - tools/Journal.Loader/src/component/access/cost-accounting/Access.CostAccounting.Service/Simulators/CostAccountingAccessSimulator.cs

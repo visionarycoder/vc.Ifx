@@ -3,7 +3,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using Experimental.System.Messaging;
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using vc.Ifx.Messaging.ProviderSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using vc.Ifx.Messaging.Msmq;

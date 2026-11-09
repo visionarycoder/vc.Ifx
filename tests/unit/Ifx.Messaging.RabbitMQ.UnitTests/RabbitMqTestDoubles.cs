@@ -1,5 +1,5 @@
 using System.Text.Json;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using vc.Ifx.Messaging.ProviderSupport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

@@ -26,6 +26,7 @@ function Invoke-DotNet {
 $projects = @(Get-ChildItem (Join-Path $RepositoryRoot 'src') -Recurse -Filter '*.csproj' |
     Where-Object FullName -NotMatch '[/\\](bin|obj)[/\\]' | Sort-Object FullName)
 Assert-PackageRule ($projects.Count -gt 0) 'No source package projects discovered.'
+$projects = @($projects | Where-Object { [xml] $definition = Get-Content -LiteralPath $_.FullName -Raw; $null -eq $definition.SelectSingleNode('//IsPackable[text()="false"]') })
 foreach ($id in $PackageId) {
     Assert-PackageRule ($projects.BaseName -contains $id) "Unknown package: $id"
 }
@@ -48,9 +49,9 @@ foreach ($project in $projects) {
     foreach ($reference in $evaluation.Items.ProjectReference) {
         $dependencyId = [IO.Path]::GetFileNameWithoutExtension($reference.FullPath)
         Assert-PackageRule ($project.BaseName -eq 'vc.Ifx' -or $dependencyId -ne 'vc.Ifx') 'Small package references aggregator.'
-        if ($project.BaseName -notin @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators')) { $publicDependencies += $dependencyId }
+        if ($project.BaseName -notin @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.CodeFixes', 'Ifx.Roslyn.Generators')) { $publicDependencies += $dependencyId }
     }
-    if ($project.BaseName -notin @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators')) {
+    if ($project.BaseName -notin @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.CodeFixes', 'Ifx.Roslyn.Generators')) {
         foreach ($reference in $evaluation.Items.PackageReference) {
             $privateAssets = $reference.PSObject.Properties['PrivateAssets']
             if ($null -eq $privateAssets -or $privateAssets.Value -ne 'all') { $publicDependencies += $reference.Identity }

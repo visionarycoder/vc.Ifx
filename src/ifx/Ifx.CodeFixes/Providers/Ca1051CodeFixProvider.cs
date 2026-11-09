@@ -1,6 +1,0 @@
-using Ifx.CodeFixes.Common;
-
-namespace Ifx.CodeFixes.Providers;
-
-/// <summary>Compatibility-only provider; remediation is withdrawn. See the support matrix.</summary>
-public sealed class Ca1051CodeFixProvider : RetiredCodeFixProvider { }

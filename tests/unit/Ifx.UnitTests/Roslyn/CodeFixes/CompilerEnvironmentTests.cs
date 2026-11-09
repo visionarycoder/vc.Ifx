@@ -61,8 +61,17 @@ public sealed class CompilerEnvironmentTests
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "global.json")))
             directory = directory.Parent;
         directory.Should().NotBeNull();
-        using var globalJson = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(directory!.FullName, "global.json")));
-        var version = globalJson.RootElement.GetProperty("sdk").GetProperty("version").GetString()!;
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet", "--version")
+        {
+            WorkingDirectory = directory!.FullName,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        using var process = System.Diagnostics.Process.Start(start)!;
+        var version = (await process.StandardOutput.ReadToEndAsync()).Trim();
+        await process.WaitForExitAsync();
+        process.ExitCode.Should().Be(0);
         var runtimeRoot = Directory.GetParent(typeof(object).Assembly.Location)!.Parent!.Parent!.Parent!.FullName;
         var analyzerDirectory = Path.Combine(runtimeRoot, "sdk", version, "Sdks", "Microsoft.NET.Sdk", "analyzers");
         var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(analyzerDirectory, "Microsoft.CodeAnalysis.NetAnalyzers.dll"));

@@ -1,0 +1,12 @@
+namespace Example;
+
+// Implement application work here. Register the approved typed proxy at the composition root.
+public sealed class Component : IComponent
+{
+    public Task<Response> ExecuteAsync(Request request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(new Response(request.Id));
+    }
+}

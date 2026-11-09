@@ -28,6 +28,7 @@ try {
     if (-not $acquired) { throw 'Timed out waiting for framework build/test access.' }
     $projects = @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -Filter '*.csproj' -File |
         Where-Object FullName -NotMatch '[/\\](bin|obj)[/\\]' | Sort-Object FullName)
+    $projects = @($projects | Where-Object { [xml] $definition = Get-Content -LiteralPath $_.FullName -Raw; $null -eq $definition.SelectSingleNode('//IsPackable[text()="false"]') })
     $tests = @(Get-ChildItem -LiteralPath (Join-Path $root 'tests') -Recurse -Filter '*.csproj' -File |
         Where-Object FullName -NotMatch '[/\\](bin|obj)[/\\]')
     if ($projects.Count -eq 0 -or $tests.Count -ne 2) { throw 'Expected source packages and both centralized test projects.' }

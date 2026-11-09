@@ -1,4 +1,5 @@
-using Ifx.Analyzers.Abstractions;
+using Microsoft.CodeAnalysis;
+using Ifx.Roslyn;
 using Ifx.Analyzers.Rules;
 
 namespace Ifx.Tests.Roslyn.Analyzers;
@@ -65,7 +66,7 @@ public sealed class Ifx150xProxyAnalyzerTests
         """, "GetOrCreate")]
     public async Task CachingAnalyzerReportsDirectCacheInvocationsOutsideFramework(string source, string methodName)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().ContainSingle();
         diagnostics[0].Id.Should().Be(DiagnosticIds.Ifx1500AvoidManualCaching);
@@ -138,7 +139,7 @@ public sealed class Ifx150xProxyAnalyzerTests
     [DataRow("class Orders { void Read() { } }")]
     public async Task CachingAnalyzerIgnoresFrameworkNamespaceAndNonCacheTypes(string source)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().BeEmpty();
     }
@@ -173,7 +174,7 @@ public sealed class Ifx150xProxyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().BeEmpty();
     }
@@ -199,7 +200,7 @@ public sealed class Ifx150xProxyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualCachingAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().ContainSingle();
         diagnostics[0].Id.Should().Be(DiagnosticIds.Ifx1500AvoidManualCaching);
@@ -279,7 +280,7 @@ public sealed class Ifx150xProxyAnalyzerTests
         """)]
     public async Task RetryAnalyzerReportsLoopWithTryCatchAndTaskDelay(string source)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer());
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer(), severity: ReportDiagnostic.Warn);
 
         diagnostics.Should().ContainSingle();
         diagnostics[0].Id.Should().Be(DiagnosticIds.Ifx1501AvoidManualRetryLoop);
@@ -365,7 +366,7 @@ public sealed class Ifx150xProxyAnalyzerTests
         """)]
     public async Task RetryAnalyzerIgnoresIncompletePatternsCustomDelayAndFrameworkCode(string source)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer());
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer(), severity: ReportDiagnostic.Warn);
 
         diagnostics.Should().BeEmpty();
     }
@@ -391,7 +392,7 @@ public sealed class Ifx150xProxyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualRetryLoopAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().BeEmpty();
     }
@@ -435,7 +436,7 @@ public sealed class Ifx150xProxyAnalyzerTests
         """, "ValidateTokenAsync")]
     public async Task JwtAnalyzerReportsManualValidationOutsideFramework(string source, string methodName)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().ContainSingle();
         diagnostics[0].Id.Should().Be(DiagnosticIds.Ifx1502AvoidManualJwtValidation);
@@ -520,7 +521,7 @@ public sealed class Ifx150xProxyAnalyzerTests
     [DataRow("class Orders { void Read() { } }")]
     public async Task JwtAnalyzerIgnoresOtherMethodsLookalikesFrameworkCodeAndMissingMetadata(string source)
     {
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().BeEmpty();
     }
@@ -551,7 +552,7 @@ public sealed class Ifx150xProxyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().BeEmpty();
     }
@@ -577,7 +578,7 @@ public sealed class Ifx150xProxyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), allowCompilerErrors: true);
+        var diagnostics = await AnalyzerHarness.RunAsync(source, new AvoidManualJwtValidationAnalyzer(), severity: ReportDiagnostic.Warn, allowCompilerErrors: true);
 
         diagnostics.Should().ContainSingle();
         diagnostics[0].Id.Should().Be(DiagnosticIds.Ifx1502AvoidManualJwtValidation);

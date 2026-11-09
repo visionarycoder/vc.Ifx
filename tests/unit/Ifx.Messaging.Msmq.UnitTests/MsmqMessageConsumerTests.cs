@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using FluentAssertions;
-using vc.Ifx.Messaging.Abstractions;
+using vc.Ifx.Messaging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using vc.Ifx.Messaging.Msmq;

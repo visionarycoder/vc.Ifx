@@ -1,0 +1,64 @@
+using Ifx;
+using Ifx.Component;
+using Ifx.Pipeline;
+using Ifx.Proxy.Exceptions;
+using Ifx.Querying;
+using Ifx.Querying.Serialization;
+using Ifx.Secrets;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using System.Threading.RateLimiting;
+
+using System.Reflection;
+
+namespace Ifx.Proxy.Interceptor.QueryFiltering;
+
+public sealed class QueryFilterInterceptor : IProxyInterceptor
+{
+    public async Task<ProxyResponse<T>> InvokeAsync<T>(
+        ProxyContext context,
+        ProxyDelegate<T> next,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        cancellationToken.ThrowIfCancellationRequested();
+        // Example: assume filters are passed in context.Body as JSON
+        if (context.Body is string json)
+        {
+            // Validate against schema
+            IReadOnlyList<string> validationErrors = QueryFilterSchemaValidator.Validate(json);
+            if (validationErrors.Count > 0)
+            {
+                throw new ArgumentException($"Invalid query filter JSON: {string.Join(", ", validationErrors)}");
+            }
+
+            // Deserialize and rehydrate
+            FilterNode node = QueryFilterSerializer.Deserialize(json)!;
+            if (typeof(T).IsGenericType &&
+                typeof(T).GetGenericTypeDefinition() == typeof(QueryFilter<>))
+            {
+                // Rehydrate into QueryFilter<TInner>
+                Type innerType = typeof(T).GetGenericArguments()[0];
+                MethodInfo method = typeof(QueryFilterRehydrator)
+                    .GetMethod(nameof(QueryFilterRehydrator.ToQueryFilter))!
+                    .MakeGenericMethod(innerType);
+
+                object rehydrated = method.Invoke(null, [node])!;
+                return ProxyResponse<T>.Success((T)rehydrated, 200);
+            }
+        }
+
+        // Pass through if not a filter payload
+        return await next(context, cancellationToken);
+    }
+}

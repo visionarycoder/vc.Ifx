@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PackageId>Ifx.Integrations.Windows</PackageId>
+    <Description>Ifx.Integrations.Windows platform adapters.</Description>
+    <PackageTags>ifx;integrations;windows</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ifx.Integrations/Ifx.Integrations.csproj" />
+    <PackageReference Include="Experimental.System.Messaging" />
+    <None Update="README.md" Pack="true" PackagePath="/" />
+    <InternalsVisibleTo Include="Ifx.Archiving.GZip.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Archiving.SevenZip.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.Azure.ServiceBus.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.Msmq.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.ProviderSupport.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.RabbitMQ.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.IntegrationTests" />
+  </ItemGroup>
+</Project>

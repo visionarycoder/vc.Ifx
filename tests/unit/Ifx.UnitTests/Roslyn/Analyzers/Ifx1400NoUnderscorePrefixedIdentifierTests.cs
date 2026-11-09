@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
-using Ifx.Analyzers.Abstractions;
-using Ifx.Analyzers.Rules;
 using Ifx.Roslyn;
+using Ifx.Analyzers.Rules;
 
 namespace Ifx.Tests.Roslyn.Analyzers;
 
