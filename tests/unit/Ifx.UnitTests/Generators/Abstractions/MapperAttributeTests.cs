@@ -1,5 +1,5 @@
 using System.Reflection;
-using Ifx.Generators.Abstractions.Attributes;
+using Ifx.Generators.Attributes;
 
 namespace Ifx.Tests.Generators.Abstractions;
 

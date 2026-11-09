@@ -283,7 +283,7 @@ When asked to review code, Copilot performs:
 - `Databases/` — Database projects, all under `Databases/Databases.slnx` (independent from the main solution)
 - `Tests/` — All test projects (unit, integration, benchmarks)
 - `tools/` — Independent utility applications (Payroll.Cleaner, Crosswalk.Loader, etc.), each with its own standalone solution
-- `src/ifx/` — Internal framework components (Analyzers, CodeFixes, Generators) — **Roslyn projects; see §9.1**
+- `src/` — Internal framework components (Analyzers, CodeFixes, Generators) — **Roslyn projects; see §9.1**
 - `src/component/` — Reusable components
 - `src/util/` — Utility libraries
 - `docs/` — Documentation hub (architecture, guides, runbooks)
@@ -300,9 +300,9 @@ When asked to review code, Copilot performs:
 - Projects automatically detect if they are test projects (suffix: `Test`, `Tests`, `UnitTests`, `IntegrationTests`)
 - Root namespace: `vc.Ifx.{ProjectName}` (non-test projects)
 - Nullable reference types enabled for all .NET 10 projects
-- Custom analyzers/code fixes/generators in `src/ifx/` are automatically applied to all non-test projects
+- Custom analyzers/code fixes/generators in `src/` are automatically applied to all non-test projects
 - Test projects expose internals via `InternalsVisibleTo` (see `Directory.Build.props`)
-- Roslyn projects in `src/ifx/` target `netstandard2.0` and are bound to **C# 8 only** — see §9.1 for the full constraint list
+- Roslyn projects in `src/` target `netstandard2.0` and are bound to **C# 8 only** — see §9.1 for the full constraint list
 
 ---
 
@@ -310,9 +310,9 @@ When asked to review code, Copilot performs:
 
 ### 9.1 Roslyn Projects — `netstandard2.0` / C# 8 Constraints
 
-Projects in `src/ifx/` (Analyzers, CodeFixes, Source Generators) target `netstandard2.0` and are compiled at **C# 8**. This is a hard Roslyn SDK requirement. Refactoring and code-generation tools frequently introduce features from newer language versions, silently breaking these projects.
+Projects in `src/` (Analyzers, CodeFixes, Source Generators) target `netstandard2.0` and are compiled at **C# 8**. This is a hard Roslyn SDK requirement. Refactoring and code-generation tools frequently introduce features from newer language versions, silently breaking these projects.
 
-**Before generating or modifying any code in `src/ifx/`:**
+**Before generating or modifying any code in `src/`:**
 
 1. Confirm the project's `<TargetFramework>` in its `.csproj`.
 2. If `netstandard2.0` is present, enforce the C# 8 feature ceiling unconditionally — regardless of what the ambient IDE or `LangVersion` setting elsewhere in the solution allows.
@@ -345,8 +345,8 @@ Projects in `src/ifx/` (Analyzers, CodeFixes, Source Generators) target `netstan
 - Async streams (`IAsyncEnumerable<T>`) — requires `Microsoft.Bcl.AsyncInterfaces` NuGet package
 
 **Enforcement rules:**
-- **Do not** apply any refactoring, rename, or code generation to `src/ifx/` files that introduces a feature from the prohibited list above.
-- **Do not** change `<LangVersion>` in any `src/ifx/` project file. If it is absent, the effective version is determined by the SDK and `netstandard2.0` target — do not override it.
+- **Do not** apply any refactoring, rename, or code generation to `src/` files that introduces a feature from the prohibited list above.
+- **Do not** change `<LangVersion>` in any `src/` project file. If it is absent, the effective version is determined by the SDK and `netstandard2.0` target — do not override it.
 - If a suggestion uses a prohibited feature, **stop**, surface a warning, and offer a C# 8-compatible alternative inline.
 - When generating new Roslyn diagnostic classes, code fix providers, or source generators, use only C# 8 idioms — even if the surrounding codebase uses newer syntax.
 

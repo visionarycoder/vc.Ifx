@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('Core', 'Filtering', 'Proxy', 'Storage')][string[]] $Project = @('Core', 'Filtering', 'Proxy', 'Storage'),
+    [ValidateSet('Ifx', 'Ifx.Integrations')][string[]] $Project = @('Ifx', 'Ifx.Integrations'),
     [ValidateSet('Dry', 'Short', 'Default')][string] $Job = 'Dry',
     [string[]] $Filter = @('*'),
     [switch] $ListOnly,
@@ -31,7 +31,7 @@ try {
     Write-Host "Benchmark artifacts: $run"
     $inventory = [Collections.Generic.List[object]]::new()
     foreach ($name in $Project) {
-        $projectName = "vc.Ifx.$name.Benchmarks"
+        $projectName = "$name.Benchmarks"
         $projectPath = Join-Path $root "performance/$projectName/$projectName.csproj"
         $destination = Join-Path $run $name
         $null = New-Item -ItemType Directory -Path $destination
@@ -52,7 +52,7 @@ try {
         & dotnet @arguments 2>&1 | Tee-Object -FilePath (Join-Path $destination 'console.log') | Out-Host
         if ($LASTEXITCODE -ne 0) { throw "Benchmark execution failed: $name" }
         if ($ListOnly) {
-            $names = @(Get-Content (Join-Path $destination 'console.log') | Where-Object { $_ -match '^vc\.Ifx\..*Benchmarks\.' })
+            $names = @(Get-Content (Join-Path $destination 'console.log') | Where-Object { $_ -match '^Ifx\.(?:Integrations\.)?Benchmarks\.' })
             if ($names.Count -eq 0) { throw "Zero benchmarks discovered: $name" }
             $inventory.Add(@{ project = $name; discoveredMethods = $names.Count; names = $names })
         }

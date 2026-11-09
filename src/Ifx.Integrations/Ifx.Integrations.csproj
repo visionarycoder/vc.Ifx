@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Ifx.Integrations</PackageId>
+    <Description>External providers, transports, and hosting adapters for Ifx.</Description>
+    <PackageTags>ifx;integrations;azure;efcore;messaging;aspnetcore</PackageTags>
+    <RepositoryUrl>https://github.com/visionarycoder/vc.Ifx</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ifx/Ifx.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="FluentFTP" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.Net.ClientFactory" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Polly.Core" />
+    <PackageReference Include="Polly.RateLimiting" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="SharpCompress" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <Protobuf Include="Transport/Grpc/Dispatch/GenericInvoker.proto" GrpcServices="Both" />
+    <Compile Remove="**/Sample/**/*.cs" />
+    <None Update="README.md" Pack="true" PackagePath="/" />
+    <InternalsVisibleTo Include="Ifx.Archiving.GZip.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Archiving.SevenZip.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.Azure.ServiceBus.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.Msmq.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.ProviderSupport.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.Messaging.RabbitMQ.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.UnitTests" />
+    <InternalsVisibleTo Include="Ifx.IntegrationTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ifx.Integrations.Azure" />
+    <InternalsVisibleTo Include="Ifx.Integrations.Windows" />
+  </ItemGroup>
+</Project>

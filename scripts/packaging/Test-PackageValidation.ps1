@@ -3,7 +3,7 @@
 param(
     [string] $RepositoryRoot = (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent),
     [string] $PackageDirectory,
-    [string[]] $PackageId = @('vc.Ifx.Analyzers', 'vc.Ifx.Generators', 'vc.Ifx.CodeFixes', 'vc.Ifx.Roslyn', 'vc.Ifx.Filtering')
+    [string[]] $PackageId = @('Ifx', 'Ifx.Integrations', 'Ifx.Integrations.Azure', 'Ifx.Integrations.Windows', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes')
 )
 
 Set-StrictMode -Version Latest
@@ -14,10 +14,16 @@ $fixtureRoot = Join-Path $packages ('validator-tests-' + [guid]::NewGuid().ToStr
 [IO.Directory]::CreateDirectory($fixtureRoot) | Out-Null
 $passed = 0
 
+function Get-SourceReadmePath([string] $Id) {
+    $project = @(Get-ChildItem (Join-Path $RepositoryRoot 'src') -Recurse -Filter "$Id.csproj" -File | Where-Object FullName -NotMatch '[\\/](obj|bin)[\\/]')
+    if ($project.Count -ne 1) { throw "Expected one source project for $Id." }
+    return Join-Path $project[0].DirectoryName 'README.md'
+}
+
 foreach ($id in $PackageId) {
     $archive = Get-ChildItem $packages -Filter "$id.*.nupkg" | Where-Object Name -Match ('^' + [regex]::Escape($id) + '\.\d') | Select-Object -First 1
     Assert-PackageRule ($null -ne $archive) "First pack $id into $packages."
-    Test-PackageArchive -Path $archive.FullName -PackageId $id -ReadmePath (Join-Path $RepositoryRoot "src/$id/README.md") | Out-Null
+    Test-PackageArchive -Path $archive.FullName -PackageId $id -ReadmePath (Get-SourceReadmePath $id) | Out-Null
     $passed++
 }
 
@@ -31,22 +37,22 @@ function Edit-Archive {
             try { $writer.Write($Text) } finally { $writer.Dispose() }
         }
         if ($EditNuspec) {
-            $entry = $archive.GetEntry('vc.Ifx.Analyzers.nuspec')
+            $entry = $archive.GetEntry('Ifx.Roslyn.Analyzers.nuspec')
             $reader = [IO.StreamReader]::new($entry.Open())
             try { [xml] $document = $reader.ReadToEnd() } finally { $reader.Dispose() }
             & $EditNuspec $document
             $entry.Delete()
-            $writer = [IO.StreamWriter]::new($archive.CreateEntry('vc.Ifx.Analyzers.nuspec').Open())
+            $writer = [IO.StreamWriter]::new($archive.CreateEntry('Ifx.Roslyn.Analyzers.nuspec').Open())
             try { $document.Save($writer) } finally { $writer.Dispose() }
         }
     } finally { $archive.Dispose() }
 }
 
 $cases = @(
-    @{ Name='duplicate-codefix-analyzer'; PackageId='vc.Ifx.CodeFixes'; Expected='Code fixes bundle vc.Ifx.Analyzers'; Add='analyzers/dotnet/cs/vc.Ifx.Analyzers.dll'; Text='unexpected analyzer fixture' },
+    @{ Name='duplicate-codefix-analyzer'; PackageId='Ifx.Roslyn.CodeFixes'; Expected='Code fixes bundle Ifx.Roslyn.Analyzers'; Add='analyzers/dotnet/cs/Ifx.Roslyn.Analyzers.dll'; Text='unexpected analyzer fixture' },
     @{ Name='missing-readme'; Expected='Missing archive entry: README.md'; Remove='README.md' },
-    @{ Name='missing-private-dependency'; Expected='missing vc.Ifx.Roslyn'; Remove='analyzers/dotnet/cs/vc.Ifx.Roslyn.dll' },
-    @{ Name='missing-analyzer'; Expected='not in analyzers/dotnet/cs'; Remove='analyzers/dotnet/cs/vc.Ifx.Analyzers.dll' },
+    @{ Name='missing-private-dependency'; Expected='missing Ifx.Roslyn'; Remove='analyzers/dotnet/cs/Ifx.Roslyn.dll' },
+    @{ Name='missing-analyzer'; Expected='not in analyzers/dotnet/cs'; Remove='analyzers/dotnet/cs/Ifx.Roslyn.Analyzers.dll' },
     @{ Name='runtime-asset'; Expected='runtime or reference assets'; Add='lib/netstandard2.0/leaked.dll'; Text='fixture' },
     @{ Name='host-assembly'; Expected='bundles host Roslyn'; Add='analyzers/dotnet/cs/Microsoft.CodeAnalysis.dll'; Text='fixture' },
     @{ Name='test-assembly'; Expected='output leaked'; Add='analyzers/dotnet/cs/vc.Ifx.UnitTests.dll'; Text='fixture' },
@@ -77,7 +83,7 @@ $cases = @(
     } }
 )
 foreach ($case in $cases) {
-    $id = if ($case.ContainsKey('PackageId')) { $case['PackageId'] } else { 'vc.Ifx.Analyzers' }
+    $id = if ($case.ContainsKey('PackageId')) { $case['PackageId'] } else { 'Ifx.Roslyn.Analyzers' }
     $source = Get-ChildItem $packages -Filter "$id.*.nupkg" | Where-Object Name -Match ('^' + [regex]::Escape($id) + '\.\d') | Select-Object -First 1
     Assert-PackageRule ($null -ne $source) "First pack $id into $packages."
     $path = Join-Path $fixtureRoot ($case['Name'] + '.nupkg')
@@ -87,7 +93,7 @@ foreach ($case in $cases) {
     }
     Edit-Archive -Path $path -Remove $case['Remove'] -Add $case['Add'] -Text $case['Text'] -EditNuspec $case['EditNuspec']
     $failure = $null
-    try { Test-PackageArchive -Path $path -PackageId $id -ReadmePath (Join-Path $RepositoryRoot "src/$id/README.md") | Out-Null }
+    try { Test-PackageArchive -Path $path -PackageId $id -ReadmePath (Get-SourceReadmePath $id) | Out-Null }
     catch { $failure = $_.Exception.Message }
     Assert-PackageRule ($null -ne $failure -and $failure -match [regex]::Escape($case['Expected'])) "Case $($case['Name']) did not fail as expected: $failure"
     $passed++

@@ -1,0 +1,31 @@
+using Ifx.Filtering;
+using Microsoft.EntityFrameworkCore;
+using FilterNode = Ifx.Filtering.FilterNode;
+
+namespace Ifx.Filtering.EntityFrameworkCore;
+
+/// <summary>Applies portable predicates without leaving the source query provider.</summary>
+public sealed class EfFilterExecutionStrategy : IFilterExecutionStrategy
+{
+    /// <summary>Validates the caller-owned context retained by the compatible constructor.</summary>
+    public EfFilterExecutionStrategy(DbContext dbContext)
+    {
+        ArgumentNullException.ThrowIfNull(dbContext);
+    }
+
+    public IQueryable<T> Apply<T>(IQueryable<T> source, FilterNode? filter)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return filter is null
+            ? source
+            : source.Where(FilterExpression.Create<T>(filter));
+    }
+
+    public IEnumerable<T> Apply<T>(IEnumerable<T> source, FilterNode? filter)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return filter is null
+            ? source
+            : source.Where(FilterExpression.Create<T>(filter).Compile());
+    }
+}

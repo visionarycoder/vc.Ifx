@@ -1,9 +1,8 @@
 using System.ComponentModel;
-using Ifx.Abstractions;
+using Ifx;
 using Ifx.Pipeline;
-using Ifx.Pipeline.Abstractions;
 using Ifx.Proxy.Interceptor;
-using Ifx.Proxy.Interceptor.Abstractions;
+using Ifx.Proxy;
 using Ifx.Proxy.Interceptor.Authentication.Jwt;
 using Ifx.Proxy.Interceptor.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;

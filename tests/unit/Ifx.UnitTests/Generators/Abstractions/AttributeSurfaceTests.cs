@@ -1,5 +1,5 @@
 using System.Reflection;
-using Ifx.Generators.Abstractions.Attributes;
+using Ifx.Generators.Attributes;
 
 namespace Ifx.Tests.Generators.Abstractions;
 
@@ -28,8 +28,11 @@ public sealed class AttributeSurfaceTests
     public void MarkerAssemblyHasNoRuntimeProviderOrToolingDependency()
     {
         var references = typeof(GenerateEndpointAttribute).Assembly.GetReferencedAssemblies();
-        references.Should().OnlyContain(reference => reference.Name == "netstandard" || reference.Name!.StartsWith("System.", StringComparison.Ordinal));
-        typeof(GenerateEndpointAttribute).Assembly.GetExportedTypes().Should().BeEquivalentTo(
+        references.Should().OnlyContain(reference => reference.Name == "netstandard" || reference.Name!.StartsWith("System.", StringComparison.Ordinal)
+            || reference.Name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal)
+            || reference.Name == "Ifx");
+        typeof(GenerateEndpointAttribute).Assembly.GetExportedTypes()
+            .Where(type => type.Namespace == typeof(GenerateEndpointAttribute).Namespace).Should().BeEquivalentTo(
             [typeof(GenerateEndpointAttribute), typeof(GenerateEnumerationAttribute), typeof(GenerateInterceptorsAttribute),
                 typeof(GenerateMapperAttribute), typeof(MapFromAttribute), typeof(MapIgnoreAttribute)
             ]);

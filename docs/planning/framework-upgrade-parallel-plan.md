@@ -2,12 +2,65 @@
 title: vc.Ifx Parallel Upgrade Plan
 doc_type: plan
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-08
 ---
 
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
+
+### Unpublished API cleanup and initial version, 2026-11-08
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Codex; Updated: 2026-11-08; Notes: Owner confirms there is no published
+versioned release and rejects compatibility adapters. Remove duplicate FilterSpec
+contracts, migrate consumers to canonical namespaces, retain one query engine,
+and establish shared initial SemVer 0.1.0 for all production packages.
+
+Removed the duplicate vc.Ifx.FilterSpec AST, expression facade and translation
+adapters. Public specifications now reside in Ifx.Filtering and Ifx.Querying;
+QueryPlan is the single internal provider-composition engine. EF extensions now
+reside in Ifx.Querying.EntityFrameworkCore. Updated grouped/paging documentation
+and consumers. Removed the duplicated test-only Constants compatibility class;
+tests now exercise the production IfxConstants, including version 0.1.0.
+
+Serialized Release solution checks passed all 4,050 tests across eight projects,
+zero failures/skips and no build warnings/errors
+(test-results/unpublished-api-final-tests.log). Package validation passed all eight
+0.1.0 package/symbol pairs, compiler consumer checks and release-artifact mutation
+checks (test-results/unpublished-api-packages.log). Copied the 16 validated archives
+to .nupkgs for use by other projects. A clean external consumer restored Ifx 0.1.0
+from that local feed, built and executed portable filtering/query composition
+(test-results/unpublished-api-local-feed.log). Hierarchy and frontmatter checks
+passed. No remote publication or new coverage percentage is claimed.
+
+### Owner-assigned review remediation, 2026-11-08
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Codex; Updated: 2026-11-08; Notes: Implemented owner-selected review items
+1, 2, 4, 5, 6 and 7: safe EF execution, scoped channel dispatch, useful release
+checks, working contract analysis, lightweight interceptor templates, and shared
+filter/query implementation with distinct boundary and execution concerns.
+The owner explicitly authorized removing release gates that add no value. The
+active release criteria supersede historical exact 100% coverage/report-provenance
+requirements below; optional diagnostic scripts retain their historical contracts.
+Items 3 and 8 are outside this assignment.
+
+Verification: serialized Release solution tests passed all 4,048 tests across eight
+projects, zero failures/skips and no build warnings/errors
+(test-results/review-remediation-final-tests.log). The runner now preserves and
+checks each suite's TRX instead of overwriting solution results. Regressions cover
+delayed SQLite paging, scoped handler creation/disposal, shipped contract markers,
+compilable templates, disabled-by-default preferences, shared predicate wire
+compatibility and reusable query shapes.
+
+Serialized package smoke passed eight package/symbol pairs, 22 package-validator
+checks, isolated compiler loading/execution/code-fix application, schema v2 release
+staging and eight malformed-artifact rejections
+(test-results/review-remediation-packages.log). The 31 legacy artifact regressions
+also passed (test-results/review-remediation-manifests.log). Hierarchy validation
+and Markdown frontmatter checks passed. No publication, hosted CI execution, IDE
+UI acceptance or new coverage percentage is claimed.
 
 Upgrade and expand the `vc.Ifx` framework packages so each project is production-quality, independently testable, package-ready, and covered by unit tests at 100% line and branch coverage for its public and internal framework behavior.
 
@@ -86,7 +139,7 @@ Use these waves as coordination hints. The dispatch readiness rules below determ
 2. Pure framework logic:
    `vc.Ifx.Filtering`, `vc.Ifx.Querying`, `vc.Ifx.Pipeline`.
 3. Provider packages:
-   `vc.Ifx.Storage.Local`, `vc.Ifx.Storage.Ftp`, `vc.Ifx.Storage.Azure.Blobs`, `vc.Ifx.Secrets.Local`, `vc.Ifx.Secrets.Azure.KeyVault`, `vc.Ifx.Data.Azure.Tables`, `vc.Ifx.Messaging.Azure.Queues`, `vc.Ifx.Proxy.Http`, `vc.Ifx.Proxy.AspNetCore`, `vc.Ifx.Filtering.EntityFrameworkCore`, `vc.Ifx.Pipeline.Grpc`.
+   `vc.Ifx.Storage.Local`, `vc.Ifx.Storage.Ftp`, `vc.Ifx.Storage.Azure.Blobs`, `vc.Ifx.Secrets.Local`, `vc.Ifx.Secrets.Azure.KeyVault`, `vc.Ifx.Storage.Azure.Tables`, `vc.Ifx.Messaging.Azure.Queues`, `vc.Ifx.Proxy.Http`, `vc.Ifx.Proxy.AspNetCore`, `vc.Ifx.Filtering.EntityFrameworkCore`, `vc.Ifx.Pipeline.Grpc`.
 4. Cross-cutting packages:
    `vc.Ifx.Proxy`, `vc.Ifx.WebApi`, `vc.Ifx.Observability`, `vc.Ifx.Analyzers`, `vc.Ifx.CodeFixes`, `vc.Ifx.Generators`, `vc.Ifx.Reporting` or `vc.Ifx.Roslyn.Reporting`.
 5. Aggregator:
@@ -308,11 +361,11 @@ Prior owner record: Owner: Agent C (implementation ready; final verification han
 - [x] Define fallback behavior to local secrets if retained.
 - [x] Add 100% tests with fake Key Vault adapter for caching, misses, disabled secrets, failures, retry, cancellation, and options validation. SDK client fakes and an in-memory HTTP handler verify provider behavior and actual SDK retry counts.
 
-### vc.Ifx.Data.Azure.Tables
+### vc.Ifx.Storage.Azure.Tables
 
 Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
 Owner: Orchestrator (accepted worker handoff); Updated: 2026-09-10; Notes: API, boundary, README and metadata reviews accepted; exact Release coverage 218/218 lines and 98/98 branches. Command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors, with IFX_REPORT_BUILD pointing to global-20260910-03. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
-Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn after explicit Agent J handoff); Updated: 2026-09-09; Notes: IMPLEMENTATION READY; retained J's provider/options/README and completed tests. ITableStorageProvider signatures stable; virtual SDK clients, lazy serialized initialization, all-page escaped queries, conditional ETags and atomic validated batches. Fixed trailing-newline table names, empty ETag interpretation, semaphore disposal and post-SDK/stream cancellation. Strict serialized command `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Data.Azure.Tables -TestSourceScope Data/AzureTables -TestPackage vc.Ifx.Data.Azure.Tables -Filter FullyQualifiedName~Data.AzureTables -WarningsAsErrors` passed 25/25 tests with 100% line 281/281, branch 98/98, method; evidence `test-results/coverage/vc.Ifx.Data.Azure.Tables/31e7f1544a6c4db6b3a8e2fe3236d64f/vc.Ifx.UnitTests/coverage.opencover.xml`. Strict package/test build clean; SDK owns retries; no live Azure or emulator. Scope source/tests Data/AzureTables/README only; no shared refs or metadata changes. Remains In-flight for Orchestrator final solution/full-suite/integration and metadata-owner package refresh; worker released to Queues.
+Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn after explicit Agent J handoff); Updated: 2026-09-09; Notes: IMPLEMENTATION READY; retained J's provider/options/README and completed tests. ITableStorageProvider signatures stable; virtual SDK clients, lazy serialized initialization, all-page escaped queries, conditional ETags and atomic validated batches. Fixed trailing-newline table names, empty ETag interpretation, semaphore disposal and post-SDK/stream cancellation. Strict serialized command `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Storage.Azure.Tables -TestSourceScope Data/AzureTables -TestPackage vc.Ifx.Storage.Azure.Tables -Filter FullyQualifiedName~Data.AzureTables -WarningsAsErrors` passed 25/25 tests with 100% line 281/281, branch 98/98, method; evidence `test-results/coverage/vc.Ifx.Storage.Azure.Tables/31e7f1544a6c4db6b3a8e2fe3236d64f/vc.Ifx.UnitTests/coverage.opencover.xml`. Strict package/test build clean; SDK owns retries; no live Azure or emulator. Scope source/tests Data/AzureTables/README only; no shared refs or metadata changes. Remains In-flight for Orchestrator final solution/full-suite/integration and metadata-owner package refresh; worker released to Queues.
 
 - [x] Wrap Azure Tables SDK behind adapter interfaces. SDK virtual clients are the seam; no redundant wrapper.
 - [x] Define table, partition, row key, paging, and concurrency behavior.
@@ -322,7 +375,7 @@ Prior owner record: Owner: Orchestrator (final integration; implementation Agent
 ### vc.Ifx.Messaging.Azure.Queues
 
 Status: [ ] Ready [ ] In-flight [x] Blocked [ ] Complete
-Owner: Copilot; Updated: 2026-09-14; Notes: Ifx.Messaging.Azure.Queues rename/path updates are applied and the renamed project builds in Release with zero warnings/errors. Consumer verification is blocked by pre-existing dependency graph failures outside this package: Ifx.Storage pulls Ifx.Data.Azure.Tables, which fails on missing ComponentBase<> during project-reference build, and Ifx.UnitTests restore fails with an existing _GenerateRestoreProjectPathWalk cycle under Ifx.Secrets.Local.
+Owner: Copilot; Updated: 2026-09-14; Notes: Ifx.Messaging.Azure.Queues rename/path updates are applied and the renamed project builds in Release with zero warnings/errors. Consumer verification is blocked by pre-existing dependency graph failures outside this package: Ifx.Storage pulls Ifx.Storage.Azure.Tables, which fails on missing ComponentBase<> during project-reference build, and Ifx.UnitTests restore fails with an existing _GenerateRestoreProjectPathWalk cycle under Ifx.Secrets.Local.
 Prior owner record: Owner: Orchestrator (final integration; implementation Agent C/Kuhn); Updated: 2026-09-09; Notes: IMPLEMENTATION READY. Frozen legacy interface/constructor; additive borrowed QueueClient and receipt-returning update APIs. Correct SDK Base64 wiring, UTF-8/encoded payload limits, TTL -1, visibility/pop receipts, lazy single-flight creation, cancellation/disposal, and SDK-only bounded retries; failures never acknowledged or swallowed. `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Messaging.Azure.Queues -TestSourceScope Messaging/AzureQueues -TestPackage vc.Ifx.Messaging.Azure.Queues -Filter FullyQualifiedName~Messaging.AzureQueues -WarningsAsErrors` passed 17/17 tests, 248/248 lines, 72/72 branches (100% methods), exit 0. Evidence: test-results/coverage/vc.Ifx.Messaging.Azure.Queues/0182bec1f2dc45b3acf54858ef43bea5/vc.Ifx.UnitTests/coverage.opencover.xml. Virtual SDK clients and real SDK in-memory transport only, no live Azure; no metadata/shared refs changed. Explicitly hand off final solution/full-suite/package verification to Orchestrator; retain In-flight until global gates proven. Worker released; ask user before claiming Proxy.Http.
 
 - [x] Isolate Azure Queue transport behind existing provider interface and SDK virtual QueueClient seam; no redundant wrapper per accepted contract.
@@ -332,8 +385,8 @@ Prior owner record: Owner: Orchestrator (final integration; implementation Agent
 
 ### vc.Ifx.Filtering
 
-Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
-Owner: Orchestrator (accepted worker handoff); Updated: 2026-09-10; Notes: API, boundary, README and metadata reviews accepted; exact Release coverage 286/286 lines and 354/354 branches. Command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors, with IFX_REPORT_BUILD pointing to global-20260910-03. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Copilot CLI; Updated: 2026-10-14; Notes: Merged Filtering.Abstractions source into Ifx.Filtering, preserving namespaces and current Filtering edits. `pwsh -NoProfile -File scripts\Invoke-FrameworkTests.ps1 -TestSourceScope Filtering -Configuration Release -WarningsAsErrors` compiled Ifx.Filtering but failed before tests because current untracked Ifx.Primitives converter files cannot resolve ValueConverter<,>, EntityIdentifier<,>, and PropertyBuilder<>. Tests run: 0; coverage: not measured. Dependency validator remains blocked by absent docs\docs.csproj.
 Prior owner record: Owner: Orchestrator (final integration); Updated: 2026-09-10; Notes: IMPLEMENTATION READY after independent finding F1 repair: TimeOnly round-trip formatting preserves seconds/fractional ticks in supported membership and collection Contains, including nullable values and JSON. New regression failed before fix (2600a53caad24de7a1e718c9d0f5dd14), passed after (b7ffc55d0a4f4c73875231c60f4894b2). Strict `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Filtering -TestSourceScope Filtering -Filter FullyQualifiedName~Filtering -WarningsAsErrors` passed 86/86 (includes four EF consumer cases), 357/357 lines and 354/354 branches; 59d0f9849c0b445993ae51def829e1eb. Querying strict consumer rerun: 110/110, 323/323 lines and 156/156 branches, 5db3e65db1004c6aa9daaaf79c08bce7. EF strict consumer rerun: 4/4, 14/14 lines and 4/4 branches, 8b6981c89bc6411ab27c23943e64ab5d. Both consumer runs used TestSourceScope/TestPackage plus CoveragePackage and WarningsAsErrors. Contracts and generated exclusions unchanged; source/README/contract/tests updated. Global stable-snapshot integration and final package refresh remain open; implementation returned to integration queue.
 
 - [x] Lock filter AST records and operator semantics.
@@ -365,8 +418,8 @@ Prior owner record: Owner: Orchestrator (final integration); Updated: 2026-09-09
 
 ### vc.Ifx.Pipeline
 
-Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
-Owner: Orchestrator (accepted worker handoff); Updated: 2026-09-10; Notes: API, boundary, README and metadata reviews accepted; exact Release coverage 250/250 lines and 92/92 branches. Command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors, with IFX_REPORT_BUILD pointing to global-20260910-03. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Copilot CLI; Updated: 2026-10-14; Notes: Removed unused Logging and Polly package references from Ifx.Pipeline after source audit. The Filtering-scoped wrapper command above compiled Ifx.Pipeline, but the suite stopped in current Ifx.Primitives edits before tests. Pipeline tests and coverage: not measured; remain In-flight pending isolated tests and global gates.
 Prior owner record: Owner: Agent J (Pipeline worker); Updated: 2026-09-09; Notes: Package source/README and tests/Pipeline implemented; no shared infrastructure/project metadata edits by this worker. Direct contracts locally owned/stable, dependencies unchanged. Existing no-token invoker/interceptor/local/remote/cache/auth methods and handler ct signature retained; required-token overloads/default interface bridges preserve gRPC/Observability source compatibility. Built-ins propagate tokens; legacy adapters only precheck until overridden. README written first; deterministic registration order, correlation isolation, live validated routing, cache/auth/trace/metrics/failure semantics and migration documented. Polly 8 ResiliencePipeline supported beside legacy AsyncPolicy, one policy only, duplicate built-in resilience rejected; retry is explicitly replay-safe opt-in, cancellation/permanent failures not retried. Strict serialized command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Pipeline -TestSourceScope Pipeline -TestPackage vc.Ifx.Pipeline -Filter FullyQualifiedName~Tests.Pipeline -WarningsAsErrors. Passed 33/33; measured 314/314 lines, 92/92 branches (100%), no package exclusions added; evidence test-results/coverage/vc.Ifx.Pipeline/292ab125e54744308434cc6310e17e3a/summary.json and vc.Ifx.UnitTests/tests.trx. Wrapper -BuildOnly -Project src/vc.Ifx.Pipeline.Grpc/vc.Ifx.Pipeline.Grpc.csproj -NoRestore -WarningsAsErrors and equivalent Observability build passed unchanged, zero warnings/errors. Integration request: gRPC override new token overload and forward to calls; Observability prove End/Dispose idempotence and updated metric semantics. In-flight for consumer integration and global build/test/packaging/release gates; no whole-solution check. First-step legacy FrameworkResult null-success assertions migrated and verified 27/27 via wrapper -Filter FullyQualifiedName~FrameworkResult; evidence test-results/tests/vc.Ifx.UnitTests/cfa1f6ca67af4f3dba7b86e33c77947a/tests.trx.
 
 - [x] Lock request, handler, interceptor, dispatcher, resolver, cache, tracing, and metrics contracts.
@@ -398,8 +451,8 @@ Prior owner record: Owner: Agent J (Observability worker); Updated: 2026-09-09; 
 
 ### vc.Ifx.Proxy
 
-Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
-Owner: Orchestrator (accepted worker handoff); Updated: 2026-09-10; Notes: API, boundary, README and metadata reviews accepted; exact Release coverage 1794/1794 lines and 690/690 branches. Command: pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage -Configuration Release -NoBuild -WarningsAsErrors, with IFX_REPORT_BUILD pointing to global-20260910-03. Build global-20260910-03 passed zero warnings/errors; full coverage d27e86fffbba406da1c533510c9948fb passed 3617 unit + 15 integration tests, zero skips; paired report passed/issues0; archive run 59468a485ff34d26884375e111912ac6 validated all 28 pairs against tested payloads, 19 validator checks and final staged hashes passed. Exact commands/results: docs/planning/local-verification-20260910.md. Prior handoffs below are historical and superseded for global acceptance.
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Copilot CLI; Updated: 2026-10-14; Notes: Merged interceptor authorization abstractions into Proxy.Abstractions and pruned unused Proxy dependencies after source audit. `pwsh -NoProfile -File scripts\Invoke-FrameworkTests.ps1 -Project src\ifx\Ifx.Proxy.Interceptor\Ifx.Proxy.Interceptor.csproj -BuildOnly -Configuration Release -WarningsAsErrors` passed with zero warnings/errors; the Filtering-scoped test run compiled Ifx.Proxy as well. Proxy tests and coverage: not measured; remain In-flight pending isolated tests and global gates.
 Implementation handoff: 2026-09-09, Orchestrator explicitly transfers all remaining Proxy source/README/tests ownership to Kuhn. Last whole-module run: 421 passing tests, 1382/2319 lines and 395/710 branches (partial), test-results/coverage/vc.Ifx.Proxy/d0628412c8434e4187e8cc60a8930138. Subsequent local configuration (5), outbound authentication (6), and authentication value/conversion (3) tests passed. AuthenticationValueContractTests evidence: test-results/tests/vc.Ifx.UnitTests/8197bd691e654e23bef0e56f42b40959/tests.trx. No source changes after handoff by Orchestrator; worker must claim Owner below, finish whole-module correctness/coverage, and coordinate adapter contracts. Global verification remains Orchestrator.
 Prior owner record: Owner: Agent C/Kuhn; Updated: 2026-09-10; Notes: IMPLEMENTATION READY; final verification explicitly handed off to Orchestrator. Strict serialized command `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -CoveragePackage vc.Ifx.Proxy -TestSourceScope Proxy -TestPackage vc.Ifx.Proxy -Filter FullyQualifiedName~Tests.Proxy. -WarningsAsErrors` passed 463 tests, zero skips/warnings, entire compiled module 2294/2294 lines and 692/692 branches (100%); evidence test-results/coverage/vc.Ifx.Proxy/9dd7e51162384aa586c68073ef9dd05d/summary.json. No handwritten coverage exclusions added. Existing public signatures and Orchestrator fixes preserved. Added canonical IProxyAuthorizationPolicy bridge for every legacy authorization registration with actual DI pipeline allow/deny/cancellation tests; Jason confirms canonical/legacy adapter enforcement. Completed Azure root reload/disposal and offline factory seam, strict Azure registration validation, correlation async-flow restoration, case-insensitive headers/Cache-Control, cache DI/custom-key behavior and explicit passive/distributed compatibility semantics, telemetry/security/null-model/token/remaining policy coverage. Removed dead audit helpers and redundant expiry checks. Azure.Identity/AppConfiguration retained for approved 1.x compatibility; minimum footprint and future versioned extraction documented, no type moves/providers/domain library. Thread-safe caller-owned legacy fixture writes retain assertions/counts. Legacy invalid-options test now asserts exact ArgumentException and ParamName=options, verified `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Filter FullyQualifiedName~AuthenticationServiceCollectionExtensionsTests -Configuration Release -WarningsAsErrors`: 8/8 pass, zero warnings, test-results/tests/vc.Ifx.UnitTests/41dc673d374949c0bfe24b837eb3a566/tests.trx. Remaining global gates owned by Orchestrator: combined legacy/full-suite rerun after handoff, adapter integration/security review, warning-free solution build/final pack. Existing excluded Proxies prototype remains documented compatibility archive, not supported compiled types. Keep In-flight pending those global criteria. No adapter or shared metadata edits by this worker.
 
@@ -533,6 +586,16 @@ Prior owner record: Owner: Aggregator worker (Nash, explicit Orchestrator handof
 - [x] Avoid reintroducing implementation dependencies into abstraction-only consumers.
 - [x] Add integration-style unit tests for package-level extension methods and aggregate DI registration.
 
+### Utility project regrouping
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Copilot CLI; Updated: 2026-10-14; Notes: Consolidated archive contracts and BCL GZip/TAR/ZIP providers into Ifx.Archiving; SharpCompress remains in optional Ifx.Archiving.SevenZip. Removed the empty Web.AspNetCore placeholder and the unnecessary Ifx aggregator reference from Ifx.Storage. Serialized Release builds passed with zero warnings/errors: `pwsh -NoProfile -File scripts\Invoke-FrameworkTests.ps1 -Project src\ifx\Ifx.Archiving\Ifx.Archiving.csproj -BuildOnly -Configuration Release -WarningsAsErrors`; same command with `Ifx.Proxy.Interceptor\Ifx.Proxy.Interceptor.csproj` and `Ifx.Storage\Ifx.Storage.csproj`. Archive tests passed 33/33 and SevenZip tests 19/19 using the wrapper with `tests\unit\Ifx.Archiving.GZip.UnitTests\Ifx.Archiving.GZip.UnitTests.csproj` and `tests\unit\Ifx.Archiving.SevenZip.UnitTests\Ifx.Archiving.SevenZip.UnitTests.csproj`, respectively, plus `-Configuration Release -WarningsAsErrors`. Storage tests and coverage remain unmeasured. `dotnet sln vc.Ifx.slnx list` and exact inventory comparison passed: 53/53 scoped projects listed, zero missing paths, zero unlisted projects. Dependency validator remains blocked by absent docs\docs.csproj.
+
+### Solution project inclusion
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Copilot CLI; Updated: 2026-10-14; Notes: Removed solution entries and project references for merged Filtering, Proxy interceptor, and archive projects plus the empty Web.AspNetCore project; preserved current solution edits. `dotnet sln vc.Ifx.slnx list` passed; XML inventory comparison found 53/53 projects under src, tests, performance, and scripts listed exactly once with all paths present. `scripts\Test-FrameworkDependencies.ps1` remains blocked because docs\docs.csproj is absent. Full-suite coverage and dependency validation remain open; status stays In-flight.
+
 ## Parallel Assignment Map
 
 - Agent A: abstraction packages and primitive contracts.
@@ -610,3 +673,92 @@ pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -FullCoverage `
 
 Gate 1 is complete. Agents document the exact targeted command, selection,
 configuration, result and fresh coverage path when re-verifying a changed package.
+
+## Root library consolidation
+
+### Runtime and compiler compression
+
+Namespace follow-up assigned to Codex, 2026-11-08: remove Abstractions folder and
+namespace segments, move shared types into their immediate owning parent, update
+all consumers and compiler metadata-name strings, and verify solution and packages.
+This owner instruction supersedes the earlier public-namespace preservation claim
+for the affected contracts. Preserve unrelated concurrent source changes.
+
+Reporting location follow-up, 2026-11-08: the owner requested the Reporting
+executable back under src/ifx/Ifx.Roslyn.Reporting. Move its project and sources,
+retain IsPackable=false and IsReportingHost=true, reference the shared Roslyn
+parent, and update solution, tests, package inventories, and script entrypoints.
+
+Source and benchmark follow-up assigned to Codex, 2026-11-08: remove the extra
+src/ifx path level, move all nine source projects directly under src, and align
+benchmark projects with Ifx and Ifx.Integrations. Keep local storage and pipeline
+benchmarks with core behavior; caching-interceptor benchmarks follow Integrations.
+Preserve every existing benchmark and verify discovery plus bounded Dry execution.
+
+Verified final follow-ups, 2026-11-08: all Abstractions source folders and namespace
+segments removed; shared artifacts now reside in their owning parents. Reporting
+is a non-packable executable at src/Ifx.Roslyn.Reporting and references its shared
+Roslyn parent. All nine source projects are direct children of src. On Windows the
+locked original src/ifx directory was reused as the core project folder, removing
+the nested src/ifx/Ifx level. The two benchmark projects are Ifx.Benchmarks and
+Ifx.Integrations.Benchmarks; all 31 discovered benchmark methods were retained.
+
+Final serialized Release build passed with zero warnings/errors
+(test-results/flattened-src-build.log); all 4,037 tests passed, zero failures/skips
+(test-results/flattened-src-tests.log). Eight package/symbol pairs, 22 validator
+checks, and isolated compiler/code-fix execution passed
+(test-results/flattened-src-packages.log). Benchmark ListOnly passed with 27 core
+and four integration methods (test-results/aligned-benchmarks-list.log). Dry smoke
+checks passed one core case and two parameterized integration cases
+(test-results/aligned-benchmarks-core-dry.log and aligned-benchmarks-integrations-dry.log).
+These are execution checks, not steady-state performance baselines. The relocated
+Reporting executable passed request-file input and JSON/Markdown output at
+test-results/reporting-flat-src-090db5309aef4b0cba569c9df52e1c0a. Current hierarchy
+checks and frontmatter validation passed, the latter with zero violations across
+680 documents. Existing coverage/release acceptance limitations remain unchanged.
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Codex; Updated: 2026-11-08; Notes: Current owner instructions select eight
+production libraries: Ifx; Ifx.Integrations, .Azure, .Windows; Ifx.Roslyn,
+.Analyzers, .Generators, .CodeFixes. Reporting is a separate executable named
+Ifx.Roslyn.Reporting. Public namespaces retained. Empty retired project directories
+were removed from the checkout through a reversible archive after verifying source
+migration. The proposed single compiler assembly was rejected by RS1038; the owner
+explicitly selected a separate CodeFixes project. No analyzer suppression added.
+Verification results are recorded below when complete; coverage acceptance remains
+open under the existing plan standard. Earlier project counts are historical.
+
+Verified 2026-11-08: eight source libraries and 21 solution projects pass
+`python scripts/Test-ProjectHierarchy.py`. Serialized Release solution BuildOnly
+passed with zero warnings/errors (test-results/compressed-build.log). Serialized
+Release solution tests with WarningsAsErrors passed 4,037 tests across all eight
+test projects, zero failures/skips (test-results/compressed-tests.log). The wrapper
+with `-BuildOnly -Project scripts/packaging/CompilerHostSmoke.proj -Configuration
+Release -WarningsAsErrors` passed eight package/symbol pairs, 22 package-validator
+checks including 14 rejected mutations, isolated analyzer/generator loading and
+execution, and discovery/application of a packaged code-fix action. Evidence:
+test-results/compressed-packages.log and compressed-packages/d93960a4b42545ea8282c7ca6773ea3d.
+The renamed Reporting executable passed request-file read and JSON/Markdown output
+checks at test-results/reporting-compressed-io. No coverage percentage, publishing,
+or Visual Studio UI acceptance is claimed. Existing legacy coverage/docs-project
+gate assumptions remain unresolved; this plan status therefore stays In-flight.
+
+Abstractions follow-up, Codex, 2026-11-08: restored the separate Ifx.Abstractions
+library from Ifx/Abstractions, preserved public namespaces, and referenced it from
+Ifx under the child-Abstractions exception. The solution has 26 source libraries
+and 39 projects. `python scripts/Test-ProjectHierarchy.py` passed.
+`pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx
+-Configuration Release -WarningsAsErrors` passed all 4,036 tests with no failures
+or skips; log: test-results/restore-abstractions-tests.log. Coverage limitations
+below remain. Earlier consolidation counts are historical.
+
+Folder follow-up, 2026-11-08 (Codex): removed the unnecessary Modules directory
+and moved its contents directly under Ifx. Kept general and Workday-specific
+primitives distinct. Updated source exclusions, generator fixture discovery, and
+the ownership documentation. `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1
+-Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors` passed all 4,036
+tests with zero failures/skips; log: test-results/flatten-ifx-tests.log.
+`python scripts/Test-ProjectHierarchy.py` passed. Coverage limitations below remain.
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Codex; Updated: 2026-11-08; Notes: User-assigned consolidation implemented: 17 libraries merged into Ifx; 25 source libraries and 38 solution projects remain. Parent-to-child references removed; nested projects reference compatible retained parents, with Abstractions exempt. `python scripts/Test-ProjectHierarchy.py` passed. `pwsh -NoProfile -File scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -BuildOnly -Configuration Release -WarningsAsErrors` passed with zero warnings/errors. Same wrapper without BuildOnly passed 4,036 tests across eight test projects, zero failures/skips. Exact logs: test-results/consolidation-build.log and test-results/consolidation-all-tests.log. No coverage measurement or package publication claimed; legacy coverage/release infrastructure still assumes two test projects and an absent docs project. Status stays In-flight under the plan's coverage completion standard. See docs/architecture/root-library-consolidation.md for migration and current ownership.

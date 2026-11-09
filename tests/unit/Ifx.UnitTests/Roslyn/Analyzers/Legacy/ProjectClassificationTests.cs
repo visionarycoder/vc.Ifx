@@ -1,4 +1,4 @@
-using Ifx.Analyzers.Abstractions;
+using Ifx.Roslyn;
 using Ifx.Analyzers.Helpers;
 
 namespace Ifx.Tests.Roslyn.Analyzers.Legacy;

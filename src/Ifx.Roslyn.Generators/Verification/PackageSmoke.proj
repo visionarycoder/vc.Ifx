@@ -1,0 +1,6 @@
+<Project DefaultTargets="Build">
+  <Target Name="Restore" />
+  <Target Name="Build">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)Test-CompilerPackage.ps1&quot;" />
+  </Target>
+</Project>

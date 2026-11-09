@@ -19,6 +19,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 Import-Module (Join-Path $repoRoot 'scripts/testing/TestSourceSelection.psm1') -Force
 Import-Module (Join-Path $repoRoot 'scripts/testing/BuildProvenance.psm1') -Force
 $sourceProjects = @(Get-ChildItem -LiteralPath (Join-Path $repoRoot 'src') -Recurse -Filter '*.csproj' | Sort-Object FullName)
+$sourceProjects = @($sourceProjects | Where-Object { [xml] $definition = Get-Content -LiteralPath $_.FullName -Raw; $null -eq $definition.SelectSingleNode('//IsPackable[text()="false"]') })
 $testProjects = @(Get-ChildItem -LiteralPath (Join-Path $repoRoot 'tests') -Recurse -Filter '*.csproj' | Sort-Object FullName -Descending)
 if ($sourceProjects.Count -eq 0 -or $testProjects.Count -ne 2) {
     throw 'Expected source projects and exactly two centralized test projects. Update this gate explicitly when adding projects.'

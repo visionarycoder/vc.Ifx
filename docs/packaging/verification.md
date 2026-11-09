@@ -90,7 +90,7 @@ Metadata-only edits (concurrent owners may also have independent edits here):
 - `src/vc.Ifx.Abstractions/vc.Ifx.Abstractions.csproj`
 - `src/vc.Ifx.Analyzers/vc.Ifx.Analyzers.csproj`
 - `src/vc.Ifx.CodeFixes/vc.Ifx.CodeFixes.csproj`
-- `src/vc.Ifx.Data.Azure.Tables/vc.Ifx.Data.Azure.Tables.csproj`
+- `src/vc.Ifx.Storage.Azure.Tables/vc.Ifx.Storage.Azure.Tables.csproj`
 - `src/vc.Ifx.Filtering/vc.Ifx.Filtering.csproj`
 - `src/vc.Ifx.Filtering.EntityFrameworkCore/vc.Ifx.Filtering.EntityFrameworkCore.csproj`
 - `src/vc.Ifx.Generators/vc.Ifx.Generators.csproj`
@@ -117,7 +117,7 @@ Metadata-only edits (concurrent owners may also have independent edits here):
 New minimal mission README files; all existing README contents preserved:
 
 - `src/vc.Ifx.Abstractions/README.md`
-- `src/vc.Ifx.Data.Azure.Tables/README.md`
+- `src/vc.Ifx.Storage.Azure.Tables/README.md`
 - `src/vc.Ifx.Filtering.EntityFrameworkCore/README.md`
 - `src/vc.Ifx.Generators.Abstractions/README.md`
 - `src/vc.Ifx.Messaging.Azure.Queues/README.md`

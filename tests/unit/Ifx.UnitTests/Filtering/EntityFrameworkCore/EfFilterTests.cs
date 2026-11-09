@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using System.Linq.Expressions;
 using Ifx.Filtering;
-using Ifx.Filtering.Abstractions;
 using Ifx.Filtering.EntityFrameworkCore;
 
 namespace Ifx.Tests.Filtering.EntityFrameworkCore;

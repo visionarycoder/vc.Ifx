@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +18,7 @@ public sealed class EndpointWebApiIntegrationTests
         using System;
         using System.Collections.Generic;
         using Microsoft.AspNetCore.Http;
-        using Ifx.Generators.Abstractions.Attributes;
+        using Ifx.Generators.Attributes;
         using Ifx.Web.Api.Responses;
         public static class Handlers
         {
@@ -84,7 +84,7 @@ public sealed class EndpointWebApiIntegrationTests
         const string source = """
             using System; using System.Threading; using System.Threading.Tasks;
             using Microsoft.AspNetCore.Mvc;
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             public static class Handlers
             {
                 [GenerateEndpoint("/wait", "GET")]

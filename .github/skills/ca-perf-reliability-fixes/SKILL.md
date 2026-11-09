@@ -10,7 +10,7 @@ complexity: low
 estimated_tokens: 1550
 prerequisites:
   - .NET SDK with Roslyn analyzers enabled
-  - src/ifx/Ifx.CodeFixes wired via Directory.Build.props
+  - src/Ifx.Roslyn.CodeFixes; verify compiler-host integration separately
   - ste-agent-writing-standard
   - terminology-dictionary
 related_skills:
@@ -158,5 +158,5 @@ Agent produces:
 
 ## References
 
-- Fix providers: `src/ifx/Ifx.CodeFixes/Providers/CA/Ca{1824,1825,1873,2207}CodeFixProvider.cs`
+- Fix providers: `src/Ifx.Roslyn.CodeFixes/Providers/Ca{1824,1825,1873,2207}CodeFixProvider.cs`
 - Rule docs: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca<id>

@@ -24,7 +24,7 @@ function Test-PackageArchive {
         [string] $RepositoryUrl = 'https://github.com/visionarycoder/vc.Ifx'
     )
 
-    $compilerExtensions = @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators')
+    $compilerExtensions = @('vc.Ifx.Analyzers', 'vc.Ifx.CodeFixes', 'vc.Ifx.Generators', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.CodeFixes', 'Ifx.Roslyn.Generators')
     $archive = [IO.Compression.ZipFile]::OpenRead([IO.Path]::GetFullPath($Path))
     try {
         [xml] $nuspec = Read-ArchiveText $archive "$PackageId.nuspec"
@@ -63,13 +63,15 @@ function Test-PackageArchive {
             Assert-PackageRule ($dependencies.Count -eq 0) 'Compiler extension exposes runtime package dependencies.'
             Assert-PackageRule (@($paths | Where-Object { $_ -match '^(lib|ref|runtimes)/' }).Count -eq 0) 'Compiler extension exposes runtime or reference assets.'
             Assert-PackageRule ($paths -contains "analyzers/dotnet/cs/$PackageId.dll") 'Compiler extension is not in analyzers/dotnet/cs.'
-            Assert-PackageRule ($paths -contains 'analyzers/dotnet/cs/vc.Ifx.Roslyn.dll') 'Compiler extension is missing vc.Ifx.Roslyn dependency.'
-            if ($PackageId -eq 'vc.Ifx.CodeFixes') {
-                Assert-PackageRule (@($paths | Where-Object { [IO.Path]::GetFileName($_) -eq 'vc.Ifx.Analyzers.dll' }).Count -eq 0) 'Code fixes bundle vc.Ifx.Analyzers and duplicate diagnostic execution; install the separate analyzer package.'
+            $sharedName = if ($PackageId.StartsWith('vc.')) { 'vc.Ifx.Roslyn' } else { 'Ifx.Roslyn' }
+            Assert-PackageRule ($paths -contains "analyzers/dotnet/cs/$sharedName.dll") "Compiler extension is missing $sharedName dependency."
+            if ($PackageId -in @('vc.Ifx.CodeFixes', 'Ifx.Roslyn.CodeFixes')) {
+                $analyzerName = if ($PackageId.StartsWith('vc.')) { 'vc.Ifx.Analyzers.dll' } else { 'Ifx.Roslyn.Analyzers.dll' }
+                Assert-PackageRule (@($paths | Where-Object { [IO.Path]::GetFileName($_) -eq $analyzerName }).Count -eq 0) "Code fixes bundle $analyzerName and duplicate diagnostic execution; install the separate analyzer package."
             }
             Assert-PackageRule (@($paths | Where-Object { $_ -match '/Microsoft\.CodeAnalysis[^/]*\.dll$' }).Count -eq 0) 'Compiler extension bundles host Roslyn assemblies.'
         } else {
-            $framework = if ($PackageId -eq 'vc.Ifx.Roslyn') { 'netstandard2.0' } else { 'net10.0' }
+            $framework = if ($PackageId -in @('vc.Ifx.Roslyn', 'Ifx.Roslyn')) { 'netstandard2.0' } elseif ($PackageId -eq 'Ifx.Integrations.Windows') { 'net10.0-windows7.0' } else { 'net10.0' }
             Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.dll") 'Missing framework library assembly.'
             Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.xml") 'Missing XML API documentation.'
         }

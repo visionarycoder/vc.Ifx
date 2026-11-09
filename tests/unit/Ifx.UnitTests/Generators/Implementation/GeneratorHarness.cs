@@ -24,12 +24,12 @@ internal static class GeneratorHarness
     {
         // CI maps compiler source paths to /_/; locate the checkout from test output instead.
         var repository = new DirectoryInfo(AppContext.BaseDirectory);
-        while (repository is not null && !Directory.Exists(Path.Combine(repository.FullName, "src", "ifx", "Ifx.Generators.Abstractions", "Attributes")))
+        while (repository is not null && !Directory.Exists(Path.Combine(repository.FullName, "src", "Ifx.Roslyn.Generators", "Attributes")))
         {
             repository = repository.Parent;
         }
         if (repository is null) { throw new DirectoryNotFoundException("Generator tests require the framework checkout."); }
-        var directory = Path.Combine(repository.FullName, "src", "ifx", "Ifx.Generators.Abstractions", "Attributes");
+        var directory = Path.Combine(repository.FullName, "src", "Ifx.Roslyn.Generators", "Attributes");
         yield return CSharpSyntaxTree.ParseText("global using System;", ParseOptions, "GlobalUsings.cs");
         foreach (var path in Directory.GetFiles(directory, "*.cs").Order(StringComparer.Ordinal))
         {

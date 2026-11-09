@@ -1,11 +1,10 @@
-﻿using Polly;
+using Polly;
 using Polly.Retry;
 
 using Ifx.Pipeline;
 using Ifx.Proxy.Interceptor;
-using Ifx.Pipeline.Abstractions;
-using Ifx.Proxy.Interceptor.Abstractions;
-using Ifx.Abstractions;
+using Ifx.Proxy;
+using Ifx;
 
 namespace Ifx.Tests.Pipeline;
 

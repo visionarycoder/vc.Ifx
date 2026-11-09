@@ -1,10 +1,10 @@
-﻿using Azure;
+using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Runtime.CompilerServices;
-using Ifx.Data.Azure.Tables;
+using Ifx.Storage.Azure.Tables;
 
 namespace Ifx.Tests.Data.AzureTables;
 

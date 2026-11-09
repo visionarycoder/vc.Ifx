@@ -2,9 +2,22 @@
 title: Diagnostic Catalog
 doc_type: reference
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-08
 ---
 # Diagnostic Catalog
+
+## Current contract and interceptor policy
+
+IFX001 analyzes interfaces marked with the shipped Ifx.Proxy.ProxyContractAttribute.
+Methods return Task, Task<T>, ValueTask or ValueTask<T> and accept one typed request
+plus CancellationToken, passed by value. Request DTOs require no framework base
+class. Unmarked interfaces are outside this opt-in signature convention.
+
+IFX1500, IFX1501 and IFX1502 are disabled by default. They remain explicitly
+configurable interceptor preferences, not general prohibitions on Microsoft
+caching, retry or token-validation APIs. Start with the
+[lightweight component template](../../templates/component/README.md) and add
+requirements-specific policies. This does not change mandatory proxy boundaries.
 
 Owner: vc.Ifx.Roslyn; Updated: 2026-09-10 (bounded Gate 3 documentation reconciliation)
 

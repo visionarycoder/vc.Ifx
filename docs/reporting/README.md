@@ -2,14 +2,19 @@
 title: Framework Reporting
 doc_type: readme
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-08
 ---
 # Framework Reporting
 
-The [v1 contract](report-contract.md) is authoritative. The package is
-`vc.Ifx.Roslyn.Reporting` (net10.0); the non-packable
-`scripts/reporting/FrameworkReport.Host.csproj` is its command host. Both are in the
-solution. The host is not a 29th NuGet package or an additional test project.
+The [v1 contract](report-contract.md) is authoritative. Reporting code and physical
+file I/O now reside together in the non-packable net10.0 executable
+`src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj`. There is no separate reporting
+library package. See [current ownership](../architecture/root-library-consolidation.md).
+
+The legacy full-evidence sequence below is blocked by the coverage runner's old
+two-test-project assumption. It is retained for historical optional diagnostics;
+the owner removed it from release acceptance on 2026-11-08. The executable has passed
+request-file input and JSON/Markdown output checks.
 
 ## Local Full Evidence
 

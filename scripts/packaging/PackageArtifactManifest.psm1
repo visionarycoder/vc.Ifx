@@ -63,7 +63,7 @@ function New-PackageArtifactManifest {
     $expectedFiles = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($package in $ExpectedPackages) {
-        Assert-ArtifactRule ($package.id -cmatch '\Avc\.Ifx(?:\.[A-Za-z0-9]+)*\z') 'Invalid expected package ID.'
+        Assert-ArtifactRule ($package.id -cmatch '\A(?:vc\.)?Ifx(?:\.[A-Za-z0-9]+)*\z') 'Invalid expected package ID.'
         Assert-ArtifactRule ($package.version -cmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z') 'Invalid expected package version.'
         Assert-ArtifactRule ($ids.Add($package.id)) 'Duplicate expected package ID.'
         Assert-ArtifactRule ($ExpectedPayloads.ContainsKey($package.id) -and $ExpectedPayloads[$package.id] -is [hashtable] -and
@@ -114,8 +114,8 @@ function Test-PackageArtifactManifest {
     if ($ManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z' -or
         (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $ManifestSha256) { throw 'Package manifest hash mismatch.' }
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ($manifest.schemaVersion -ne 1 -or $manifest.revision -cne $Revision -or $Revision -cnotmatch '\A[0-9a-f]{40}\z' -or
-        $manifest.buildManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z' -or $manifest.coverageManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z') { throw 'Invalid package manifest provenance.' }
+    if ($manifest.schemaVersion -notin @(1, 2) -or $manifest.revision -cne $Revision -or $Revision -cnotmatch '\A[0-9a-f]{40}\z' -or
+        ($manifest.schemaVersion -eq 1 -and ($manifest.buildManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z' -or $manifest.coverageManifestSha256 -cnotmatch '\A[0-9a-f]{64}\z'))) { throw 'Invalid package manifest provenance.' }
     if ($manifest.packages.Count -eq 0 -or $manifest.sdk.file -cne 'global.json') { throw 'Empty or invalid artifact inventory.' }
     $expected = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -123,7 +123,7 @@ function Test-PackageArtifactManifest {
     $null = $expected.Add('global.json')
     $entries = @($manifest.sdk)
     foreach ($package in $manifest.packages) {
-        if ($package.id -cnotmatch '\Avc\.Ifx(?:\.[A-Za-z0-9]+)*\z' -or -not $ids.Add($package.id) -or
+        if ($package.id -cnotmatch '\A(?:vc\.)?Ifx(?:\.[A-Za-z0-9]+)*\z' -or -not $ids.Add($package.id) -or
             $package.version -cnotmatch '\A[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\z') { throw 'Invalid or duplicate package identity.' }
         if ($package.package.file -cne "$($package.id).$($package.version).nupkg" -or
             $package.symbols.file -cne "$($package.id).$($package.version).snupkg") { throw 'Archive name does not match package identity.' }

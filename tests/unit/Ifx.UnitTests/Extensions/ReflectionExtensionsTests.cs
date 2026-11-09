@@ -8,7 +8,6 @@ using Ifx.Extensions;
 
 namespace Ifx.Tests.Extensions;
 
-[TestClass]
 public class ReflectionExtensionsTests
 {
     #region NameOfCallingClass Tests
@@ -574,13 +573,4 @@ public class ReflectionExtensionsTests
     }
 
     #endregion
-}
-
-public class TestClass : IDisposable
-{
-    public string GetValue() => "TestValue";
-    public void ThrowException() => throw new InvalidOperationException("Expected fixture failure.");
-    public void OverloadedMethod() { }
-    public void OverloadedMethod(int value) { }
-    public void Dispose() { }
 }

@@ -29,7 +29,7 @@ public sealed class EndpointHostingTests
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Http;
             using Microsoft.AspNetCore.Mvc;
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             public static class Handlers
             {
                 [GenerateEndpoint("/items/{id:int}", "GET", Name="ReadItem", Summary="Read an item", Description="Item detail", Tags=new[]{"Items"}, AllowAnonymous=true)]
@@ -106,7 +106,7 @@ public sealed class EndpointHostingTests
         var result = GeneratorHarness.Run("""
             using Microsoft.AspNetCore.Http;
             using Microsoft.AspNetCore.Http.HttpResults;
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             public static class Handlers
             {
                 [GenerateEndpoint("/public", "GET", AllowAnonymous=true)]
@@ -144,7 +144,7 @@ public sealed class EndpointHostingTests
         var result = GeneratorHarness.Run("""
             using System; using System.Threading; using System.Threading.Tasks;
             using Microsoft.AspNetCore.Mvc;
-            using Ifx.Generators.Abstractions.Attributes;
+            using Ifx.Generators.Attributes;
             public static class Handlers
             {
                 [GenerateEndpoint("/wait", "GET")]

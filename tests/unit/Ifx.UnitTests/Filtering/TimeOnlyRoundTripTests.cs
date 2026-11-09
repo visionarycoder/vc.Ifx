@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json;
 using Ifx.Filtering;
-using Ifx.Filtering.Abstractions;
 
 namespace Ifx.Tests.Filtering;
 

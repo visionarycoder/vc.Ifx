@@ -8,7 +8,3 @@ public class ServiceRequest : ComponentRequest
     {
     }
 }
-
-public class ServiceRequest<T> : ServiceRequest
-{
-}

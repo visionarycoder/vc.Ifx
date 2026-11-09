@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service GenericInvoker {
+  rpc Invoke (InvokeRequest) returns (InvokeResponse);
+}
+
+message InvokeRequest {
+  string requestType = 1;
+  string payload = 2;
+}
+
+message InvokeResponse {
+  string payload = 1;
+}

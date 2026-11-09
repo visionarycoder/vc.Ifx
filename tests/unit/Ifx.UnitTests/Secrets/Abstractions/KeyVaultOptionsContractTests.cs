@@ -74,6 +74,6 @@ public sealed class KeyVaultOptionsContractTests
         first.Should().Be(first);
         first.MaxRetries = 99;
         second.MaxRetries.Should().Be(3);
-        typeof(KeyVaultOptions).Assembly.GetName().Name.Should().Be("Ifx.Secrets.Abstractions");
+        typeof(KeyVaultOptions).Assembly.GetName().Name.Should().Be("Ifx");
     }
 }

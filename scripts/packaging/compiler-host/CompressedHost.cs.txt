@@ -1,0 +1,84 @@
+using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+
+var artifacts = Path.GetFullPath(args[0]);
+var loader = new PackageLoader(artifacts);
+string ToolPath(string name) => Path.Combine(artifacts, name, "analyzers", "dotnet", "cs", name + ".dll");
+void Require(bool value, string message)
+{
+    if (!value) throw new InvalidOperationException(message);
+    Console.WriteLine("PASS: " + message);
+}
+
+var analyzerReference = new AnalyzerFileReference(ToolPath("Ifx.Roslyn.Analyzers"), loader);
+var analyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
+Require(analyzers.Length > 0, "Packaged analyzers are discoverable");
+var generatorReference = new AnalyzerFileReference(ToolPath("Ifx.Roslyn.Generators"), loader);
+var generators = generatorReference.GetGenerators(LanguageNames.CSharp);
+Require(generators.Length == 4, "All four packaged generators are discoverable");
+Require(!loader.Context.Assemblies.Any(assembly => assembly.GetReferencedAssemblies().Any(item => item.Name!.Contains("Workspaces", StringComparison.Ordinal))),
+    "Compiler extensions have no Workspaces reference");
+
+var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
+    .Select(path => MetadataReference.CreateFromFile(path)).ToList();
+references.Add(MetadataReference.CreateFromFile(Path.Combine(artifacts, "Ifx", "lib", "net10.0", "Ifx.dll")));
+var parse = new CSharpParseOptions(LanguageVersion.CSharp14);
+var compilation = CSharpCompilation.Create("PackageConsumer",
+    [CSharpSyntaxTree.ParseText("using Ifx.Generators.Attributes; [GenerateEnumeration(\"State\")] public enum StateSpecification { Ready, Busy }", parse)],
+    references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+GeneratorDriver driver = CSharpGeneratorDriver.Create(generators, parseOptions: parse);
+driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updated, out var diagnostics);
+Require(!diagnostics.Any(item => item.Severity == DiagnosticSeverity.Error), "Packaged generators run without load errors");
+Require(!updated.GetDiagnostics().Any(item => item.Severity == DiagnosticSeverity.Error),
+    "Generated consumer compiles: " + string.Join("; ", updated.GetDiagnostics().Where(item => item.Severity == DiagnosticSeverity.Error)));
+Require(driver.GetRunResult().Results.SelectMany(item => item.GeneratedSources).Any(item => item.SourceText.ToString().Contains("class State", StringComparison.Ordinal)),
+    "Packaged enumeration generator emits its consumer contract");
+
+using var workspace = new AdhocWorkspace();
+var project = workspace.AddProject("FixConsumer", LanguageNames.CSharp)
+    .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+    .WithMetadataReferences(references);
+var document = project.AddDocument("Consumer.cs", SourceText.From("// CA1825\npublic class Consumer { }"));
+var consumer = (await document.Project.GetCompilationAsync())!;
+var debt = (await consumer.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync()).Single(item => item.Id == "IFX1000");
+Require(debt.Severity == DiagnosticSeverity.Info, "Packaged analyzer reports the expected diagnostic");
+
+var fixes = loader.LoadFromPath(ToolPath("Ifx.Roslyn.CodeFixes"));
+var providers = fixes.GetTypes().Where(type => type.GetCustomAttributes<ExportCodeFixProviderAttribute>().Any())
+    .Select(type => (CodeFixProvider)Activator.CreateInstance(type)!).ToArray();
+Require(providers.Length > 0, "Packaged IDE code-fix exports are discoverable");
+var provider = providers.Single(item => item.GetType().Name == "DiagnosticDebtCodeFixProvider");
+var actions = new List<CodeAction>();
+await provider.RegisterCodeFixesAsync(new CodeFixContext(document, debt, (action, _) => actions.Add(action), default));
+Require(actions.Count > 0, "Packaged code fix offers an action");
+var operation = (await actions[0].GetOperationsAsync(default)).OfType<ApplyChangesOperation>().Single();
+var changed = operation.ChangedSolution.GetDocument(document.Id)!;
+Require((await changed.GetTextAsync()).ToString() != (await document.GetTextAsync()).ToString(), "Packaged code-fix action changes the document");
+Require(!(await changed.Project.GetCompilationAsync())!.GetDiagnostics().Any(item => item.Severity == DiagnosticSeverity.Error),
+    "Packaged code-fix action preserves compilation");
+Console.WriteLine("Compiler and standalone workspace smoke checks passed. Visual Studio UI acceptance is not asserted.");
+
+sealed class PackageLoader(string artifacts) : IAnalyzerAssemblyLoader
+{
+    public PackageContext Context { get; } = new(artifacts);
+    public void AddDependencyLocation(string fullPath) { }
+    public Assembly LoadFromPath(string fullPath) => Context.Assemblies.FirstOrDefault(item => item.GetName().Name == Path.GetFileNameWithoutExtension(fullPath))
+        ?? Context.LoadFromAssemblyPath(fullPath);
+}
+
+sealed class PackageContext(string artifacts) : AssemblyLoadContext(isCollectible: true)
+{
+    protected override Assembly? Load(AssemblyName name)
+    {
+        if (!name.Name!.StartsWith("Ifx.", StringComparison.Ordinal)) return null;
+        var path = Directory.EnumerateFiles(artifacts, name.Name + ".dll", SearchOption.AllDirectories).First();
+        return LoadFromAssemblyPath(path);
+    }
+}

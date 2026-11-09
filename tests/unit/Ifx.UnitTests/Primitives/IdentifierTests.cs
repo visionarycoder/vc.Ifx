@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Ifx.Abstractions;
+using Ifx;
 
 namespace Ifx.Tests.Primitives;
 
