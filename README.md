@@ -3,9 +3,29 @@
 [![Build & Test](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml/badge.svg)](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Modular .NET framework libraries for filtering, database queries, transport,
-storage, secrets, messaging, observability, Web APIs, and compiler tooling.
-Package boundaries follow Volatility-based Decomposition.
+vc.Ifx supplies reusable .NET infrastructure libraries, provider integrations,
+component proxy and interceptor pipelines, and Roslyn generators, analyzers, and
+code fixes. Its runtime capabilities include filtering and query composition,
+storage, secrets, messaging, transport, observability, and Web API support.
+
+The framework supports applications designed using The Method and Volatility-based
+Decomposition. This repository implements reusable mechanisms; the consuming
+application retains its business behavior, approved component boundaries, contracts,
+and detailed designs. Package names or passing compiler checks do not establish
+architectural conformance by themselves.
+
+## Responsibilities
+
+| Repository | Responsibility |
+| --- | --- |
+| vc.Ifx | Reusable production mechanisms, executable tests, benchmarks, reporting, and package delivery |
+| vc.Governance | Method rules, owner architecture constraints, roles, approval routes, lifecycle, and artifact contracts |
+| vc.Agentic | Reusable agent skills, task resources, templates, and illustrative scaffolds |
+| Consuming application | Its requirements, accepted designs, selected Ifx capabilities, business implementation, and adoption evidence |
+
+Inspect existing framework APIs and packages before creating new infrastructure.
+Select capabilities against the accepted application design and verify their
+behavior in that application's contract, composition, and integration tests.
 
 ## Quickstart
 
@@ -34,16 +54,16 @@ Eight production libraries group core runtime behavior, general integrations,
 Azure, Windows, and the four Roslyn responsibilities. See
 [current ownership and migration](docs/architecture/root-library-consolidation.md).
 
-| Library |
-| --- |
-| [Ifx](src/ifx/README.md) |
-| [Ifx.Integrations](src/Ifx.Integrations/README.md) |
-| [Ifx.Integrations.Azure](src/Ifx.Integrations.Azure/README.md) |
-| [Ifx.Integrations.Windows](src/Ifx.Integrations.Windows/README.md) |
-| [Ifx.Roslyn](src/Ifx.Roslyn/README.md) |
-| [Ifx.Roslyn.Analyzers](src/Ifx.Roslyn.Analyzers/README.md) |
-| [Ifx.Roslyn.CodeFixes](src/Ifx.Roslyn.CodeFixes/README.md) |
-| [Ifx.Roslyn.Generators](src/Ifx.Roslyn.Generators/README.md) |
+| Library | Responsibility |
+| --- | --- |
+| [Ifx](src/ifx/README.md) | Core runtime contracts, filtering, queries, pipelines, proxies, local storage and secrets, and in-memory messaging |
+| [Ifx.Integrations](src/Ifx.Integrations/README.md) | General providers and adapters, including EF Core, FTP, RabbitMQ, gRPC, hosting, and Web API support |
+| [Ifx.Integrations.Azure](src/Ifx.Integrations.Azure/README.md) | Azure configuration, identity, messaging, storage, and secrets integrations |
+| [Ifx.Integrations.Windows](src/Ifx.Integrations.Windows/README.md) | Windows-specific messaging integration |
+| [Ifx.Roslyn](src/Ifx.Roslyn/README.md) | Shared compiler-tooling contracts and models |
+| [Ifx.Roslyn.Analyzers](src/Ifx.Roslyn.Analyzers/README.md) | Compiler diagnostics within the documented rule scope |
+| [Ifx.Roslyn.CodeFixes](src/Ifx.Roslyn.CodeFixes/README.md) | IDE remediation for the documented supported diagnostics |
+| [Ifx.Roslyn.Generators](src/Ifx.Roslyn.Generators/README.md) | Compile-time generation from explicit framework annotations |
 
 ## Local Package Feed
 
@@ -75,14 +95,17 @@ referenced by historical release checks is absent from the current checkout.
 
 ## Verification And Publishing
 
-The [2026-09-10 local checkpoint](docs/planning/local-verification-20260910.md)
-records a warning-free Release build, 3,632 passing tests, exact 100% coverage for
-all 28 libraries, and 28 validated package/symbol pairs. These are dated results,
-not a fresh verification of subsequent edits. The
-[hosted follow-up](docs/planning/external-acceptance-20260910.md) passed Linux quality
-and transferred-package verification for draft PR #9. Authorized review/merge,
-publishing permissions, repository-required checks, and hands-on IDE acceptance
-remain open; nothing was published by that verification run.
+The [framework plan](docs/planning/framework-upgrade-parallel-plan.md) records the
+2026-11-08 local verification of the current eight-library structure: 4,050 passing
+solution tests, eight validated 0.1.0 package/symbol pairs, and an external consumer
+that restored and exercised the local Ifx package. Those are recorded results for
+that checkpoint, not a fresh verification of every subsequent revision or a claim
+that packages were published remotely.
+
+The [2026-09-10 checkpoint](docs/planning/local-verification-20260910.md) and
+[hosted follow-up](docs/planning/external-acceptance-20260910.md) describe the earlier
+28-library structure. Their test and coverage totals are historical. They do not
+certify the current package layout or current approval and release status.
 
 The configured workflow validates pull requests, merge queues, manual runs, pushes
 to main, and version tags. Successful main pushes publish to GitHub Packages;
@@ -109,4 +132,4 @@ Original repository material uses the [MIT License](LICENSE). Third-party
 material retains its existing licenses and notices; the repository license does
 not replace those terms.
 
-Last synchronized with repository configuration: 2026-11-08.
+Last synchronized with repository contents and responsibilities: 2026-11-09.
