@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/evidence-quality-report.schema.json",
+  "title": "VBD Evidence Quality Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "evidenceManifestHash",
+    "createdAtUtc",
+    "integrity",
+    "completeness",
+    "confidenceDistribution",
+    "contradictions",
+    "brokenTraceability",
+    "blockingGaps",
+    "nonBlockingGaps",
+    "readiness"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^EQR-[0-9]+$" },
+    "evidenceManifestHash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersionValid", "hashesValid", "duplicateIds", "staleSources"],
+      "properties": {
+        "schemaVersionValid": { "type": "boolean" },
+        "hashesValid": { "type": "boolean" },
+        "duplicateIds": { "$ref": "#/$defs/stringArray" },
+        "staleSources": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "confidenceDistribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["high", "medium", "low"],
+      "properties": {
+        "high": { "type": "integer", "minimum": 0 },
+        "medium": { "type": "integer", "minimum": 0 },
+        "low": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "locations", "owner"],
+        "properties": {
+          "description": { "type": "string", "minLength": 1 },
+          "locations": { "$ref": "#/$defs/stringArray" },
+          "owner": { "type": "string" }
+        }
+      }
+    },
+    "brokenTraceability": { "$ref": "#/$defs/stringArray" },
+    "blockingGaps": { "$ref": "#/$defs/stringArray" },
+    "nonBlockingGaps": { "$ref": "#/$defs/stringArray" },
+    "readiness": { "enum": ["ready", "ready-with-risks", "not-ready"] }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  }
+}

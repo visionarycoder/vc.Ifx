@@ -21,7 +21,7 @@ namespace Ifx.Querying;
 /// standard LINQ operators that any provider (EF Core, an in-memory list, a future provider) can
 /// translate. Provider-specific execution (no-tracking, sequential count,
 /// typed <c>Include</c>/<c>ThenInclude</c>, compiled queries, etc.) is supplied by a separate
-/// extension package such as <c>Ifx.FilterSpec.EntityFrameworkCore</c>, which reads
+/// extension package such as the <c>Ifx.Integrations</c> package's <c>Ifx.Querying.EntityFrameworkCore</c> extensions, which read
 /// <see cref="Includes"/> and applies them using the target provider's own APIs.
 /// </para>
 /// </remarks>

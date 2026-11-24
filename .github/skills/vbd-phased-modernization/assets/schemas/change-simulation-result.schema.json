@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/change-simulation-result.schema.json",
+  "title": "VBD Change Simulation Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "candidateId",
+    "scenario",
+    "impact",
+    "containment",
+    "estimateDelta",
+    "risk",
+    "recommendedAdjustments",
+    "confidence"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^CSIM-[A-Za-z0-9-]+-[0-9]+$" },
+    "candidateId": { "type": "string", "pattern": "^CAND-[0-9]+$" },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "category", "sourceType", "description"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "category": {
+          "enum": [
+            "policy",
+            "use-case",
+            "dependency",
+            "security",
+            "failure",
+            "scale",
+            "deployment",
+            "contract"
+          ]
+        },
+        "sourceType": { "enum": ["observed", "planned", "hypothetical"] },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "useCases",
+        "components",
+        "contractsChanged",
+        "callersChanged",
+        "dataMigrationRequired",
+        "failureDomainsCrossed"
+      ],
+      "properties": {
+        "useCases": { "$ref": "#/$defs/stringArray" },
+        "components": { "$ref": "#/$defs/stringArray" },
+        "contractsChanged": { "$ref": "#/$defs/stringArray" },
+        "callersChanged": { "$ref": "#/$defs/stringArray" },
+        "dataMigrationRequired": { "type": "boolean" },
+        "failureDomainsCrossed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "containment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "useCasesAffected",
+        "componentsChanged",
+        "callersChanged",
+        "independentlyDeployable",
+        "stateMigrations"
+      ],
+      "properties": {
+        "useCasesAffected": { "type": "integer", "minimum": 0 },
+        "componentsChanged": { "type": "integer", "minimum": 0 },
+        "callersChanged": { "type": "integer", "minimum": 0 },
+        "independentlyDeployable": { "type": "boolean" },
+        "stateMigrations": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "estimateDelta": { "$ref": "#/$defs/range" },
+    "risk": { "enum": ["high", "medium", "low"] },
+    "mitigation": { "type": "string" },
+    "recommendedAdjustments": { "$ref": "#/$defs/stringArray" },
+    "confidence": { "enum": ["high", "medium", "low"] }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optimistic", "expected", "pessimistic"],
+      "properties": {
+        "optimistic": { "type": "number", "minimum": 0 },
+        "expected": { "type": "number", "minimum": 0 },
+        "pessimistic": { "type": "number", "minimum": 0 }
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  }
+}

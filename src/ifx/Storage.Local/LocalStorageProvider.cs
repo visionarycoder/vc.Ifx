@@ -7,7 +7,8 @@ namespace Ifx.Storage.Local;
 /// <summary>Provides native file operations and rooted object storage.</summary>
 /// <remarks>
 /// The legacy file API retains native paths. Object operations use a captured root and
-/// portable relative keys. Lexical validation does not prevent symbolic-link or junction escapes.
+/// portable relative keys. Existing reparse points in object paths are rejected. The root
+/// directory must remain under trusted control because path checks cannot prevent concurrent replacement.
 /// </remarks>
 public class LocalStorageProvider : IStorageProvider, IObjectStorageProvider
 {
@@ -109,6 +110,7 @@ public class LocalStorageProvider : IStorageProvider, IObjectStorageProvider
         IEnumerable<string> paths;
         try
         {
+            RejectReparsePoints(rootPath);
             if ((File.GetAttributes(rootPath) & FileAttributes.Directory) == 0)
             {
                 throw new IOException("The object storage root is not a directory.");
@@ -330,7 +332,48 @@ public class LocalStorageProvider : IStorageProvider, IObjectStorageProvider
             throw new IOException("The object storage root is not a directory.");
         }
 
-        return Path.Combine(rootPath, path.Replace('/', Path.DirectorySeparatorChar));
+        string fullPath = Path.GetFullPath(Path.Combine(rootPath, path.Replace('/', Path.DirectorySeparatorChar)));
+        RejectReparsePoints(fullPath);
+        return fullPath;
+    }
+
+    private void RejectReparsePoints(string fullPath)
+    {
+        string relativePath = Path.GetRelativePath(rootPath, fullPath);
+        if (Path.IsPathRooted(relativePath) || relativePath == ".." ||
+            relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Object paths must remain within the configured root.", nameof(fullPath));
+        }
+
+        string currentPath = rootPath;
+        CheckReparsePoint(currentPath);
+        if (relativePath == ".") return;
+
+        foreach (string segment in relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+        {
+            currentPath = Path.Combine(currentPath, segment);
+            CheckReparsePoint(currentPath);
+        }
+    }
+
+    private static void CheckReparsePoint(string path)
+    {
+        try
+        {
+            if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+            {
+                throw new UnauthorizedAccessException("Object storage paths cannot traverse symbolic links or other reparse points.");
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            // A nonexistent final object or root will be created or reported by the operation.
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Missing parent directories have no link to traverse.
+        }
     }
 
     private static StorageObjectMetadata ReadMetadata(string path, string objectPath)

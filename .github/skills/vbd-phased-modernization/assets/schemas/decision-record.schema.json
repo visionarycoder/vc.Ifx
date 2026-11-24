@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/decision-record.schema.json",
+  "title": "VBD Decision Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "createdAtUtc",
+    "evidenceManifestHash",
+    "selectedCandidateId",
+    "approvedModifications",
+    "rationale",
+    "rejectedAlternatives",
+    "consequences",
+    "unresolvedItems"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^DEC-[0-9]+$" },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "evidenceManifestHash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "candidatesConsidered": { "$ref": "#/$defs/candidateIdArray" },
+    "selectedCandidateId": { "type": "string", "pattern": "^CAND-[0-9]+$" },
+    "hybridOf": { "$ref": "#/$defs/candidateIdArray" },
+    "approvedModifications": { "$ref": "#/$defs/stringArray" },
+    "rationale": { "type": "string", "minLength": 1 },
+    "rejectedAlternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidateId", "reason"],
+        "properties": {
+          "candidateId": { "type": "string", "pattern": "^CAND-[0-9]+$" },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "consequences": { "$ref": "#/$defs/stringArray" },
+    "unresolvedItems": { "$ref": "#/$defs/stringArray" },
+    "status": { "enum": ["proposed", "approved", "superseded"] }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "candidateIdArray": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^CAND-[0-9]+$" },
+      "uniqueItems": true
+    }
+  }
+}
