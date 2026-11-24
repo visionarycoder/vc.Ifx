@@ -86,7 +86,7 @@
     <WriteLinesToFile File="$(IfxIdentityDirectory)/absent.txt" Lines="@(IfxIdentityAbsent->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
   </Target>
 
-  <Target Name="GetIfxBuildSettings" Returns="@(IfxBuildSetting)">
+  <Target Name="GetIfxBuildSettings" DependsOnTargets="PrepareForBuild" Returns="@(IfxBuildSetting)">
     <ItemGroup>
       <IfxBuildSetting Include="ProjectPath"><Value>$(MSBuildProjectFullPath)</Value></IfxBuildSetting>
       <IfxBuildSetting Include="TargetPath"><Value>$(TargetPath)</Value></IfxBuildSetting>
