@@ -88,8 +88,6 @@ internal sealed class FakeServiceBusProcessor : IAzureServiceBusProcessor
 
     public int StartCalls { get; private set; }
 
-    public Exception? StartException { get; set; }
-
     public int StopCalls { get; private set; }
 
     public int DisposeCalls { get; private set; }
@@ -97,10 +95,7 @@ internal sealed class FakeServiceBusProcessor : IAzureServiceBusProcessor
     public Task StartProcessingAsync(CancellationToken cancellationToken)
     {
         StartCalls++;
-
-        return StartException is null
-            ? Task.CompletedTask
-            : Task.FromException(StartException);
+        return Task.CompletedTask;
     }
 
     public Task StopProcessingAsync(CancellationToken cancellationToken)
