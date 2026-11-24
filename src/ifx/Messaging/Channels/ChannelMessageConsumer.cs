@@ -10,38 +10,39 @@ public sealed class ChannelMessageConsumer<TMessage>(
     where TMessage : IMessage
 {
     private readonly CancellationTokenSource cancellation = new();
+    private readonly object stateLock = new();
     private Task? consuming;
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
-        if (consuming is not null)
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (stateLock)
         {
-            return Task.CompletedTask;
+            consuming ??= Task.Run(() => ConsumeAsync(cancellation.Token), cancellation.Token);
         }
 
-        using CancellationTokenSource linked = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellation.Token,
-            cancellationToken);
-
-        consuming = Task.Run(() => ConsumeAsync(cancellation.Token), linked.Token);
         return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        if (consuming is null)
+        Task? consumingTask;
+        lock (stateLock)
         {
-            return;
+            consumingTask = consuming;
         }
+
+        if (consumingTask is null) return;
 
         await cancellation.CancelAsync();
 
         try
         {
-            await consuming.WaitAsync(cancellationToken);
+            await consumingTask.WaitAsync(cancellationToken);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (consumingTask.IsCanceled)
         {
+            // The consumer stopped because this instance requested cancellation.
         }
     }
 
