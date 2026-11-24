@@ -8,7 +8,7 @@ last_updated: 2026-11-08
 # FilterSpec and QuerySpec
 
 Ifx.Filtering owns predicates and the portable FilterNode contract.
-Ifx.Querying owns local query composition. Ifx.Integrations supplies the
+Ifx.Querying owns local query composition. Ifx includes the
 Ifx.Querying.EntityFrameworkCore execution extensions. All packages start at
 SemVer 0.1.0; the unpublished vc.Ifx.FilterSpec APIs and compatibility adapters
 have been removed.
