@@ -10,7 +10,7 @@ Run from the repository root in PowerShell 7 with SDK 10.0.401:
 
 The projects follow their production counterparts. Ifx.Benchmarks references only
 Ifx and contains Core, Filtering, Pipeline, and Storage cases.
-Ifx.Integrations.Benchmarks references Ifx.Integrations and contains proxy
+Ifx.Integrations.Benchmarks references the unified Ifx project and contains proxy
 caching/interceptor cases. Every existing benchmark is retained. No empty
 benchmark projects are created for unmeasured platform or compiler capabilities.
 
