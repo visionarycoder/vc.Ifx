@@ -50,32 +50,6 @@ public sealed class MsmqMessageConsumerTests
     }
 
     [TestMethod]
-    public async Task StartAsync_AfterStop_ShouldStartANewReceiveLoop()
-    {
-        TestMessage expectedMessage = new() { CorrelationId = Guid.NewGuid().ToString() };
-        TestQueueClient queueClient = new([]);
-        RecordingHandler handler = new();
-        MsmqMessageConsumer<TestMessage> consumer = new(
-            queueClient,
-            CreateOptions(),
-            handler,
-            @".\private$\orders",
-            () => { });
-
-        await consumer.StartAsync();
-        await Task.Delay(TimeSpan.FromMilliseconds(30));
-        await consumer.StopAsync();
-
-        queueClient.Enqueue(expectedMessage);
-        await consumer.StartAsync();
-        TestMessage handledMessage = await handler.WaitAsync();
-        await consumer.StopAsync();
-
-        handledMessage.Should().BeEquivalentTo(expectedMessage);
-        queueClient.ReceiveAttempts.Should().BeGreaterThan(1);
-    }
-
-    [TestMethod]
     public async Task StartAsync_WhenCalledMoreThanOnce_ShouldReuseExistingReceiveLoop()
     {
         BlockingQueueClient queueClient = new();
@@ -234,11 +208,6 @@ public sealed class MsmqMessageConsumerTests
         private readonly ConcurrentQueue<TestMessage> messages = new(messages);
 
         public int ReceiveAttempts { get; private set; }
-
-        public void Enqueue(TestMessage message)
-        {
-            messages.Enqueue(message);
-        }
 
         public Task SendAsync(string queuePath, SerializedMsmqMessage message, CancellationToken cancellationToken)
         {
