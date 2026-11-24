@@ -50,28 +50,28 @@ public sealed class FilterSpecBoundaryTests
     }
 
     [TestMethod]
-    public void CoreAssembly_References_ExcludeOptionalProvidersAndCompilerTools()
+    public void IfxAssembly_References_IncludeConsolidatedProvidersAndExcludeCompilerTools()
     {
         string[] references = typeof(FilterNode).Assembly.GetReferencedAssemblies().Select(item => item.Name!).ToArray();
 
-        references.Should().NotContain(name => name.StartsWith("Azure.", StringComparison.Ordinal)
-            || name.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal)
-            || name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
+        references.Should().Contain("Azure.Messaging.ServiceBus");
+        references.Should().Contain("Microsoft.EntityFrameworkCore");
+        references.Should().NotContain(name => name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
             || (name.StartsWith("Ifx.", StringComparison.Ordinal) && name != "Ifx"));
     }
+
 
     private sealed record Row(int Id, string Name);
 
     [TestMethod]
-    public void IntegrationAssembly_References_ExcludeAzureAndWindowsDependencies()
+    public void IfxCrossPlatformTarget_References_ExcludeSeparateProviderAssembliesAndWindowsMessaging()
     {
         string[] references = typeof(Ifx.Filtering.EntityFrameworkCore.EfFilterExecutionStrategy).Assembly
             .GetReferencedAssemblies().Select(item => item.Name!).ToArray();
 
-        references.Should().NotContain(name => name.StartsWith("Azure.", StringComparison.Ordinal)
-            || name.Contains("AzureAppConfiguration", StringComparison.Ordinal)
-            || name == "Experimental.System.Messaging"
+        references.Should().NotContain(name => name == "Ifx.Integrations"
             || name == "Ifx.Integrations.Azure"
-            || name == "Ifx.Integrations.Windows");
+            || name == "Ifx.Integrations.Windows"
+            || name == "Experimental.System.Messaging");
     }
 }
