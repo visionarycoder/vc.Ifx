@@ -52,8 +52,8 @@ try {
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
-    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.slnx'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
-    $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release
+    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.slnx'))) -Configuration Debug -ReportBuildDirectory $build -WarningsAsErrors
+    $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Debug
     $projects = @($result.manifest.projects)
     $fixtureProjects = @($projects | Where-Object projectPath -CEQ (Join-Path $fixture 'Fixture.csproj'))
     $frameworks = @($fixtureProjects | ForEach-Object { $_.settings.TargetFramework } | Sort-Object -Unique)
@@ -105,7 +105,7 @@ try {
         $env:DefineConstants = 'PROVENANCE_CHANGED'
         Assert-Rejected 'changed evaluated constants' { Assert-IfxBuildProvenance -BuildDirectory $build } 'Changed build setting DefineConstants'
     } finally { $env:DefineConstants = $oldDefines }
-    Assert-Rejected 'wrong configuration' { Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Debug } 'configuration mismatch'
+    Assert-Rejected 'wrong configuration' { Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release } 'configuration mismatch'
     Assert-Rejected 'wrong selection' { Assert-IfxBuildProvenance -BuildDirectory $build -Selection @{ Fingerprint = 'wrong' } } 'selection mismatch'
     Assert-Rejected 'uncaptured test project' { Assert-IfxBuildProvenance -BuildDirectory $build -RequiredProject (Join-Path $fixture 'Missing.csproj') } 'not compiled'
     Assert-Rejected 'missing build identity' { Assert-IfxBuildProvenance -BuildDirectory $fixture } 'Missing build identity'
