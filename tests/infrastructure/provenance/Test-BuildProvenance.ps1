@@ -39,13 +39,16 @@ try {
     New-Item -ItemType Directory -Path $fixture | Out-Null
     '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally><EnableWindowsTargeting>true</EnableWindowsTargeting></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
     "<Project><Import Project=`"$root/Directory.Build.targets`" /></Project>" | Set-Content (Join-Path $fixture 'Directory.Build.targets')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Consumer.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="consumer-net/**/*.cs;consumer-windows/**/*.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs;Consumer.Windows.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.csproj')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs;Consumer.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.Windows.csproj')
-    '<Solution><Project Path="Consumer.csproj" /><Project Path="Consumer.Windows.csproj" /></Solution>' | Set-Content (Join-Path $fixture 'Fixture.slnx')
-    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.cs')
-    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.Windows.cs')
+    $consumer = Join-Path $fixture 'consumer-net'
+    $consumerWindows = Join-Path $fixture 'consumer-windows'
+    New-Item -ItemType Directory -Path $consumer, $consumerWindows | Out-Null
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $consumer 'Consumer.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.csproj')
+    '<Solution><Project Path="consumer-net/Consumer.csproj" /><Project Path="consumer-windows/Consumer.Windows.csproj" /></Solution>' | Set-Content (Join-Path $fixture 'Fixture.slnx')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumer 'Consumer.cs')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
