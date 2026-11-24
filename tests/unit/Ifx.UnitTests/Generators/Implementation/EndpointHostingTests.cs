@@ -51,6 +51,7 @@ public sealed class EndpointHostingTests
             public sealed record Payload(string Value);
             """, new MinimalEndpointGenerator());
         var assembly = result.Emit();
+        using var cancellation = new CancellationTokenSource();
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
@@ -165,11 +166,15 @@ public sealed class EndpointHostingTests
             return "unreachable";
         });
         await using var app = builder.Build();
+        app.Use((context, next) =>
+        {
+            context.RequestAborted = cancellation.Token;
+            return next(context);
+        });
         assembly.GetType("Ifx.Generated.IfxEndpointRouteBuilderExtensions")!.GetMethod("MapGeneratedIfxEndpoints")!.Invoke(null,
             [app]);
         await app.StartAsync();
         using var client = app.GetTestClient();
-        using var cancellation = new CancellationTokenSource();
         var request = client.GetAsync("/wait", cancellation.Token);
         await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
         cancellation.Cancel();
