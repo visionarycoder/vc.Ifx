@@ -8,7 +8,7 @@ $revision = (& git -C $root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $revision -cnotmatch '\A[0-9a-f]{40}\z') { throw 'Cannot determine source revision.' }
 $destination = Join-Path $PackageDirectory 'release'
 if (Test-Path -LiteralPath $destination) { throw 'Release staging must be fresh.' }
-$expected = @('Ifx', 'Ifx.Integrations', 'Ifx.Integrations.Azure', 'Ifx.Integrations.Windows', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes')
+$expected = @('Ifx', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes')
 $packages = @(foreach ($id in $expected) {
     $files = @(Get-ChildItem -LiteralPath $PackageDirectory -Filter '*.nupkg' -File | Where-Object Name -Match ('^' + [regex]::Escape($id) + '\.\d+\.\d+\.\d+.*\.nupkg$'))
     if ($files.Count -ne 1) { throw "Expected one archive for $id." }
