@@ -2,12 +2,80 @@
 title: vc.Ifx Parallel Upgrade Plan
 doc_type: plan
 status: active
-last_updated: 2026-11-08
+last_updated: 2026-11-11
 ---
 
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
+
+### Consumer design baseline checks, 2026-11-09
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Codex; Updated: 2026-11-09; Notes: Owner assigned closure of the
+three-repository bootstrap, reuse and design-conformance gaps. Scope is a portable
+consumer design-lock checker, mutation tests and adoption instructions. Existing
+compiler tooling and packages remain the reusable foundation. Platform identity,
+isolation and integration provisioning require a separate platform decision.
+On 2026-11-09 the owner selected portable checks first and left platform selection
+open. Continue effective-build inspection, semantic component-call checks and a
+fictional consumer verification fixture within this workstream. No application
+baseline or platform permission configuration is assigned.
+
+Portable delivery now includes evaluated MSBuild profiles, package and assembly
+byte checks, generated-source inspection and semantic component references through
+the existing Reporting host. The fictional two-component consumer uses the actual
+local Ifx package. The existing interceptor generator is exercised against allowed
+and forbidden contract policies. No application design or approval is fabricated.
+Platform identity, isolation and deployment remain outside this selected portable
+scope. Runtime proxy composition must still be verified in each consuming project.
+
+Portable implementation verification completed: 16 Python checks passed, including
+five opt-in evaluated-consumer cases. The serialized Release run passed 576 reporting,
+proxy and design-conformance tests with warnings as errors, no failures/skips
+(`test-results/tests/Ifx.UnitTests/af2b6253d9074b5a8d5ef8b1ffba5ebb/tests.trx`).
+Frontmatter validation passed for 681 files; hierarchy validation passed for 19
+projects. This status records local portable implementation delivery, not project
+phase acceptance, protected-platform enforcement or full closure of operational gaps.
+
+### 0.2.0 release preparation, 2026-11-11
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Copilot; Updated: 2026-11-11; Notes: Added the missing metadata header
+and prepared draft release notes and local evidence. This status covers preparation
+only; it does not authorize or assert release acceptance or publication.
+
+Draft 0.2.0 release notes:
+- Added Redis-backed proxy caching with an in-process L1, Redis L2, and Pub/Sub
+  invalidation. Disconnected subscribers can retain stale L1 entries until expiry.
+- Added S3 object storage and Kafka messaging providers.
+- Added Redis, S3, and Kafka readiness checks and OpenTelemetry OTLP setup.
+- Updated package versions to 0.2.0.
+
+Local evidence: frontmatter validation passed for 183 files. The preceding
+offering expansion records the 4,083 passing tests and eight validated package
+and symbol pairs. These checks ran on a working tree, not an approved release
+commit. Coverage collection did not run, and live Redis integration was not
+tested. Review and merge the intended changes, verify applicable release gates
+for the approved commit, obtain approval, and run hosted checks before tagging
+or publication. No tag, push, publication, or hosted acceptance is claimed.
+
+### Offering expansion, 2026-11-11
+
+Status: [ ] Ready [ ] In-flight [ ] Blocked [x] Complete
+Owner: Codex; Updated: 2026-11-11; Notes: Added an in-process L1 cache and Redis
+Pub/Sub invalidation for key writes, removals and generation clears. The L2
+generation uses Redis atomic increments to prevent stale clear messages from
+regressing local cache state. The Redis connection is shared with IDistributedCache.
+No remote publication is claimed.
+
+Verification: the serialized Release solution run passed 4,083 tests across eight
+test projects with warnings as errors, zero failures and zero skips. Project
+hierarchy validation passed for all 19 solution projects. Package/compiler smoke
+passed eight package/symbol pairs, 22 package-validator checks, compiler and IDE
+host checks, and eight release-inventory mutation rejections. All eight archives
+were produced at version 0.2.0. The coverage runner stopped before collection
+because it requires exactly two test projects; this repository currently has more.
 
 ### Unpublished API cleanup and initial version, 2026-11-08
 

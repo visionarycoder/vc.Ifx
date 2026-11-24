@@ -12,7 +12,7 @@ public static class IfxConstants
     /// <summary>
     /// The version of the Ifx.
     /// </summary>
-    public const string Version = "0.1.0";
+    public const string Version = "0.2.0";
 
     /// <summary>
     /// The configuration section name for framework settings.
