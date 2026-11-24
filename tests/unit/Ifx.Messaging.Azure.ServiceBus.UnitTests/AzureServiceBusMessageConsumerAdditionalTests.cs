@@ -58,7 +58,7 @@ public sealed class AzureServiceBusMessageConsumerAdditionalTests
     #region Processing Tests
 
     [TestMethod]
-    public async Task StartAsync_WhenHandlerThrowsNotSupportedException_ShouldDeadLetterMessage()
+    public async Task StartAsync_WhenHandlerThrowsNotSupportedException_ShouldAbandonMessage()
     {
         FakeServiceBusProcessor processor = new();
         AzureServiceBusMessageConsumer<TestMessage> consumer = new(
@@ -69,11 +69,13 @@ public sealed class AzureServiceBusMessageConsumerAdditionalTests
         await consumer.StartAsync();
         await processor.RaiseMessageAsync(TestData.CreateContext(new TestMessage()));
 
-        processor.Contexts.Should().ContainSingle().Which.LastDeadLetterReason.Should().Be("UnsupportedMessagePayload");
+        FakeReceivedMessageContext context = processor.Contexts.Should().ContainSingle().Subject;
+        context.AbandonCalls.Should().Be(1);
+        context.DeadLetterCalls.Should().Be(0);
     }
 
     [TestMethod]
-    public async Task StartAsync_WhenHandlerThrowsArgumentException_ShouldDeadLetterMessage()
+    public async Task StartAsync_WhenHandlerThrowsArgumentException_ShouldAbandonMessage()
     {
         FakeServiceBusProcessor processor = new();
         AzureServiceBusMessageConsumer<TestMessage> consumer = new(
@@ -85,8 +87,8 @@ public sealed class AzureServiceBusMessageConsumerAdditionalTests
         await processor.RaiseMessageAsync(TestData.CreateContext(new TestMessage()));
 
         FakeReceivedMessageContext context = processor.Contexts.Should().ContainSingle().Subject;
-        context.DeadLetterCalls.Should().Be(1);
-        context.LastDeadLetterReason.Should().Be("InvalidMessagePayload");
+        context.AbandonCalls.Should().Be(1);
+        context.DeadLetterCalls.Should().Be(0);
     }
 
     [TestMethod]
