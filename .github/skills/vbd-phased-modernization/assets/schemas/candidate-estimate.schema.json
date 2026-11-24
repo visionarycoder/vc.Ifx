@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/candidate-estimate.schema.json",
+  "title": "VBD Candidate Estimate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "candidateId",
+    "title",
+    "personHours",
+    "calendarDays",
+    "implementationTokens",
+    "reviewHours",
+    "dependencies",
+    "assumptions",
+    "risks",
+    "confidence"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^EST-[A-Za-z0-9-]+-[0-9]+$" },
+    "candidateId": { "type": "string", "pattern": "^CAND-[0-9]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "personHours": { "$ref": "#/$defs/range" },
+    "calendarDays": { "$ref": "#/$defs/range" },
+    "implementationTokens": { "$ref": "#/$defs/range" },
+    "reviewHours": { "$ref": "#/$defs/range" },
+    "dependencies": { "$ref": "#/$defs/stringArray" },
+    "assumptions": { "$ref": "#/$defs/stringArray" },
+    "exclusions": { "$ref": "#/$defs/stringArray" },
+    "risks": { "$ref": "#/$defs/stringArray" },
+    "confidence": { "enum": ["high", "medium", "low"] }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optimistic", "expected", "pessimistic"],
+      "properties": {
+        "optimistic": { "type": "number", "minimum": 0 },
+        "expected": { "type": "number", "minimum": 0 },
+        "pessimistic": { "type": "number", "minimum": 0 }
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  }
+}
