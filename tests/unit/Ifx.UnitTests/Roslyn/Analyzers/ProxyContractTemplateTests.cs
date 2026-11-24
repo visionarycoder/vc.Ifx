@@ -30,9 +30,7 @@ public sealed class ProxyContractTemplateTests
     [TestMethod]
     public void Templates_StartingPoint_CompilesAgainstShippedRuntime()
     {
-        DirectoryInfo directory = new(Path.GetDirectoryName(SourcePath())!);
-        while (!File.Exists(Path.Combine(directory.FullName, "vc.Ifx.slnx"))) directory = directory.Parent!;
-        string folder = Path.Combine(directory.FullName, "templates/component");
+        string folder = Path.Combine(FindSolutionDirectory(), "templates/component");
         SyntaxTree[] trees = Directory.GetFiles(folder, "*.cs.txt")
             .Select(path => CSharpSyntaxTree.ParseText("global using System; global using System.Threading; global using System.Threading.Tasks;\n" + File.ReadAllText(path))).ToArray();
         var compilation = CSharpCompilation.Create("Template", trees,
@@ -49,5 +47,16 @@ public sealed class ProxyContractTemplateTests
         new AvoidManualJwtValidationAnalyzer().SupportedDiagnostics.Single().IsEnabledByDefault.Should().BeFalse();
     }
 
-    private static string SourcePath([CallerFilePath] string path = "") => path;
+    private static string FindSolutionDirectory()
+    {
+        foreach (string startPath in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
+        {
+            for (DirectoryInfo? directory = new(startPath); directory is not null; directory = directory.Parent)
+            {
+                if (File.Exists(Path.Combine(directory.FullName, "vc.Ifx.slnx"))) return directory.FullName;
+            }
+        }
+
+        throw new DirectoryNotFoundException("Could not locate vc.Ifx.slnx from the test working or application directory.");
+    }
 }
