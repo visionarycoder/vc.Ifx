@@ -16,8 +16,8 @@
     <Product>vc.Ifx</Product>
     <!-- Package Metadata -->
     <Title>vc.Ifx Framework Library</Title>
-    <Description>Core framework library providing foundational features and utilities for enterprise .NET applications.</Description>
-    <PackageTags>framework;core;library;microsoft;patterns;ifx</PackageTags>
+    <Description>Core framework and provider integrations for enterprise .NET applications.</Description>
+    <PackageTags>framework;core;integrations;azure;windows;library;patterns;ifx</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>See CHANGELOG.md or GitHub releases for detailed release notes.</PackageReleaseNotes>
