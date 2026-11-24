@@ -37,18 +37,23 @@ try {
     $acquired = $mutex.WaitOne([TimeSpan]::FromMinutes(20))
     if (-not $acquired) { throw 'Timed out waiting for framework mutex.' }
     New-Item -ItemType Directory -Path $fixture | Out-Null
-    '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
+    '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally><EnableWindowsTargeting>true</EnableWindowsTargeting></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
     "<Project><Import Project=`"$root/Directory.Build.targets`" /></Project>" | Set-Content (Join-Path $fixture 'Directory.Build.targets')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Consumer.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.csproj')
+    'Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
-    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.csproj'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
+    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Consumer.csproj'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
     $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release
-    if (@($result.manifest.projects).Count -ne 1 -or @($result.manifest.projects[0].projectReferences).Count -ne 0) { throw 'Fixture must have zero project references.' }
-    $checks.Add('fresh real build with zero project references')
-    $project = $result.manifest.projects[0]
+    $projects = @($result.manifest.projects)
+    $fixtureProjects = @($projects | Where-Object projectPath -CEQ (Join-Path $fixture 'Fixture.csproj'))
+    $frameworks = @($fixtureProjects | ForEach-Object { $_.settings.TargetFramework } | Sort-Object -Unique)
+    if ($projects.Count -ne 4 -or $fixtureProjects.Count -ne 2 -or $frameworks -cnotcontains 'net10.0' -or $frameworks -cnotcontains 'net10.0-windows') { throw 'Multi-target producer and consumer identities were not captured separately.' }
+    $checks.Add('multi-target producer and consumer builds captured per-framework')
+    $project = $fixtureProjects | Where-Object { $_.settings.TargetFramework -ceq 'net10.0' } | Select-Object -First 1
     $hiddenOutput = Join-Path $project.settings.TargetDir '.provenance-mapping'
     if ($hiddenOutput -cnotin @($project.outputs.path)) { throw 'Hidden output was not captured.' }
     if ($IsWindows) { [IO.File]::SetAttributes($hiddenOutput, [IO.FileAttributes]::Hidden) }
