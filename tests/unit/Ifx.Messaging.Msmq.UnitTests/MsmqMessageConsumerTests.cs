@@ -59,7 +59,7 @@ public sealed class MsmqMessageConsumerTests
             queueClient,
             CreateOptions(),
             handler,
-            @".\\private$\\orders",
+            @".\private$\orders",
             () => { });
 
         await consumer.StartAsync();
@@ -205,11 +205,6 @@ public sealed class MsmqMessageConsumerTests
 
         public int ReceiveAttempts { get; private set; }
 
-        public void Enqueue(TestMessage message)
-        {
-            messages.Enqueue(message);
-        }
-
         public Task SendAsync(string queuePath, SerializedMsmqMessage message, CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
@@ -239,6 +234,11 @@ public sealed class MsmqMessageConsumerTests
         private readonly ConcurrentQueue<TestMessage> messages = new(messages);
 
         public int ReceiveAttempts { get; private set; }
+
+        public void Enqueue(TestMessage message)
+        {
+            messages.Enqueue(message);
+        }
 
         public Task SendAsync(string queuePath, SerializedMsmqMessage message, CancellationToken cancellationToken)
         {
