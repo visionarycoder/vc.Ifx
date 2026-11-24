@@ -71,9 +71,11 @@ function Test-PackageArchive {
             }
             Assert-PackageRule (@($paths | Where-Object { $_ -match '/Microsoft\.CodeAnalysis[^/]*\.dll$' }).Count -eq 0) 'Compiler extension bundles host Roslyn assemblies.'
         } else {
-            $framework = if ($PackageId -in @('vc.Ifx.Roslyn', 'Ifx.Roslyn')) { 'netstandard2.0' } elseif ($PackageId -eq 'Ifx.Integrations.Windows') { 'net10.0-windows7.0' } else { 'net10.0' }
-            Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.dll") 'Missing framework library assembly.'
-            Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.xml") 'Missing XML API documentation.'
+            $frameworks = if ($PackageId -eq 'Ifx') { @('net10.0', 'net10.0-windows7.0') } elseif ($PackageId -in @('vc.Ifx.Roslyn', 'Ifx.Roslyn')) { @('netstandard2.0') } else { @('net10.0') }
+            foreach ($framework in $frameworks) {
+                Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.dll") "Missing framework library assembly for $framework."
+                Assert-PackageRule ($paths -contains "lib/$framework/$PackageId.xml") "Missing XML API documentation for $framework."
+            }
         }
     } finally { $archive.Dispose() }
 
@@ -82,27 +84,30 @@ function Test-PackageArchive {
     $symbols = [IO.Compression.ZipFile]::OpenRead([IO.Path]::GetFullPath($symbolsPath))
     try {
         $pdbs = @($symbols.Entries | Where-Object { $_.FullName -like "*/$PackageId.pdb" })
-        Assert-PackageRule ($pdbs.Count -eq 1) 'Expected one package assembly PDB in symbols archive.'
-        $stream = [IO.MemoryStream]::new()
-        $entryStream = $pdbs[0].Open()
-        try { $entryStream.CopyTo($stream) } finally { $entryStream.Dispose() }
-        $stream.Position = 0
-        $provider = [System.Reflection.Metadata.MetadataReaderProvider]::FromPortablePdbStream($stream, [System.Reflection.Metadata.MetadataStreamOptions]::Default, 0)
-        try {
-            $reader = $provider.GetMetadataReader([System.Reflection.Metadata.MetadataReaderOptions]::Default, $null)
-            $sourceLink = @($reader.CustomDebugInformation | ForEach-Object {
-                $info = $reader.GetCustomDebugInformation($_)
-                if ($reader.GetGuid($info.Kind) -eq [guid]'CC110556-A091-4D38-9FEC-25AB9A351A6A') {
-                    [Text.Encoding]::UTF8.GetString($reader.GetBlobBytes($info.Value)) | ConvertFrom-Json
+        $expectedPdbCount = if ($PackageId -eq 'Ifx') { 2 } else { 1 }
+        Assert-PackageRule ($pdbs.Count -eq $expectedPdbCount) "Expected $expectedPdbCount package assembly PDB(s) in symbols archive."
+        foreach ($pdb in $pdbs) {
+            $stream = [IO.MemoryStream]::new()
+            $entryStream = $pdb.Open()
+            try { $entryStream.CopyTo($stream) } finally { $entryStream.Dispose() }
+            $stream.Position = 0
+            $provider = [System.Reflection.Metadata.MetadataReaderProvider]::FromPortablePdbStream($stream, [System.Reflection.Metadata.MetadataStreamOptions]::Default, 0)
+            try {
+                $reader = $provider.GetMetadataReader([System.Reflection.Metadata.MetadataReaderOptions]::Default, $null)
+                $sourceLink = @($reader.CustomDebugInformation | ForEach-Object {
+                    $info = $reader.GetCustomDebugInformation($_)
+                    if ($reader.GetGuid($info.Kind) -eq [guid]'CC110556-A091-4D38-9FEC-25AB9A351A6A') {
+                        [Text.Encoding]::UTF8.GetString($reader.GetBlobBytes($info.Value)) | ConvertFrom-Json
+                    }
+                })
+                Assert-PackageRule ($sourceLink.Count -eq 1) 'Missing Source Link information in portable PDB.'
+                Assert-PackageRule (@($sourceLink[0].documents.PSObject.Properties).Count -gt 0) 'Empty Source Link document map.'
+                foreach ($document in $sourceLink[0].documents.PSObject.Properties) {
+                    Assert-PackageRule ($document.Value -match '^https://raw\.githubusercontent\.com/visionarycoder/vc\.Ifx/[0-9a-f]{40}/') 'Unexpected Source Link source URL.'
+                    Assert-PackageRule ($document.Value.Contains('/' + $metadata.repository.GetAttribute('commit') + '/')) 'Source Link commit differs from package repository commit.'
                 }
-            })
-            Assert-PackageRule ($sourceLink.Count -eq 1) 'Missing Source Link information in portable PDB.'
-            Assert-PackageRule (@($sourceLink[0].documents.PSObject.Properties).Count -gt 0) 'Empty Source Link document map.'
-            foreach ($document in $sourceLink[0].documents.PSObject.Properties) {
-                Assert-PackageRule ($document.Value -match '^https://raw\.githubusercontent\.com/visionarycoder/vc\.Ifx/[0-9a-f]{40}/') 'Unexpected Source Link source URL.'
-                Assert-PackageRule ($document.Value.Contains('/' + $metadata.repository.GetAttribute('commit') + '/')) 'Source Link commit differs from package repository commit.'
-            }
-        } finally { $provider.Dispose(); $stream.Dispose() }
+            } finally { $provider.Dispose(); $stream.Dispose() }
+        }
     } finally { $symbols.Dispose() }
     [pscustomobject]@{ PackageId = $PackageId; Archive = $Path; Symbols = $symbolsPath; SourceLink = $true }
 }
