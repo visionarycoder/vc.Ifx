@@ -42,6 +42,9 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Initialize local NuGet source
+        run: mkdir -p .nupkgs
+
       - name: Execute authoritative quality steps
         id: gate
         uses: ./.infra/yaml/framework-quality
