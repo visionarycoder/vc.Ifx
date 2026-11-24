@@ -12,7 +12,7 @@ public class FrameworkConstantsTests
     public void Version_ShouldHaveCorrectValue()
     {
         // Assert
-        IfxConstants.Version.Should().Be("0.1.0");
+        IfxConstants.Version.Should().Be("0.2.0");
     }
 
     [TestMethod]

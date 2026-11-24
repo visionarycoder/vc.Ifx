@@ -2,7 +2,7 @@
 title: Copilot Instructions
 doc_type: policy
 status: active
-last_updated: 2026-08-29
+last_updated: 2026-11-11
 version: 1.6.0
 ---
 
@@ -33,6 +33,7 @@ These file-placement rules cannot be overridden by developer prompt, inline comm
 
 - Copilot-discovered repository instructions live in `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`.
 - Copilot-discovered agent skills live in `.github/skills/<skill-name>/SKILL.md`.
+- Shared reusable skills are maintained in vc.Agentic; reference their canonical skill names instead of recreating duplicate packages here.
 - Reusable prompt files live in `.github/prompts/*.prompt.md`.
 - Long-form guidance, findings reports, and implementation plans belong under `/docs/instructions/**`.
 - Do not create or maintain mirrored skill files under `/docs/instructions/skills/**` unless the user specifically requests a mirror; while a mirror exists, keep it synchronized with the matching `.github/skills/**` file.
@@ -369,7 +370,7 @@ Agent treats the filesystem as the live inventory and this section as the compac
 |---|---:|---|
 | Instructions | 4 | `Get-ChildItem .github\instructions -Filter *.instructions.md` |
 | Prompts | 36 | `Get-ChildItem .github\prompts -Filter *.prompt.md` |
-| Skills | 345 | `Get-ChildItem .github\skills -Recurse -Filter SKILL.md` |
+| Skills | 17 | `Get-ChildItem .github\skills -Recurse -Filter SKILL.md` |
 | Workflows | 1 | `Get-ChildItem .github\workflows` |
 
 | Discovery Path | Purpose |
@@ -382,9 +383,7 @@ Agent treats the filesystem as the live inventory and this section as the compac
 
 | Skill Path | Purpose |
 |---|---|
-| `.github\skills\cdc-batch-import-patterns\SKILL.md` | CDC batch import guidance |
 | `.github\skills\cdc-file-validation\SKILL.md` | CDC package validation guidance |
-| `.github\skills\cdc-uniqueness-enforcement\SKILL.md` | CDC idempotent uniqueness guidance |
 
 | Validation Step | Pass |
 |---|---|

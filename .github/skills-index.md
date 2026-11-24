@@ -1,17 +1,19 @@
 ---
-title: Skills Index
-description: Complete inventory of repository skills with scan metadata
+title: Historical Skills Index
+description: Historical snapshot of repository skills as scanned on 2026-08-31
 doc_type: reference
-status: active
-last_updated: 2026-08-31
+status: archived
+last_updated: 2026-11-11
 last_scanned: 2026-08-31T13:11:11-07:00
 target_audience: ai
 complexity: low
 estimated_tokens: 4000
 ---
-# Skills Index
+# Historical Skills Index
 
-Agent uses this index to verify skill inventory and detect new or modified skills.
+This file preserves the scan recorded on 2026-08-31. It is not the current
+inventory; Copilot discovers active repository skills from `.github/skills/`.
+Shared reusable skills are maintained in vc.Agentic.
 
 ## Scan Metadata
 

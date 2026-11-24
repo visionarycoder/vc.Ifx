@@ -3,7 +3,7 @@ title: Documentation Governance Instruction
 description: Documentation governance and remediation workflow
 doc_type: instruction
 status: active
-last_updated: 2026-08-29
+last_updated: 2026-11-11
 target_audience: ai
 complexity: low
 estimated_tokens: 691
@@ -53,8 +53,4 @@ Agent uses collaborative language without commanding tone.
 
 ## Skill Orchestration
 
-Agent starts with `.github/skills/documentation-governance/SKILL.md` for full workflow.
-Agent uses `.github/skills/documentation-link-repair/SKILL.md` for link remediation.
-Agent uses `.github/skills/documentation-frontmatter/SKILL.md` for front matter normalization.
-Agent uses `.github/skills/documentation-file-placement/SKILL.md` for move or rename decisions.
-Agent uses `.github/skills/documentation-style-collaboration/SKILL.md` for wording and tone refinement.
+Shared documentation skills are maintained in vc.Agentic. Agent starts with `documentation-governance` and loads `documentation-link-repair`, `documentation-frontmatter`, `documentation-file-placement`, or `documentation-style-collaboration` as needed. Do not recreate these packages under `.github/skills`.
