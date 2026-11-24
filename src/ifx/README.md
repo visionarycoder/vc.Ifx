@@ -1,11 +1,19 @@
 # Ifx
 
-Core net10.0 runtime library: contracts, primitives, portable filtering and query
-composition, pipelines, proxy pipeline, BCL archiving, local storage and secrets,
-and in-memory channels. It has no project references or platform SDK dependencies.
-Microsoft.Extensions supplies configuration, DI, logging, caching, and hosting
-abstractions. Marker attributes are compiled into this library from their source
-in the generator project without a compiler-tooling project reference.
+The `Ifx` package contains the cross-platform runtime, general integrations,
+Azure integrations, and Windows MSMQ integration. The project builds for
+`net10.0` and `net10.0-windows`; Windows-only MSMQ source and its dependency are
+included only in the Windows target. Existing provider namespaces remain
+unchanged.
 
-External adapters are selected through Ifx.Integrations and its Azure/Windows
-children. See [ownership and migration](../../docs/architecture/root-library-consolidation.md).
+The package includes framework contracts and primitives, filtering and query
+composition, pipelines and proxies, archiving, local storage and secrets,
+in-memory messaging, EF Core, FTP, S3, Kafka, RabbitMQ, Redis, gRPC, OpenTelemetry,
+Azure configuration and identity, Azure storage and messaging, Key Vault, and
+MSMQ support. The unified package has a broader dependency graph than the former
+provider packages. Review the provider guides before registering integrations.
+
+- [General integrations](../Ifx.Integrations/README.md)
+- [Azure integrations](../Ifx.Integrations.Azure/README.md)
+- [Windows integrations](../Ifx.Integrations.Windows/README.md)
+- [Project ownership and migration](../../docs/architecture/root-library-consolidation.md)
