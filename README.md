@@ -3,21 +3,17 @@
 [![Build & Test](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml/badge.svg)](https://github.com/visionarycoder/vc.Ifx/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-vc.Ifx is a .NET repository containing eight packable framework libraries, a
+vc.Ifx is a .NET repository containing five packable framework libraries, a
 reporting executable, automated tests, benchmarks, documentation, build and
 release tooling, and repository-specific development resources.
 
-The centrally configured package version is **0.3.0**. The projects target
-.NET 10, .NET 10 for Windows, or .NET Standard 2.0 as listed below.
+The centrally configured package version is **0.4.0**. The projects target .NET 10, .NET 10 for Windows, or .NET Standard 2.0 as listed below.
 
 ## Packable libraries
 
 | Package | Target framework | Contents |
 | --- | --- | --- |
-| [Ifx](src/ifx/README.md) | net10.0 | Runtime contracts and primitives, filtering and query composition, pipelines and proxies, archiving, local storage and secrets, and in-memory messaging |
-| [Ifx.Integrations](src/Ifx.Integrations/README.md) | net10.0 | EF Core query execution, FTP, RabbitMQ and Kafka messaging, Redis caching, S3 storage, gRPC, SevenZip, ASP.NET Core health checks, and OpenTelemetry OTLP |
-| [Ifx.Integrations.Azure](src/Ifx.Integrations.Azure/README.md) | net10.0 | Azure configuration, identity, queues, Service Bus, Blob and Table storage, and Key Vault |
-| [Ifx.Integrations.Windows](src/Ifx.Integrations.Windows/README.md) | net10.0-windows | MSMQ integration |
+| [Ifx](src/ifx/README.md) | net10.0; net10.0-windows | Core runtime plus general, Azure, and Windows integration code; provider source guides are linked from the package README |
 | [Ifx.Roslyn](src/Ifx.Roslyn/README.md) | netstandard2.0 | Shared compiler-tooling contracts and models |
 | [Ifx.Roslyn.Analyzers](src/Ifx.Roslyn.Analyzers/README.md) | netstandard2.0 | Roslyn analyzers |
 | [Ifx.Roslyn.CodeFixes](src/Ifx.Roslyn.CodeFixes/README.md) | netstandard2.0 | IDE code fixes |
@@ -31,7 +27,7 @@ benchmark projects, one integration-test project, and seven unit-test projects.
 
 | Path | Contents |
 | --- | --- |
-| [src/](src/) | The eight libraries and the reporting executable |
+| [src/](src/) | Five libraries and the reporting executable |
 | [tests/unit/](tests/unit/) | MSTest projects for the runtime, integrations, archiving, and messaging |
 | [tests/integration/](tests/integration/) | Integration tests |
 | [tests/infrastructure/](tests/infrastructure/) | Validation and test-support resources for coverage, documentation, packaging, provenance, and reporting |
@@ -51,7 +47,7 @@ selects the .NET SDK, and `NuGet.config` configures package sources.
 `package.json` and its lockfile support the repository's Node-based validation
 tools.
 
-The repository has 19 solution projects: eight packable libraries, the reporting
+The repository has 16 solution projects: five packable libraries, the reporting
 executable, eight MSTest projects, and two benchmark projects. The current
 solution and project files are authoritative if this inventory changes.
 

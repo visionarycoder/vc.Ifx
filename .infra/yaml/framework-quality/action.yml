@@ -17,6 +17,10 @@ runs:
       shell: pwsh
       run: ./scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors
 
+    - name: Verify multi-target build provenance
+      shell: pwsh
+      run: ./tests/infrastructure/provenance/Test-BuildProvenance.ps1
+
     - name: Validate packages and isolated compiler consumers
       id: packages
       shell: pwsh

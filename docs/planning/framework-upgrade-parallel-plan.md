@@ -2,12 +2,24 @@
 title: vc.Ifx Parallel Upgrade Plan
 doc_type: plan
 status: active
-last_updated: 2026-11-11
+last_updated: 2026-11-23
 ---
 
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
+
+## Current owner override, 2026-11-23
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Orchestrator; Updated: 2026-11-23; Notes: The repository owner directs
+consolidating Ifx.Integrations, Ifx.Integrations.Azure, and
+Ifx.Integrations.Windows into the Ifx project, assembly, and package. This
+supersedes earlier project-separation and platform-package guidance in this
+plan. Track the work and verification in
+[the integration consolidation plan](integration-consolidation-plan.md).
+Keep source groups organized for later extraction into reusable slices.
+
 
 ### Consumer design baseline checks, 2026-11-09
 

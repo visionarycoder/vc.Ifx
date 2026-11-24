@@ -1,160 +1,93 @@
 ---
-title: Ifx Project Ownership and Compression
+title: Ifx Project Ownership and Reusable Slices
 doc_type: reference
 status: active
-last_updated: 2026-11-08
+last_updated: 2026-11-23
 ---
 
-# Ifx Project Ownership and Compression
+# Ifx Project Ownership and Reusable Slices
 
-The owner's final 2026-11-08 instructions establish eight production libraries
-and one reporting executable. These assignments supersede earlier consolidation
-counts, the five-library proposal, and the temporary combined Roslyn assembly.
-Tests and benchmarks remain supporting projects.
+The repository now consolidates general, Azure, and Windows integrations into
+the `Ifx` project, assembly, and package. This supersedes the earlier guidance
+that assigned those provider families to separate projects and package IDs.
 
-All nine source projects now reside directly under src. The former src/ifx
-container is removed as a grouping level; its Windows-locked directory is reused
-for the core project at src/ifx/Ifx.csproj. Other projects are sibling folders,
-including src/Ifx.Integrations and src/Ifx.Roslyn.Reporting. References preserve
-actual directory casing for case-sensitive checkouts.
+## Production packages
 
-Benchmarks are grouped into performance/Ifx.Benchmarks for core behavior and
-performance/Ifx.Integrations.Benchmarks for integration policies. Local storage
-and pipeline dispatch remain core benchmarks. All existing cases are retained.
-
-## Production libraries
-
-| Project | Target | Responsibility |
+| Project and package | Target | Responsibility |
 | --- | --- | --- |
-| Ifx | net10.0 | Runtime contracts, primitives, filters, query composition, pipelines, proxy pipeline, BCL archiving, local storage, local secrets, and in-memory channels |
-| Ifx.Integrations | net10.0 | EF Core, FTP, RabbitMQ, gRPC, SevenZip, hosting, and general interceptors |
-| Ifx.Integrations.Azure | net10.0 | Azure Blobs, Tables, Queues, Service Bus, Key Vault, identity, and App Configuration |
-| Ifx.Integrations.Windows | net10.0-windows | MSMQ and its platform-specific dependency |
-| Ifx.Roslyn | netstandard2.0 | Shared diagnostic contracts and architecture models |
+| Ifx | net10.0; net10.0-windows | Runtime, general integrations, Azure integrations, and Windows MSMQ |
+| Ifx.Roslyn | netstandard2.0 | Shared compiler contracts and architecture models |
 | Ifx.Roslyn.Analyzers | netstandard2.0 | Compiler diagnostics |
 | Ifx.Roslyn.Generators | netstandard2.0 | Source generation |
 | Ifx.Roslyn.CodeFixes | netstandard2.0 | Workspace-based IDE code fixes |
 
-The executable `src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj` targets net10.0
-and owns report-file I/O, command-line execution, and source metrics. It is not
-a production library package. Its reporting model retains the existing
-Ifx.Roslyn.Reporting namespace.
+The executable `src/Ifx.Roslyn.Reporting/Ifx.Roslyn.Reporting.csproj` targets
+net10.0 and owns report-file I/O, command-line execution, and source metrics. It
+is not a package.
 
-## Dependency direction
+The three integration source groups stay in their existing folders to preserve
+capability ownership and make future slice extraction straightforward:
 
-Integrations references Ifx. Azure and Windows reference Integrations. Each Roslyn
-child references the shared Roslyn library. Parents never reference child projects;
-child Abstractions projects remain the sole permitted exception if later needed.
-The runtime projects do not reference compiler tooling. Netstandard compiler
-projects cannot reference the net10 runtime root.
+- `src/Ifx.Integrations`: EF Core, FTP, S3, Kafka, RabbitMQ, Redis, gRPC,
+  SevenZip, ASP.NET Core hosting and health checks, OpenTelemetry, and shared
+  interceptors.
+- `src/Ifx.Integrations.Azure`: Azure configuration, identity, queues, Service
+  Bus, Blob and Table storage, and Key Vault.
+- `src/Ifx.Integrations.Windows`: MSMQ.
 
-Source folders and namespaces express capabilities without introducing projects
-for every provider. Integrations uses Archiving, Messaging, Storage, Querying,
-Secrets, Transport, Proxy, and Hosting folders. Azure uses Configuration, Messaging,
-Storage, and Secrets. Windows uses Messaging/Msmq. No Modules container is used.
+Those directories no longer contain projects. Their C# files are compiled into
+`Ifx.dll`; public namespaces are retained. The `net10.0-windows` target alone
+includes MSMQ source and the `Experimental.System.Messaging` dependency. The
+cross-platform `net10.0` target omits both.
 
-The root library contains no Azure SDK, EF, RabbitMQ, FTP, gRPC, JWT, Polly,
-SharpCompress, Windows messaging, or ASP.NET Core framework reference. Its
-Microsoft.Extensions dependencies provide configuration, logging, DI, caching,
-and hosting abstractions for core runtime behavior. Marker-attribute source files
-remain in Roslyn.Generators/Attributes and are linked into Ifx; the generator
-assembly excludes them to avoid duplicate public definitions.
+## Dependency and slice policy
 
-The general Integrations package includes the ASP.NET Core framework requirement.
-Azure and Windows inherit that base dependency. Neither Ifx nor Integrations has
-an Azure or Windows project/package dependency. Passive option names may retain
-Azure terminology without referencing an SDK.
+The unified `Ifx` package includes the general integration and Azure provider
+dependencies, plus the ASP.NET Core framework reference. This gives consumers of
+the package a larger dependency graph than the former provider-specific packages.
+Windows messaging remains isolated to the Windows target.
 
-## Compiler and I/O boundaries
+The source groups are capability boundaries, not build or package boundaries.
+A later slice project should own its contracts, provider dependencies, and tests,
+and should be extracted only when the reusable boundary and dependency contract
+are explicit. Roslyn projects stay independent: compiler tooling does not enter
+the runtime package, and netstandard compiler projects do not reference the
+net10 runtime.
 
-Analyzers and generators remain in separate projects as requested. They have no
-Workspaces reference and consume compilation inputs and AdditionalFiles. Rule
-RS1038 rejected the proposed assembly combining them with workspace-based code
-fixes; no suppression was introduced. CodeFixes depends on shared Roslyn contracts,
-not the analyzer or generator implementation assemblies. Reporting owns physical
-file access. Compiler tooling performs no direct file-system operations.
+The core project compiles the marker attributes from
+`src/Ifx.Roslyn.Generators/Attributes` and excludes that source from the
+generator assembly to avoid duplicate public definitions. Reporting owns
+physical report I/O. No integration source group may add a project reference
+back to Ifx.
 
-Compiler-extension packages place assemblies in analyzers/dotnet/cs, with their
-shared Ifx.Roslyn dependency beside them. Host-owned Roslyn compiler/workspace
-assemblies are not bundled. The standalone shared Roslyn package exposes its
-netstandard2.0 library and Microsoft.CodeAnalysis.Common dependency.
+## Package migration
 
-## Migration
+The shared package version is `0.4.0`. Use the `Ifx` package for code that
+previously referenced `Ifx.Integrations`, `Ifx.Integrations.Azure`, or
+`Ifx.Integrations.Windows`. Remove those three package references. The provider
+namespaces stay the same, but types now reside in the `Ifx` assembly. There are
+no assembly-forwarding shims; rebuild consumers and update assembly-qualified
+type names or reflection configuration that names an old assembly.
 
-The owner's subsequent namespace compression removes Abstractions folders and
-namespace segments. Shared artifacts reside in the immediate owning parent.
-The following namespace changes supersede the earlier preservation statement:
+The pre-1.0 version bump communicates this package-layout and dependency change.
+Roslyn tooling package IDs remain separate. No source namespace migration is
+required for the integration providers.
 
-| Previous namespace | Owning parent namespace |
-| --- | --- |
-| Ifx.Abstractions | Ifx |
-| Ifx.Pipeline.Abstractions | Ifx.Pipeline |
-| Ifx.Proxy.Interceptor.Abstractions | Ifx.Proxy |
-| Ifx.Filtering.Abstractions | Ifx.Filtering |
-| vc.Ifx.FilterSpec.Abstractions | Ifx.Filtering |
-| vc.Ifx.Messaging.Abstractions | vc.Ifx.Messaging |
-| Ifx.Analyzers.Abstractions | Ifx.Roslyn |
-| Ifx.Generators.Abstractions.Attributes | Ifx.Generators.Attributes |
+## Retained data boundaries
 
-General contracts move directly into Ifx; Component and Data retain their owning
-subfolders. Storage contracts move into Storage. Shared Roslyn types move into the
-Roslyn project root. The gRPC protocol file moves from Dispatch/Abstractions into
-Dispatch without changing its wire definitions. Retained contract READMEs are
-named Contracts.md where the parent already has a README.
+FilterSpec remains the serializable predicate contract for component boundaries.
+QuerySpec composes data-access queries for provider translation. Executable
+expression trees and `IQueryable` values do not cross those boundaries.
+`Ifx.Filtering` owns predicate composition and portable filter nodes;
+`Ifx.Querying.EntityFrameworkCore` supplies EF execution extensions.
 
-Public namespaces outside the table above are retained. Assembly identities change for merged providers,
-shared architecture models, analyzers, generators, code fixes, and reporting.
-Rebuild consumers, replace old package references, and update assembly-qualified
-type names. No binary-forwarding compatibility shims or publication are provided.
+## Validation
 
-Select Azure and Windows packages explicitly. Use Ifx.Roslyn.Analyzers and
-Ifx.Roslyn.Generators as compiler tooling, and Ifx.Roslyn.CodeFixes in an IDE host.
-Runtime consumers obtain generator marker attributes from Ifx.
+Run `python scripts/Test-ProjectHierarchy.py` to check the solution inventory,
+project references, upward dependency rules, cycles, target framework policy,
+and platform-specific MSMQ dependency placement. Run builds and tests through
+`scripts/Invoke-FrameworkTests.ps1`.
 
-The previous shared StorageExtensions class was split into provider-owned static
-classes; fluent builder methods remain extension methods. Existing namespaces are
-preserved. Archived provider READMEs retain API guidance; previous project paths
-and installation commands in those historical notes are superseded here.
-
-## FilterSpec and QuerySpec
-
-The owner's distinction remains: FilterSpec represents a serializable expression
-contract across component boundaries; QuerySpec composes data-access queries that
-an EF relational provider translates into SQL. Executable expressions and
-IQueryable objects do not cross the boundary. Access components validate allowed
-fields and operators before applying caller-supplied specifications.
-
-Ifx.Filtering owns the shared predicate composition, portable FilterNode tree,
-expression translation and hydration. FilterSpec<T>.ToFilterNode snapshots a
-predicate for transmission; FromFilterNode hydrates it locally. QuerySpec owns
-query shape and provider execution, including ordering, projection and paging.
-It remains in the Access component and lets the relational provider generate SQL.
-
-The owner confirmed no versioned release has been published and rejected
-compatibility adapters. The duplicate vc.Ifx.FilterSpec types and adapters are
-removed. Ifx.Filtering is the public predicate namespace, Ifx.Querying is the public
-query namespace, and Ifx.Querying.EntityFrameworkCore supplies execution extensions.
-QuerySpec is immutable and uses one internal QueryPlan for provider composition,
-ordering, offset/cursor paging and eager-load hints. QueryPlan is not exported.
-No expression tree or source-bound query is a boundary DTO. FilterGroupBuilder
-belongs to Filtering; sort and page contracts belong to Querying. All production
-packages use the shared initial SemVer version 0.1.0.
-
-## Verification
-
-Run `python scripts/Test-ProjectHierarchy.py` to check the adopted project set,
-solution inclusion, reference existence, upward dependencies, cycles, and platform
-dependency isolation. Run builds and tests through scripts/Invoke-FrameworkTests.ps1.
-
-Run the serialized wrapper with `-BuildOnly -Project
-scripts/packaging/CompilerHostSmoke.proj -Configuration Release -WarningsAsErrors`
-to verify all eight package/symbol pairs and standalone compiler/workspace loading.
-This does not assert Visual Studio UI acceptance, publication, or full coverage.
-
-The owner's 2026-11-08 remediation removes obsolete test-project count and missing
-documentation-project checks, mandatory exact 100% coverage, and mandatory report
-provenance from release acceptance. The active release workflow retains builds,
-all solution tests, dependency boundaries, package mutation and consumer checks,
-release-tag version checks, and exact artifact inventory/hash verification.
-Schema v2 release manifests describe revision, SDK and package hashes without
-claiming coverage. Schema v1 verification remains available for historical evidence.
+The package quality workflow validates all five package and symbol pairs,
+solution tests, package mutation and consumer checks, release-tag versions, and
+the exact artifact inventory and hashes.

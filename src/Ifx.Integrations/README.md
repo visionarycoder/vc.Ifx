@@ -1,13 +1,9 @@
-# Ifx.Integrations
+# Ifx general integration source
 
 General adapters grouped by capability: EF Core querying, FTP and S3 storage,
 RabbitMQ and Kafka messaging, Redis-backed proxy caching, gRPC transport, SevenZip
 archiving, ASP.NET Core health checks and OpenTelemetry OTLP hosting, and shared
-interceptors. Targets net10.0 and requires the ASP.NET Core shared framework.
-
-Azure and Windows adapters live in separate child projects. This project has no
-Azure SDK or Windows messaging package references. It references Ifx; Ifx never
-references Integrations. Public namespaces are retained.
+interceptors. This source group is compiled into the `Ifx` assembly for both supported targets. It requires the ASP.NET Core shared framework. Azure and Windows provider sources are retained in their own source groups. Public namespaces are unchanged; applications reference the `Ifx` package.
 
 See [ownership and migration](../../docs/architecture/root-library-consolidation.md).
 

@@ -3,7 +3,7 @@
 param(
     [string] $RepositoryRoot = (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent),
     [string] $PackageDirectory,
-    [string[]] $PackageId = @('Ifx', 'Ifx.Integrations', 'Ifx.Integrations.Azure', 'Ifx.Integrations.Windows', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes')
+    [string[]] $PackageId = @('Ifx', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes')
 )
 
 Set-StrictMode -Version Latest

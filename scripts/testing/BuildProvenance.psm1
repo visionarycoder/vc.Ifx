@@ -31,7 +31,7 @@ function Complete-IfxBuildProvenance {
         [Parameter(Mandatory)][object] $Selection)
     $path = Join-Path $BuildDirectory 'build-identity.json'
     if (Test-Path -LiteralPath $path) { throw 'Build identity already exists; capture a fresh build.' }
-    $projects = @(foreach ($directory in Get-ChildItem -LiteralPath (Join-Path $BuildDirectory 'build-inventory') -Directory | Sort-Object Name) {
+    $projects = @(foreach ($directory in Get-ChildItem -LiteralPath (Join-Path $BuildDirectory 'build-inventory') -Directory -Recurse | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'settings') } | Sort-Object FullName) {
         $settings = [ordered]@{}
         foreach ($file in Get-ChildItem -LiteralPath (Join-Path $directory.FullName 'settings') -File | Sort-Object Name) {
             $settings[$file.BaseName] = ConvertTo-IfxCanonicalSetting (Get-Content -LiteralPath $file.FullName -Raw)
@@ -43,7 +43,7 @@ function Complete-IfxBuildProvenance {
         if ($inputs.Count -eq 0 -or $settings['TargetPath'] -cnotin $outputPaths) { throw "Missing compiled assembly: $directory" }
         if ($settings['DebugType'] -in @('portable','full','pdbonly') -and [IO.Path]::ChangeExtension($settings['TargetPath'], '.pdb') -cnotin $outputPaths) { throw "Missing compiled PDB: $directory" }
         [pscustomobject]@{
-            name = $directory.Name; projectPath = $settings['ProjectPath']; targetPath = $settings['TargetPath']
+            name = [IO.Path]::GetFileNameWithoutExtension($settings['ProjectPath']) + $(if ($settings['TargetFramework']) { '/' + $settings['TargetFramework'] } else { '' }); projectPath = $settings['ProjectPath']; targetPath = $settings['TargetPath']
             isTestProject = $settings['IsTestProject'] -eq 'true'; settings = $settings
             compilePaths = @(Get-Content -LiteralPath (Join-Path $directory.FullName 'compile.txt') | Sort-Object -Unique)
             nonCodeInputPaths = @(Get-Content -LiteralPath (Join-Path $directory.FullName 'non-code-inputs.txt') | Sort-Object -Unique)
@@ -60,14 +60,17 @@ function Complete-IfxBuildProvenance {
     # Test output copies must be the exact freshly compiled framework assemblies.
     $payloads = @{}
     foreach ($project in $projects) {
+        $targetFramework = $project.settings.TargetFramework
         foreach ($file in $project.outputs | Where-Object { $_.path -ceq $project.targetPath -or $_.path -ceq [IO.Path]::ChangeExtension($project.targetPath, '.pdb') }) {
-            $payloads[[IO.Path]::GetFileName($file.path)] = $file.sha256
+            $key = "$targetFramework|$([IO.Path]::GetFileName($file.path))"
+            $payloads[$key] = $file.sha256
         }
     }
     foreach ($project in $projects) {
+        $targetFramework = $project.settings.TargetFramework
         foreach ($file in $project.outputs) {
-            $name = [IO.Path]::GetFileName($file.path)
-            if ($payloads.ContainsKey($name) -and $payloads[$name] -cne $file.sha256) { throw "Copied assembly differs from fresh build: $($file.path)" }
+            $key = "$targetFramework|$([IO.Path]::GetFileName($file.path))"
+            if ($payloads.ContainsKey($key) -and $payloads[$key] -cne $file.sha256) { throw "Copied assembly differs from its resolved target framework payload: $($file.path)" }
         }
     }
     $document = [ordered]@{ schemaVersion = 1; repositoryRoot = [IO.Path]::GetFullPath($RepositoryRoot); revision = $Revision
@@ -104,7 +107,9 @@ function Assert-IfxBuildProvenance {
         if (@(Compare-Object @($outputPaths | Sort-Object -Unique) $currentOutputPaths -CaseSensitive).Count) { throw "Changed build output inventory: $($project.name)" }
         & {
             $arguments = @('msbuild', $project.projectPath, '-t:GetIfxBuildSettings', '-getItem:IfxBuildSetting,Compile,IfxDeclaredProjectReference,EmbeddedResource,Protobuf', '-m:1', '-p:BuildInParallel=false',
-                "-p:Configuration=$($document.configuration)") + @($document.testSelection.Arguments)
+                "-p:Configuration=$($document.configuration)")
+            if ($project.settings.TargetFramework) { $arguments += "-p:TargetFramework=$($project.settings.TargetFramework)" }
+            $arguments += @($document.testSelection.Arguments)
             $json = & dotnet @arguments
             if ($LASTEXITCODE -ne 0) { throw "Cannot evaluate current build settings: $($project.name)" }
             $current = $json | ConvertFrom-Json

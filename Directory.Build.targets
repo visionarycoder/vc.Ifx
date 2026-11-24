@@ -53,7 +53,7 @@
   <!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
   <Target Name="CaptureIfxReportingEvidence" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true' AND '$(MSBuildProjectName)' != 'docs'">
     <PropertyGroup>
-      <IfxPackageReportDirectory>$(IfxReportDirectory)/$(MSBuildProjectName)</IfxPackageReportDirectory>
+      <IfxPackageReportDirectory>$(IfxReportDirectory)/$(MSBuildProjectName)/$(TargetFramework)</IfxPackageReportDirectory>
       <ErrorLog>$(IfxPackageReportDirectory)/diagnostics.sarif,version=2.1</ErrorLog>
     </PropertyGroup>
     <MakeDir Directories="$(IfxPackageReportDirectory)" />
@@ -66,7 +66,7 @@
 
   <Target Name="CaptureIfxBuildInputs" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
     <PropertyGroup>
-      <IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory>
+      <IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)/$(TargetFramework)</IfxIdentityDirectory>
     </PropertyGroup>
     <ItemGroup>
       <IfxIdentityInput Include="$(MSBuildProjectFullPath);$(MSBuildAllProjects);@(Compile);@(ReferencePath);@(Analyzer);@(AdditionalFiles);@(EmbeddedResource);@(Protobuf);$(ProjectAssetsFile)" />
@@ -86,7 +86,7 @@
     <WriteLinesToFile File="$(IfxIdentityDirectory)/absent.txt" Lines="@(IfxIdentityAbsent->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
   </Target>
 
-  <Target Name="GetIfxBuildSettings" DependsOnTargets="AddImplicitDefineConstants" Returns="@(IfxBuildSetting)">
+  <Target Name="GetIfxBuildSettings" DependsOnTargets="PrepareForBuild" Returns="@(IfxBuildSetting)">
     <ItemGroup>
       <IfxBuildSetting Include="ProjectPath"><Value>$(MSBuildProjectFullPath)</Value></IfxBuildSetting>
       <IfxBuildSetting Include="TargetPath"><Value>$(TargetPath)</Value></IfxBuildSetting>
@@ -105,7 +105,7 @@
   </Target>
 
   <Target Name="CaptureIfxBuildOutputs" AfterTargets="Build" DependsOnTargets="GetIfxBuildSettings" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
-    <PropertyGroup><IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory></PropertyGroup>
+    <PropertyGroup><IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)/$(TargetFramework)</IfxIdentityDirectory></PropertyGroup>
     <Error Condition="!Exists('$(IfxIdentityDirectory)/inputs.txt')" Text="Build provenance requires a fresh compilation for $(MSBuildProjectName)." />
     <ItemGroup><IfxIdentityOutput Include="$(TargetDir)**/*" /></ItemGroup>
     <MakeDir Directories="$(IfxIdentityDirectory)/settings" />

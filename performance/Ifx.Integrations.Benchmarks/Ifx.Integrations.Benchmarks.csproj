@@ -7,6 +7,6 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <Compile Include="../BenchmarkProgram.cs" Link="Program.cs" />
-    <ProjectReference Include="../../src/Ifx.Integrations/Ifx.Integrations.csproj" />
+    <ProjectReference Include="../../src/ifx/Ifx.csproj" />
   </ItemGroup>
 </Project>

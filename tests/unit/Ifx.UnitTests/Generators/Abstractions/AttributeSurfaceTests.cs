@@ -25,12 +25,16 @@ public sealed class AttributeSurfaceTests
     }
 
     [TestMethod]
-    public void MarkerAssemblyHasNoRuntimeProviderOrToolingDependency()
+    public void ConsolidatedAssemblyIncludesProvidersWithoutCompilerTooling()
     {
         var references = typeof(GenerateEndpointAttribute).Assembly.GetReferencedAssemblies();
-        references.Should().OnlyContain(reference => reference.Name == "netstandard" || reference.Name!.StartsWith("System.", StringComparison.Ordinal)
-            || reference.Name.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal)
-            || reference.Name == "Ifx");
+        var referenceNames = references.Select(reference => reference.Name).ToArray();
+
+        referenceNames.Should().Contain("Azure.Messaging.ServiceBus");
+        referenceNames.Should().Contain("Microsoft.EntityFrameworkCore");
+        referenceNames.Should().Contain("RabbitMQ.Client");
+        referenceNames.Should().NotContain(name => name!.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal));
+        referenceNames.Should().NotContain(name => name!.StartsWith("Ifx.Roslyn", StringComparison.Ordinal));
         typeof(GenerateEndpointAttribute).Assembly.GetExportedTypes()
             .Where(type => type.Namespace == typeof(GenerateEndpointAttribute).Namespace).Should().BeEquivalentTo(
             [typeof(GenerateEndpointAttribute), typeof(GenerateEnumerationAttribute), typeof(GenerateInterceptorsAttribute),

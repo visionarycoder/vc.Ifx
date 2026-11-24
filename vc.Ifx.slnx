@@ -662,9 +662,6 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Ifx.Integrations.Azure/Ifx.Integrations.Azure.csproj" />
-    <Project Path="src/Ifx.Integrations.Windows/Ifx.Integrations.Windows.csproj" />
-    <Project Path="src/Ifx.Integrations/Ifx.Integrations.csproj" />
     <Project Path="src/Ifx.Roslyn.Analyzers/Ifx.Roslyn.Analyzers.csproj" />
     <Project Path="src/Ifx.Roslyn.CodeFixes/Ifx.Roslyn.CodeFixes.csproj" />
     <Project Path="src/Ifx.Roslyn.Generators/Ifx.Roslyn.Generators.csproj" />

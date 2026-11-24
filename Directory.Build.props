@@ -16,7 +16,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework Condition="'$(MSBuildProjectName)' != 'Ifx'">net10.0</TargetFramework>
         <OutputType>Library</OutputType>
         <RootNamespace>vc.$(MSBuildProjectName)</RootNamespace>
         <LangVersion>14.0</LangVersion>
@@ -31,7 +31,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
         <!-- NuGet Package Settings -->
-        <VersionPrefix>0.3.0</VersionPrefix>
+        <VersionPrefix>0.4.0</VersionPrefix>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <!-- Single shared package output so every project in this repo, and other solutions
              that add this folder as a local NuGet source, resolve packages from one place. -->

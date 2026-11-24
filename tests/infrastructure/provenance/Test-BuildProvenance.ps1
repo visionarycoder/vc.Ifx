@@ -37,18 +37,29 @@ try {
     $acquired = $mutex.WaitOne([TimeSpan]::FromMinutes(20))
     if (-not $acquired) { throw 'Timed out waiting for framework mutex.' }
     New-Item -ItemType Directory -Path $fixture | Out-Null
-    '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
+    '<Project><PropertyGroup><ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally><EnableWindowsTargeting>true</EnableWindowsTargeting></PropertyGroup></Project>' | Set-Content (Join-Path $fixture 'Directory.Build.props')
     "<Project><Import Project=`"$root/Directory.Build.targets`" /></Project>" | Set-Content (Join-Path $fixture 'Directory.Build.targets')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="consumer-net/**/*.cs;consumer-windows/**/*.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
+    $consumer = Join-Path $fixture 'consumer-net'
+    $consumerWindows = Join-Path $fixture 'consumer-windows'
+    New-Item -ItemType Directory -Path $consumer, $consumerWindows | Out-Null
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" SetConfiguration="Configuration=$(Configuration)" /></ItemGroup></Project>' | Set-Content (Join-Path $consumer 'Consumer.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" SetConfiguration="Configuration=$(Configuration)" /></ItemGroup></Project>' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.csproj')
+    '<Solution><Project Path="consumer-net/Consumer.csproj" /><Project Path="consumer-windows/Consumer.Windows.csproj" /></Solution>' | Set-Content (Join-Path $fixture 'Fixture.slnx')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumer 'Consumer.cs')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
-    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.csproj'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
-    $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release
-    if (@($result.manifest.projects).Count -ne 1 -or @($result.manifest.projects[0].projectReferences).Count -ne 0) { throw 'Fixture must have zero project references.' }
-    $checks.Add('fresh real build with zero project references')
-    $project = $result.manifest.projects[0]
+    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.slnx'))) -Configuration Debug -ReportBuildDirectory $build -WarningsAsErrors
+    $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Debug
+    $projects = @($result.manifest.projects)
+    $fixtureProjects = @($projects | Where-Object projectPath -CEQ (Join-Path $fixture 'Fixture.csproj'))
+    $frameworks = @($fixtureProjects | ForEach-Object { $_.settings.TargetFramework } | Sort-Object -Unique)
+    if ($projects.Count -ne 4 -or $fixtureProjects.Count -ne 2 -or $frameworks -cnotcontains 'net10.0' -or $frameworks -cnotcontains 'net10.0-windows') { throw 'Multi-target producer and consumer identities were not captured separately.' }
+    $checks.Add('multi-target producer and consumer builds captured per-framework')
+    $project = $fixtureProjects | Where-Object { $_.settings.TargetFramework -ceq 'net10.0' } | Select-Object -First 1
     $hiddenOutput = Join-Path $project.settings.TargetDir '.provenance-mapping'
     if ($hiddenOutput -cnotin @($project.outputs.path)) { throw 'Hidden output was not captured.' }
     if ($IsWindows) { [IO.File]::SetAttributes($hiddenOutput, [IO.FileAttributes]::Hidden) }
@@ -94,7 +105,7 @@ try {
         $env:DefineConstants = 'PROVENANCE_CHANGED'
         Assert-Rejected 'changed evaluated constants' { Assert-IfxBuildProvenance -BuildDirectory $build } 'Changed build setting DefineConstants'
     } finally { $env:DefineConstants = $oldDefines }
-    Assert-Rejected 'wrong configuration' { Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Debug } 'configuration mismatch'
+    Assert-Rejected 'wrong configuration' { Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release } 'configuration mismatch'
     Assert-Rejected 'wrong selection' { Assert-IfxBuildProvenance -BuildDirectory $build -Selection @{ Fingerprint = 'wrong' } } 'selection mismatch'
     Assert-Rejected 'uncaptured test project' { Assert-IfxBuildProvenance -BuildDirectory $build -RequiredProject (Join-Path $fixture 'Missing.csproj') } 'not compiled'
     Assert-Rejected 'missing build identity' { Assert-IfxBuildProvenance -BuildDirectory $fixture } 'Missing build identity'

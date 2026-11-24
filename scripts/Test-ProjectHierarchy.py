@@ -45,15 +45,14 @@ for path in projects:
     visit(path, set(), done)
 if errors:
     raise SystemExit('\n'.join(errors))
-expected = {'Ifx', 'Ifx.Integrations', 'Ifx.Integrations.Azure', 'Ifx.Integrations.Windows',
-            'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes'}
+expected = {'Ifx', 'Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators', 'Ifx.Roslyn.CodeFixes'}
 libraries = {name for name, path in source.items() if projects[path].findtext('.//IsPackable') != 'false'}
 if libraries != expected:
     raise SystemExit(f'Production library set differs from the adopted layout: {libraries ^ expected}')
 if any(path.parent.parent != root / 'src' for path in source.values()):
     raise SystemExit('Source projects must reside directly under src, without an extra grouping directory.')
 benchmarks = {path.stem: path for path in projects if path.is_relative_to(root / 'performance')}
-expected_benchmarks = {'Ifx.Benchmarks': 'Ifx', 'Ifx.Integrations.Benchmarks': 'Ifx.Integrations'}
+expected_benchmarks = {'Ifx.Benchmarks': 'Ifx', 'Ifx.Integrations.Benchmarks': 'Ifx'}
 if set(benchmarks) != set(expected_benchmarks):
     raise SystemExit('Benchmark project names must follow the measured production projects.')
 for name, library in expected_benchmarks.items():
@@ -62,11 +61,11 @@ for name, library in expected_benchmarks.items():
 reporting = source.get('Ifx.Roslyn.Reporting')
 if reporting is None or projects[reporting].findtext('.//OutputType') != 'Exe' or projects[reporting].findtext('.//IsPackable') != 'false':
     raise SystemExit('Ifx.Roslyn.Reporting must remain a non-packable executable under src/ifx.')
-for name in ['Ifx', 'Ifx.Integrations']:
-    for item in projects[source[name]].findall('.//PackageReference'):
-        package = item.attrib['Include']
-        if package.startswith('Azure.') or 'AzureAppConfiguration' in package or package == 'Experimental.System.Messaging':
-            raise SystemExit(f'Platform dependency escaped its project: {name} -> {package}')
+if projects[source['Ifx']].findtext('.//TargetFrameworks') != 'net10.0;net10.0-windows':
+    raise SystemExit('Ifx must target net10.0 and net10.0-windows.')
+windows_group = projects[source['Ifx']].find(".//ItemGroup[@Condition=\"'$(TargetFramework)' == 'net10.0-windows'\"]")
+if windows_group is None or windows_group.find(".//PackageReference[@Include='Experimental.System.Messaging']") is None:
+    raise SystemExit('Windows MSMQ dependency must be isolated to the Windows target group.')
 for name in ['Ifx.Roslyn', 'Ifx.Roslyn.Analyzers', 'Ifx.Roslyn.Generators']:
     for item in projects[source[name]].findall('.//PackageReference'):
         if 'Workspaces' in item.attrib['Include']:

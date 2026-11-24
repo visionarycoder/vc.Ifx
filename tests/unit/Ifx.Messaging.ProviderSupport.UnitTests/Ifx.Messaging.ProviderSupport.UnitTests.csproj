@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../src/Ifx.Integrations/Ifx.Integrations.csproj" />
+
     <ProjectReference Include="../../../src/ifx/Ifx.csproj" />
   </ItemGroup>
 
