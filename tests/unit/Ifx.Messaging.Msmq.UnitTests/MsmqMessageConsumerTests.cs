@@ -63,7 +63,7 @@ public sealed class MsmqMessageConsumerTests
         await consumer.StartAsync();
         await queueClient.WaitForReceiveAttemptAsync();
         await consumer.StartAsync();
-        await consumer.StopAsync(new CancellationToken(canceled: true));
+        await consumer.StopAsync();
         queueClient.Release();
 
         queueClient.ReceiveAttempts.Should().Be(1);
