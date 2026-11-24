@@ -35,17 +35,17 @@ public sealed class AzureServiceBusMessageConsumer<TMessage> : IMessageConsumer,
     }
 
     /// <inheritdoc />
-    public Task StartAsync(CancellationToken cancellationToken = default)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
 
         if (started)
         {
-            return Task.CompletedTask;
+            return;
         }
 
+        await processor.StartProcessingAsync(cancellationToken).ConfigureAwait(false);
         started = true;
-        return processor.StartProcessingAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -79,10 +79,30 @@ public sealed class AzureServiceBusMessageConsumer<TMessage> : IMessageConsumer,
 
     private async Task ProcessMessageAsync(IAzureServiceBusReceivedMessageContext context, CancellationToken cancellationToken)
     {
+        TMessage message;
+
         try
         {
-            TMessage message = AzureServiceBusMessageBus.DeserializeMessage<TMessage>(context.Body);
+            message = AzureServiceBusMessageBus.DeserializeMessage<TMessage>(context.Body);
+        }
+        catch (JsonException exception)
+        {
+            await DeadLetterAsync(context, "InvalidMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+        catch (NotSupportedException exception)
+        {
+            await DeadLetterAsync(context, "UnsupportedMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+        catch (ArgumentException exception)
+        {
+            await DeadLetterAsync(context, "InvalidMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
+            return;
+        }
 
+        try
+        {
             await RetryPolicy.ExecuteAsync(
                 token => handler.HandleAsync(message, token),
                 options.MaxRetryAttempts,
@@ -94,18 +114,6 @@ public sealed class AzureServiceBusMessageConsumer<TMessage> : IMessageConsumer,
                 options.MaxRetryAttempts,
                 options.InitialRetryDelay,
                 cancellationToken).ConfigureAwait(false);
-        }
-        catch (JsonException exception)
-        {
-            await DeadLetterAsync(context, "InvalidMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
-        }
-        catch (NotSupportedException exception)
-        {
-            await DeadLetterAsync(context, "UnsupportedMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
-        }
-        catch (ArgumentException exception)
-        {
-            await DeadLetterAsync(context, "InvalidMessagePayload", exception.Message, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
