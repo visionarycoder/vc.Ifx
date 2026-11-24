@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/symbolic-record.schema.json",
+  "title": "VBD Symbolic Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source",
+    "identity",
+    "activity",
+    "evidenceKind",
+    "callers",
+    "callees",
+    "resources",
+    "sideEffects",
+    "failures",
+    "tests",
+    "changeDrivers",
+    "confidence",
+    "questions"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^SYM-[A-Za-z0-9-]+-[0-9]+$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "method", "signature"],
+      "properties": {
+        "type": { "type": "string" },
+        "method": { "type": "string", "minLength": 1 },
+        "signature": { "type": "string", "minLength": 1 }
+      }
+    },
+    "activity": { "type": "string", "minLength": 1 },
+    "evidenceKind": {
+      "enum": ["observed", "inferred", "declared", "unknown"]
+    },
+    "callers": { "$ref": "#/$defs/stringArray" },
+    "callees": { "$ref": "#/$defs/stringArray" },
+    "resources": { "$ref": "#/$defs/stringArray" },
+    "stateReads": { "$ref": "#/$defs/stringArray" },
+    "stateWrites": { "$ref": "#/$defs/stringArray" },
+    "sideEffects": { "$ref": "#/$defs/stringArray" },
+    "failures": { "$ref": "#/$defs/stringArray" },
+    "cancellation": { "type": "string" },
+    "tests": { "$ref": "#/$defs/stringArray" },
+    "coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "changeDrivers": { "$ref": "#/$defs/stringArray" },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "questions": { "$ref": "#/$defs/stringArray" }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  }
+}
