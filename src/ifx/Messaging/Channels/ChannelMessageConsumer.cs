@@ -40,7 +40,8 @@ public sealed class ChannelMessageConsumer<TMessage>(
         {
             await consumingTask.WaitAsync(cancellationToken);
         }
-        catch (OperationCanceledException) when (consumingTask.IsCanceled)
+        catch (OperationCanceledException exception) when (
+            consumingTask.IsCanceled && cancellation.IsCancellationRequested && exception.CancellationToken == cancellation.Token)
         {
             // The consumer stopped because this instance requested cancellation.
         }
