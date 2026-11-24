@@ -124,10 +124,10 @@ public sealed class MsmqMessageConsumer<TMessage> : IMessageConsumer, IDisposabl
             disposed = true;
             current = consuming;
             currentCancellation = cancellation;
+            currentCancellation.Cancel();
         }
 
         unsubscribe();
-        currentCancellation.Cancel();
 
         if (current is null)
         {
