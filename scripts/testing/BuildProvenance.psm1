@@ -107,7 +107,9 @@ function Assert-IfxBuildProvenance {
         if (@(Compare-Object @($outputPaths | Sort-Object -Unique) $currentOutputPaths -CaseSensitive).Count) { throw "Changed build output inventory: $($project.name)" }
         & {
             $arguments = @('msbuild', $project.projectPath, '-t:GetIfxBuildSettings', '-getItem:IfxBuildSetting,Compile,IfxDeclaredProjectReference,EmbeddedResource,Protobuf', '-m:1', '-p:BuildInParallel=false',
-                "-p:Configuration=$($document.configuration)", "-p:TargetFramework=$($project.settings.TargetFramework)") + @($document.testSelection.Arguments)
+                "-p:Configuration=$($document.configuration)")
+            if ($project.settings.TargetFramework) { $arguments += "-p:TargetFramework=$($project.settings.TargetFramework)" }
+            $arguments += @($document.testSelection.Arguments)
             $json = & dotnet @arguments
             if ($LASTEXITCODE -ne 0) { throw "Cannot evaluate current build settings: $($project.name)" }
             $current = $json | ConvertFrom-Json
