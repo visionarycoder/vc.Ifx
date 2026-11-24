@@ -70,12 +70,12 @@
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <Compile Include="../Ifx.Integrations/**/*.cs" Exclude="../Ifx.Integrations/**/Sample/**/*.cs" />
-    <Compile Include="../Ifx.Integrations.Azure/**/*.cs" Exclude="../Ifx.Integrations.Azure/**/Sample/**/*.cs" />
+    <Compile Include="../Ifx.Integrations/**/*.cs" Exclude="../Ifx.Integrations/**/Sample/**/*.cs;../Ifx.Integrations/**/bin/**/*.cs;../Ifx.Integrations/**/obj/**/*.cs" />
+    <Compile Include="../Ifx.Integrations.Azure/**/*.cs" Exclude="../Ifx.Integrations.Azure/**/Sample/**/*.cs;../Ifx.Integrations.Azure/**/bin/**/*.cs;../Ifx.Integrations.Azure/**/obj/**/*.cs" />
     <Protobuf Include="../Ifx.Integrations/Transport/Grpc/Dispatch/GenericInvoker.proto" GrpcServices="Both" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <Compile Include="../Ifx.Integrations.Windows/**/*.cs" Exclude="../Ifx.Integrations.Windows/**/Sample/**/*.cs" />
+    <Compile Include="../Ifx.Integrations.Windows/**/*.cs" Exclude="../Ifx.Integrations.Windows/**/Sample/**/*.cs;../Ifx.Integrations.Windows/**/bin/**/*.cs;../Ifx.Integrations.Windows/**/obj/**/*.cs" />
     <PackageReference Include="Experimental.System.Messaging" />
   </ItemGroup>
   <ItemGroup>
