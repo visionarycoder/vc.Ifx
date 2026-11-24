@@ -7,7 +7,7 @@
 
 `Ifx.Roslyn.Generators` contains source generators that turn explicit framework annotations into compile-time artifacts. The package keeps generated code deterministic and discoverable while avoiding runtime reflection for repetitive framework plumbing.
 
-The implementation is organized by generator under `Generators/`. Public marker attributes live in `Ifx.Roslyn.Generators` so application projects can reference the annotations without taking a dependency on the generator implementation.
+The implementation is organized by generator under `Generators/`. Public marker attributes are defined in the `Ifx` runtime package under the `vc.Ifx.Generators.Attributes` namespace. Application projects reference `Ifx` for those attributes; the generator package supplies only compiler-time generation.
 
 ## Minimal endpoints
 
