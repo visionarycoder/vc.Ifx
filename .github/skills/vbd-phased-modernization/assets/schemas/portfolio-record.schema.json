@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/vbd/portfolio-record.schema.json",
+  "title": "VBD Modernization Portfolio Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "createdAtUtc", "candidateScores", "actuals", "metrics"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^PORT-[0-9]+$" },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "candidateScores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidateId", "criteria", "goldenRatioNote"],
+        "properties": {
+          "candidateId": { "type": "string", "pattern": "^CAND-" },
+          "criteria": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "score", "weight", "note"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "score": { "type": "number", "minimum": 0, "maximum": 5 },
+                "weight": { "type": "number", "minimum": 0 },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "goldenRatioNote": { "type": "string", "minLength": 1 },
+          "overrideNote": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "actuals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "plannedHours", "actualHours", "plannedTokens", "actualTokens"],
+        "properties": {
+          "taskId": { "type": "string", "pattern": "^TASK-" },
+          "plannedHours": { "type": "number", "minimum": 0 },
+          "actualHours": { "type": "number", "minimum": 0 },
+          "plannedTokens": { "type": "integer", "minimum": 0 },
+          "actualTokens": { "type": "integer", "minimum": 0 },
+          "varianceReason": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aggregateCoverage", "designatedCoverage", "parityRate", "driftIncidents", "rollbackCount", "wavesMigrated", "wavesRemaining", "scheduleVarianceDays"],
+      "properties": {
+        "aggregateCoverage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "designatedCoverage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "parityRate": { "type": "number", "minimum": 0, "maximum": 100 },
+        "driftIncidents": { "type": "integer", "minimum": 0 },
+        "rollbackCount": { "type": "integer", "minimum": 0 },
+        "wavesMigrated": { "type": "integer", "minimum": 0 },
+        "wavesRemaining": { "type": "integer", "minimum": 0 },
+        "scheduleVarianceDays": { "type": "number" }
+      }
+    }
+  }
+}
