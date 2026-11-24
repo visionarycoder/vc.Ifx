@@ -5,13 +5,13 @@
 > [current ownership](../../docs/architecture/root-library-consolidation.md).
 
 
-`vc.Ifx.Generators` contains source generators that turn explicit framework annotations into compile-time artifacts. The package keeps generated code deterministic and discoverable while avoiding runtime reflection for repetitive framework plumbing.
+`Ifx.Roslyn.Generators` contains source generators that turn explicit framework annotations into compile-time artifacts. The package keeps generated code deterministic and discoverable while avoiding runtime reflection for repetitive framework plumbing.
 
-The implementation is organized by generator under `Generators/`. Public marker attributes live in `vc.Ifx.Generators` so application projects can reference the annotations without taking a dependency on the generator implementation.
+The implementation is organized by generator under `Generators/`. Public marker attributes are defined in the `Ifx` runtime package under the `vc.Ifx.Generators.Attributes` namespace. Application projects reference `Ifx` for those attributes; the generator package supplies only compiler-time generation.
 
 ## Minimal endpoints
 
-Reference `vc.Ifx.Generators` normally and `vc.Ifx.Generators` with `PrivateAssets="all"`. The compiler package targets netstandard2.0/C# 14 and reads attribute metadata without loading the net10 marker assembly. In an ASP.NET Core 10 application:
+Reference the `Ifx` package normally for runtime types and marker attributes. Add `Ifx.Roslyn.Generators` as a compiler analyzer dependency with `PrivateAssets="all"`. The compiler package targets netstandard2.0/C# 14 and reads attribute metadata without loading the net10 marker assembly. In an ASP.NET Core 10 application:
 
 ```csharp
 using vc.Ifx.Generated;
