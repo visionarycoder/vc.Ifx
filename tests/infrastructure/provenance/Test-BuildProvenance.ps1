@@ -42,7 +42,7 @@ try {
     '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Consumer.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
     '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.csproj')
-    'Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.cs')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
