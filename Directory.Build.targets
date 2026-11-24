@@ -53,7 +53,7 @@
   <!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
   <Target Name="CaptureIfxReportingEvidence" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsTestProject)' != 'true' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true' AND '$(MSBuildProjectName)' != 'docs'">
     <PropertyGroup>
-      <IfxPackageReportDirectory>$(IfxReportDirectory)/$(MSBuildProjectName)</IfxPackageReportDirectory>
+      <IfxPackageReportDirectory>$(IfxReportDirectory)/$(MSBuildProjectName)/$(TargetFramework)</IfxPackageReportDirectory>
       <ErrorLog>$(IfxPackageReportDirectory)/diagnostics.sarif,version=2.1</ErrorLog>
     </PropertyGroup>
     <MakeDir Directories="$(IfxPackageReportDirectory)" />
@@ -66,7 +66,7 @@
 
   <Target Name="CaptureIfxBuildInputs" BeforeTargets="CoreCompile" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
     <PropertyGroup>
-      <IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory>
+      <IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)/$(TargetFramework)</IfxIdentityDirectory>
     </PropertyGroup>
     <ItemGroup>
       <IfxIdentityInput Include="$(MSBuildProjectFullPath);$(MSBuildAllProjects);@(Compile);@(ReferencePath);@(Analyzer);@(AdditionalFiles);@(EmbeddedResource);@(Protobuf);$(ProjectAssetsFile)" />
