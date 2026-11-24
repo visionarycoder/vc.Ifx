@@ -13,7 +13,7 @@ public class ConstantsTests
     public void Version_ShouldHaveExpectedValue()
     {
         // Assert
-        IfxConstants.Version.Should().Be("0.2.0");
+        IfxConstants.Version.Should().Be("0.3.0");
     }
 
     [TestMethod]

@@ -14,7 +14,7 @@ decisions through vc.Governance.
 
 ## Choose a package
 
-The repository contains eight packable libraries, all on the **0.2.0** development
+The repository contains eight packable libraries, all on the **0.3.0** development
 line.
 
 | Package | Target | Contents |
@@ -70,7 +70,7 @@ $ifxFeed = (Resolve-Path .nupkgs).Path
 dotnet nuget add source $ifxFeed --name Ifx-Local
 ```
 
-Then add the selected package to the application's project, using version 0.2.0.
+Then add the selected package to the application's project, using version 0.3.0.
 The local feed does not imply that the package exists on a public registry.
 Public namespaces can differ from package names; use the package documentation
 and current ownership map when updating references.
