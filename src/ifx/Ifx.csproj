@@ -86,8 +86,6 @@
     <InternalsVisibleTo Include="Ifx.Messaging.Msmq.UnitTests" />
     <InternalsVisibleTo Include="Ifx.Messaging.ProviderSupport.UnitTests" />
     <InternalsVisibleTo Include="Ifx.Messaging.RabbitMQ.UnitTests" />
-    <InternalsVisibleTo Include="Ifx.UnitTests" />
-    <InternalsVisibleTo Include="Ifx.IntegrationTests" />
     <EmbeddedResource Include="../../.json/schemas/queryfilter.schema.json" LogicalName="Ifx.Schemas.queryfilter.schema.json" />
   </ItemGroup>
   <ItemGroup>
