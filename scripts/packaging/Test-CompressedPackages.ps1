@@ -15,7 +15,7 @@ function Invoke-DotNet([string[]] $Arguments) {
 }
 $projects = @(Get-ChildItem (Join-Path $root 'src') -Recurse -Filter '*.csproj' -File | Where-Object FullName -NotMatch '[\\/](bin|obj)[\\/]')
 $projects = @($projects | Where-Object { [xml] $definition = Get-Content -LiteralPath $_.FullName -Raw; $null -eq $definition.SelectSingleNode('//IsPackable[text()="false"]') })
-if ($projects.Count -ne 8) { throw 'Expected the eight adopted production libraries.' }
+if ($projects.Count -ne 5) { throw 'Expected the five production packages after integration consolidation.' }
 foreach ($project in $projects) {
     Invoke-DotNet @('pack', $project.FullName, '-c', 'Release', '--no-restore', '-o', $artifacts, '-m:1', '-p:BuildInParallel=false', '-p:GeneratePackageOnBuild=false', '-warnaserror', '-v:minimal')
     $archive = @(Get-ChildItem $artifacts -Filter '*.nupkg' | Where-Object Name -Match ('^' + [regex]::Escape($project.BaseName) + '\.\d+\.\d+\.\d+.*\.nupkg$'))
@@ -35,4 +35,4 @@ Invoke-DotNet @('build', (Join-Path $hostDirectory 'CompilerHost.csproj'), '-c',
 Invoke-DotNet @('exec', (Join-Path $hostDirectory 'bin/Release/net10.0/CompilerHost.dll'), $artifacts)
 & (Join-Path $PSScriptRoot 'Stage-ReleasePackages.ps1') -PackageDirectory $artifacts
 & (Join-Path $root 'tests/infrastructure/packaging/Test-ReleaseArtifactManifest.ps1') -Directory (Join-Path $artifacts 'release')
-Write-Host "PASS: eight package/symbol pairs, compiler loading, generation, diagnostics, and standalone IDE-host code fixes. Artifacts: $artifacts"
+Write-Host "PASS: five package/symbol pairs, compiler loading, generation, diagnostics, and standalone IDE-host code fixes. Artifacts: $artifacts"
