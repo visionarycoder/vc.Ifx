@@ -87,7 +87,7 @@ public sealed class MsmqMessageConsumerTests
     }
 
     [TestMethod]
-    public async Task StopAsync_WhenWaitIsCanceled_ShouldSwallowOperationCanceledExceptionAndResetState()
+    public async Task StopAsync_WhenWaitIsCanceled_ShouldPropagateCancellationAndKeepTrackingReceiveLoop()
     {
         BlockingQueueClient queueClient = new();
         MsmqMessageConsumer<TestMessage> consumer = new(
@@ -99,7 +99,9 @@ public sealed class MsmqMessageConsumerTests
 
         await consumer.StartAsync();
         await queueClient.WaitForReceiveAttemptAsync();
-        await consumer.StopAsync(new CancellationToken(canceled: true));
+        Func<Task> action = () => consumer.StopAsync(new CancellationToken(canceled: true));
+
+        await action.Should().ThrowAsync<OperationCanceledException>();
         queueClient.Release();
         await consumer.StopAsync();
 
