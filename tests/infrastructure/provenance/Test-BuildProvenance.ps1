@@ -41,12 +41,15 @@ try {
     "<Project><Import Project=`"$root/Directory.Build.targets`" /></Project>" | Set-Content (Join-Path $fixture 'Directory.Build.targets')
     '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Consumer.cs" /><EmbeddedResource Include="*.json" /><Protobuf Include="*.proto" /><Content Include=".provenance-mapping" CopyToOutputDirectory="Always" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Fixture.csproj')
     'public record Value(int Number);' | Set-Content (Join-Path $fixture 'Value.cs')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs;Consumer.Windows.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><Compile Remove="Value.cs;Consumer.cs" /><ProjectReference Include="Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $fixture 'Consumer.Windows.csproj')
+    '<Solution><Project Path="Consumer.csproj" /><Project Path="Consumer.Windows.csproj" /></Solution>' | Set-Content (Join-Path $fixture 'Fixture.slnx')
     'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.cs')
+    'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $fixture 'Consumer.Windows.cs')
     '{"type":"object"}' | Set-Content (Join-Path $fixture 'schema.json')
     'syntax = "proto3";' | Set-Content (Join-Path $fixture 'dispatch.proto')
     'source-root-mapping' | Set-Content (Join-Path $fixture '.provenance-mapping')
-    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Consumer.csproj'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
+    & (Join-Path $root 'scripts/Invoke-FrameworkTests.ps1') -BuildOnly -Project ([IO.Path]::GetRelativePath($root, (Join-Path $fixture 'Fixture.slnx'))) -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
     $result = Assert-IfxBuildProvenance -BuildDirectory $build -Configuration Release
     $projects = @($result.manifest.projects)
     $fixtureProjects = @($projects | Where-Object projectPath -CEQ (Join-Path $fixture 'Fixture.csproj'))
