@@ -9,9 +9,8 @@ last_updated: 2026-11-08
 
 Ifx.Filtering owns predicates and the portable FilterNode contract.
 Ifx.Querying owns local query composition. Ifx includes the
-Ifx.Querying.EntityFrameworkCore execution extensions. All packages start at
-SemVer 0.1.0; the unpublished vc.Ifx.FilterSpec APIs and compatibility adapters
-have been removed.
+Ifx.Querying.EntityFrameworkCore execution extensions. The shared package version is 0.4.0; the unpublished vc.Ifx.FilterSpec APIs
+and compatibility adapters have been removed.
 
 ## Portable predicates
 
