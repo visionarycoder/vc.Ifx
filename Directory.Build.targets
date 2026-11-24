@@ -105,7 +105,7 @@
   </Target>
 
   <Target Name="CaptureIfxBuildOutputs" AfterTargets="Build" DependsOnTargets="GetIfxBuildSettings" Condition="'$(IfxReportDirectory)' != '' AND '$(IsBenchmarkProject)' != 'true' AND '$(IsReportingHost)' != 'true'">
-    <PropertyGroup><IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)</IfxIdentityDirectory></PropertyGroup>
+    <PropertyGroup><IfxIdentityDirectory>$(IfxReportDirectory)/build-inventory/$(MSBuildProjectName)/$(TargetFramework)</IfxIdentityDirectory></PropertyGroup>
     <Error Condition="!Exists('$(IfxIdentityDirectory)/inputs.txt')" Text="Build provenance requires a fresh compilation for $(MSBuildProjectName)." />
     <ItemGroup><IfxIdentityOutput Include="$(TargetDir)**/*" /></ItemGroup>
     <MakeDir Directories="$(IfxIdentityDirectory)/settings" />
