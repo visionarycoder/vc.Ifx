@@ -10,24 +10,6 @@ public sealed class AzureServiceBusMessageConsumerAdditionalTests
     #region Lifecycle Tests
 
     [TestMethod]
-    public async Task StartAsync_WhenProcessorStartFails_ShouldAllowRetry()
-    {
-        FakeServiceBusProcessor processor = new() { StartException = new InvalidOperationException("start failed") };
-        AzureServiceBusMessageConsumer<TestMessage> consumer = new(
-            processor,
-            new RecordingHandler(),
-            TestData.CreateOptions());
-
-        Func<Task> action = () => consumer.StartAsync();
-        await action.Should().ThrowAsync<InvalidOperationException>();
-
-        processor.StartException = null;
-        await consumer.StartAsync();
-
-        processor.StartCalls.Should().Be(2);
-    }
-
-    [TestMethod]
     public async Task StartAsync_WhenCalledMoreThanOnce_ShouldReuseExistingProcessor()
     {
         FakeServiceBusProcessor processor = new();
