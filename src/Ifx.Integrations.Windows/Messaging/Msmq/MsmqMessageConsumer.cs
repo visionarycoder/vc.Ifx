@@ -11,7 +11,9 @@ namespace vc.Ifx.Messaging.Msmq;
 public sealed class MsmqMessageConsumer<TMessage> : IMessageConsumer, IDisposable
     where TMessage : IMessage
 {
-    private readonly CancellationTokenSource cancellation = new();
+    private CancellationTokenSource cancellation = new();
+    private readonly object lifecycleLock = new();
+    private bool disposed;
     private readonly IMsmqQueueClient queueClient;
     private readonly IOptions<MsmqOptions> options;
     private readonly IMessageHandler<TMessage> handler;
@@ -38,35 +40,69 @@ public sealed class MsmqMessageConsumer<TMessage> : IMessageConsumer, IDisposabl
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (consuming is not null)
+        lock (lifecycleLock)
         {
-            return Task.CompletedTask;
+            ObjectDisposedException.ThrowIf(disposed, this);
+
+            if (consuming is not null)
+            {
+                return Task.CompletedTask;
+            }
+
+            CancellationToken token = cancellation.Token;
+            consuming = Task.Run(() => ConsumeAsync(token), CancellationToken.None);
         }
 
-        consuming = Task.Run(() => ConsumeAsync(cancellation.Token), CancellationToken.None);
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        if (consuming is null)
+        Task? current;
+        CancellationTokenSource currentCancellation;
+
+        lock (lifecycleLock)
         {
-            return;
+            if (disposed || consuming is null)
+            {
+                return;
+            }
+
+            current = consuming;
+            currentCancellation = cancellation;
         }
 
-        await cancellation.CancelAsync().ConfigureAwait(false);
+        await currentCancellation.CancelAsync().ConfigureAwait(false);
 
         try
         {
-            await consuming.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await current.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (
+            !cancellationToken.IsCancellationRequested &&
+            currentCancellation.IsCancellationRequested &&
+            current.IsCanceled)
         {
         }
         finally
         {
-            consuming = null;
+            if (current.IsCompleted)
+            {
+                lock (lifecycleLock)
+                {
+                    if (ReferenceEquals(consuming, current))
+                    {
+                        consuming = null;
+                        currentCancellation.Dispose();
+
+                        if (!disposed)
+                        {
+                            cancellation = new CancellationTokenSource();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -75,9 +111,36 @@ public sealed class MsmqMessageConsumer<TMessage> : IMessageConsumer, IDisposabl
     /// </summary>
     public void Dispose()
     {
+        Task? current;
+        CancellationTokenSource currentCancellation;
+
+        lock (lifecycleLock)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            current = consuming;
+            currentCancellation = cancellation;
+            currentCancellation.Cancel();
+        }
+
         unsubscribe();
-        cancellation.Cancel();
-        cancellation.Dispose();
+
+        if (current is null)
+        {
+            currentCancellation.Dispose();
+        }
+        else
+        {
+            _ = current.ContinueWith(
+                _ => currentCancellation.Dispose(),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
     }
 
     private async Task ConsumeAsync(CancellationToken cancellationToken)
