@@ -44,8 +44,8 @@ try {
     $consumer = Join-Path $fixture 'consumer-net'
     $consumerWindows = Join-Path $fixture 'consumer-windows'
     New-Item -ItemType Directory -Path $consumer, $consumerWindows | Out-Null
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $consumer 'Consumer.csproj')
-    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" /></ItemGroup></Project>' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" SetConfiguration="Configuration=$(Configuration)" /></ItemGroup></Project>' | Set-Content (Join-Path $consumer 'Consumer.csproj')
+    '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable><DebugType>portable</DebugType></PropertyGroup><ItemGroup><ProjectReference Include="../Fixture.csproj" SetConfiguration="Configuration=$(Configuration)" /></ItemGroup></Project>' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.csproj')
     '<Solution><Project Path="consumer-net/Consumer.csproj" /><Project Path="consumer-windows/Consumer.Windows.csproj" /></Solution>' | Set-Content (Join-Path $fixture 'Fixture.slnx')
     'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumer 'Consumer.cs')
     'using System; Console.WriteLine(new Value(42).Number);' | Set-Content (Join-Path $consumerWindows 'Consumer.Windows.cs')
