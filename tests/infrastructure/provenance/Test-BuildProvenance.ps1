@@ -65,6 +65,13 @@ try {
     if ($IsWindows) { [IO.File]::SetAttributes($hiddenOutput, [IO.FileAttributes]::Hidden) }
     $null = Assert-IfxBuildProvenance -BuildDirectory $build
     $checks.Add('hidden output included in unchanged inventory')
+    $runtimeOutput = Join-Path $project.settings.TargetDir 'test-runtime-output.json'
+    try {
+        '{"result":"written by test"}' | Set-Content -LiteralPath $runtimeOutput
+        Assert-Rejected 'additional output before test verification' { Assert-IfxBuildProvenance -BuildDirectory $build } 'Changed build output inventory'
+        $null = Assert-IfxBuildProvenance -BuildDirectory $build -AllowAdditionalOutputs
+        $checks.Add('test runtime output allowed after strict pre-test validation')
+    } finally { Remove-Item -LiteralPath $runtimeOutput -Force -ErrorAction SilentlyContinue }
     Test-Mutation 'changed hidden output' $hiddenOutput
     Test-Mutation 'missing hidden output' $hiddenOutput -Missing
     $extraHidden = Join-Path $project.settings.TargetDir '.extra-mapping'

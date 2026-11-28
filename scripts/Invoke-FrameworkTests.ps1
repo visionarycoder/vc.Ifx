@@ -119,7 +119,10 @@ try {
           }
         }
         elseif (-not $BuildOnly -and $testExitCode -eq 0 -and -not $LsiEvidence) { throw 'Missing test results; zero-test success is not accepted.' }
-        if ($NoBuild) { $null = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $requiredProject -Configuration $Configuration -Selection $selection }
+        if ($NoBuild) {
+            $null = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $requiredProject `
+                -Configuration $Configuration -Selection $selection -AllowAdditionalOutputs:$LsiEvidence
+        }
         if ($LsiEvidence) {
             Import-Module (Join-Path $PSScriptRoot 'testing/VerificationEvidence.psm1') -Force
             $evidence = Write-IfxVerificationEvidence -RepositoryRoot $repoRoot -TestRunDirectory $results `

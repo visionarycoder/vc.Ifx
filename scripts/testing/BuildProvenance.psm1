@@ -82,7 +82,8 @@ function Complete-IfxBuildProvenance {
 function Assert-IfxBuildProvenance {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string] $BuildDirectory, [string] $CoverageRunDirectory,
-        [string[]] $RequiredProject = @(), [string] $Configuration, [object] $Selection)
+        [string[]] $RequiredProject = @(), [string] $Configuration, [object] $Selection,
+        [switch] $AllowAdditionalOutputs)
     $path = Join-Path $BuildDirectory 'build-identity.json'
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Missing build identity; capture a fresh build before NoBuild.' }
     $document = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
@@ -104,7 +105,9 @@ function Assert-IfxBuildProvenance {
         foreach ($file in @($project.inputs) + @($project.outputs)) { Test-IfxRecordedFile $file }
         foreach ($absent in $project.absentInputs) { if (Test-Path -LiteralPath $absent) { throw "Added build input: $absent" } }
         $currentOutputPaths = @(Get-ChildItem -LiteralPath $project.settings.TargetDir -Recurse -File -Force | ForEach-Object FullName | Sort-Object -Unique)
-        if (@(Compare-Object @($outputPaths | Sort-Object -Unique) $currentOutputPaths -CaseSensitive).Count) { throw "Changed build output inventory: $($project.name)" }
+        if (-not $AllowAdditionalOutputs -and @(Compare-Object @($outputPaths | Sort-Object -Unique) $currentOutputPaths -CaseSensitive).Count) {
+            throw "Changed build output inventory: $($project.name)"
+        }
         & {
             $arguments = @('msbuild', $project.projectPath, '-t:GetIfxBuildSettings', '-getItem:IfxBuildSetting,Compile,IfxDeclaredProjectReference,EmbeddedResource,Protobuf', '-m:1', '-p:BuildInParallel=false',
                 "-p:Configuration=$($document.configuration)")

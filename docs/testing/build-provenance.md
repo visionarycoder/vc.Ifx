@@ -40,8 +40,10 @@ walked. The no-output docs project imports no capture targets.
 Every `-NoBuild` test/coverage run requires `IFX_REPORT_BUILD` pointing to its
 fresh capture. Verification checks hashes, required projects, revision,
 configuration, source/resource/protobuf/reference inventories, selection and evaluated SDK/compiler
-settings before instrumentation. Coverage rechecks before each test project and
-after Coverlet restores the assemblies. It retains the exact
+settings before instrumentation. The LSI test run checks the complete output inventory
+before tests and rechecks every captured output hash afterward; it allows test-created
+runtime files to remain in project output directories. Coverage rechecks before each
+test project and after Coverlet restores the assemblies. It retains the exact
 `consumed-build-identity.json` and `build-identity-verified.json` hash/restore marker.
 Failed or aborted runs cannot produce the successful restoration marker.
 
