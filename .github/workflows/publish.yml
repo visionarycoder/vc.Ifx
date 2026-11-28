@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       manifest-sha256: ${{ steps.gate.outputs.manifest-sha256 }}
+      verification_evidence_sha256: ${{ steps.gate.outputs.verification_evidence_sha256 }}
     permissions:
       contents: read
     env:
@@ -41,9 +42,6 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
-
-      - name: Initialize local NuGet source
-        run: mkdir -p .nupkgs
 
       - name: Execute authoritative quality steps
         id: gate
@@ -165,3 +163,4 @@ jobs:
             dotnet nuget push $package.package.file --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
             if ($LASTEXITCODE -ne 0) { throw "NuGet.org push failed for $($package.id)." }
           }
+

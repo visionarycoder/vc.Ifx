@@ -2,7 +2,7 @@
 title: Fresh Build Identity
 doc_type: reference
 status: active
-last_updated: 2026-09-10
+last_updated: 2026-11-28
 ---
 
 # Fresh Build Identity
@@ -52,6 +52,36 @@ solution run. Bound reporting runs the already-built reporting host with
 `--no-build`; build it before capture, or include it in the authoritative solution
 build. Packing must use explicit `--no-build --no-restore` and recheck the identity;
 environment-only restore flags are not sufficient.
+
+## Logical Software Integrity evidence
+
+For an LSI verification run, CI first captures a fresh build and then runs tests
+with `-NoBuild -NoRestore -LsiEvidence` so the test step cannot silently refresh
+restore inputs after capture. The test runner writes
+`verification-evidence.json` beside the TRX output. It binds the source revision,
+test selection, build-identity SHA-256, hashes of the workflow/test/provenance
+tools, and every TRX file hash and result count.
+An unsuccessful test run emits an open blocker syndrome with code
+`IFX_TEST_VERIFICATION_FAILED` and references to the failed TRX artifacts. A
+stale or mismatched build identity is rejected and cannot produce passing evidence.
+On GitHub Actions the runner exports the evidence file's SHA-256 as
+`verification_evidence_sha256`, which the quality job also exposes as an output.
+
+The evidence file is a verification artifact for a Change Set's `*.lsi.json`
+manifest: reference its address, source revision, and SHA-256 under the applicable
+verification record, and list the requirements covered in that manifest. This
+runner does not parse or validate the Governance manifest, authenticate an
+identity, or decide that tests prove a requirement. The consuming repository's
+protected CI must bind the evidence artifact to the authenticated workflow run;
+the independent verifier remains distinct from each implementation author.
+
+The repository quality workflow retains `test-results/**` on success or failure
+for 14 days. A Change Set that needs longer retention must archive the evidence
+under its owning repository's artifact-retention policy.
+The test and build records are supporting evidence, not a second integrity gate;
+`vc.Governance` remains authoritative for Change Set traceability, independent
+verification, syndrome disposition, and checkpoint invalidation. No Governance
+dependency is added to production Ifx packages.
 
 ```powershell
 # Orchestrator only: run infrastructure self-tests before this fresh build.
@@ -120,3 +150,4 @@ files, or an unrelated process that ignores the mutex. Newly introduced custom
 build-input mechanisms must extend capture. Global Release build, 28-module
 coverage, report and archive verification passed at that separate final checkpoint.
 Hosted execution and IDE behavior are not claimed by these checks.
+

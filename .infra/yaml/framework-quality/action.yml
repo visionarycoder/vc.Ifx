@@ -4,6 +4,9 @@ outputs:
   manifest-sha256:
     description: SHA256 of the exact validated package artifact manifest.
     value: ${{ steps.packages.outputs.manifest-sha256 }}
+  verification_evidence_sha256:
+    description: SHA256 of the test verification evidence for this source revision.
+    value: ${{ steps.tests.outputs.verification_evidence_sha256 }}
 runs:
   using: composite
   steps:
@@ -14,12 +17,20 @@ runs:
         if ($LASTEXITCODE -ne 0) { throw 'Adopted project hierarchy validation failed.' }
 
     - name: Build and run all solution tests without warnings
+      id: tests
       shell: pwsh
-      run: ./scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -Configuration Release -WarningsAsErrors
+      run: |
+        $build = Join-Path $env:GITHUB_WORKSPACE "test-results/provenance/quality-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+        $null = New-Item -ItemType Directory -Path (Split-Path $build -Parent) -Force
+        ./scripts/Invoke-FrameworkTests.ps1 -BuildOnly -Project vc.Ifx.slnx -Configuration Release -ReportBuildDirectory $build -WarningsAsErrors
+        if ($LASTEXITCODE -ne 0) { throw 'Fresh solution build failed.' }
+        $env:IFX_REPORT_BUILD = $build
+        ./scripts/Invoke-FrameworkTests.ps1 -Project vc.Ifx.slnx -Configuration Release -NoBuild -NoRestore -LsiEvidence -WarningsAsErrors
+        if ($LASTEXITCODE -ne 0) { throw 'Bound solution tests failed.' }
 
-    - name: Verify multi-target build provenance
+    - name: Validate LSI evidence writer
       shell: pwsh
-      run: ./tests/infrastructure/provenance/Test-BuildProvenance.ps1
+      run: ./tests/infrastructure/evidence/Test-VerificationEvidence.ps1
 
     - name: Validate packages and isolated compiler consumers
       id: packages
@@ -46,3 +57,4 @@ runs:
       run: |
         Import-Module ./scripts/packaging/PackageArtifactManifest.psm1
         $null = Test-PackageArtifactManifest -Directory $env:IFX_PACKAGE_UPLOAD_DIRECTORY -Revision $env:PACKAGE_REVISION -ManifestSha256 $env:PACKAGE_MANIFEST_SHA256
+
