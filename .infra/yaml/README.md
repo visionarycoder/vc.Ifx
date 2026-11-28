@@ -64,6 +64,20 @@ Warnings are errors for compilation and restore; NuGet audits the complete
 dependency graph. Package validation preserves the existing metadata, dependency,
 README, symbol, and Source Link checks.
 
+The full-solution test run uses a fresh build capture and then executes with
+`-NoBuild -NoRestore -LsiEvidence`. It writes a machine-readable
+`verification-evidence.json` beside the TRX files, binding the result to the exact
+source revision, build identity hash, test selection, and test-result hashes.
+It also hashes the workflow and provenance/test runner files that produced the record.
+Failed tests produce an open `IFX_TEST_VERIFICATION_FAILED` blocker syndrome.
+The artifact is retained with `test-results/**` and can be referenced by a
+Change Set's LSI verification record. The Change Set manifest remains the source
+of requirement links and authenticated verifier identity; this CI artifact does
+not replace Governance validation or acceptance.
+The quality step exposes `verification_evidence_sha256` so consumers can pin the
+evidence artifact hash. CI artifact retention is 14 days; longer-lived Change Sets
+must retain the evidence through their owning repository's artifact policy.
+
 `test-results/**` is retained for 14 days even on failure. The absence of artifacts
 after a pre-build failure is reported as an upload warning, not a replacement for
 the already-failed quality job. Package uploads use the exact validated staging directory and manifest inventory,
@@ -134,3 +148,4 @@ open. Local acceptance does not prove these external conditions.
 
 References: [GitHub composite actions](https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action),
 [workflow token permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token).
+

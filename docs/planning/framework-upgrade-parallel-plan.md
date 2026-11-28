@@ -2,12 +2,24 @@
 title: vc.Ifx Parallel Upgrade Plan
 doc_type: plan
 status: active
-last_updated: 2026-11-23
+last_updated: 2026-11-28
 ---
 
 # vc.Ifx Parallel Upgrade Plan
 
 ## Goal
+
+### LSI build and test evidence integration, 2026-11-28
+
+Status: [ ] Ready [x] In-flight [ ] Blocked [ ] Complete
+Owner: Codex; Updated: 2026-11-28; Notes: Added run evidence bound to the
+fresh build identity, exact source revision, test/TRX hashes, test selection,
+workflow identity, and hashed CI/test tooling. Ten evidence self-checks, project
+hierarchy validation, frontmatter validation, PowerShell parsing, and the
+warning-free Release solution build passed locally. Full test execution was
+blocked locally: VSTest timed out connecting to its data collector after 90
+seconds before tests executed. Hosted CI must complete the serialized full suite
+before this work is marked Complete.
 
 ## Current owner override, 2026-11-23
 

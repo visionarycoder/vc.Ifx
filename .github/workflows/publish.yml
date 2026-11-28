@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       manifest-sha256: ${{ steps.gate.outputs.manifest-sha256 }}
+      verification_evidence_sha256: ${{ steps.gate.outputs.verification_evidence_sha256 }}
     permissions:
       contents: read
     env:

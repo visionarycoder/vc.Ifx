@@ -22,6 +22,7 @@ param(
     [Parameter(ParameterSetName = 'Test')]
     [Parameter(ParameterSetName = 'Coverage')]
     [Parameter(ParameterSetName = 'FullCoverage')][switch] $NoBuild,
+    [Parameter(ParameterSetName = 'Test')][switch] $LsiEvidence,
     [Parameter(ParameterSetName = 'Test')]
     [Parameter(ParameterSetName = 'Build')][switch] $NoRestore,
     [Parameter(ParameterSetName = 'Coverage')]
@@ -38,6 +39,7 @@ Import-Module (Join-Path $PSScriptRoot 'testing/TestSourceSelection.psm1') -Forc
 Import-Module (Join-Path $PSScriptRoot 'testing/BuildProvenance.psm1') -Force
 if ($TestPackage -and -not $TestSourceScope) { throw 'TestPackage requires TestSourceScope; full tests retain all references.' }
 if ($CoveragePackage -and $TestPackage -and $CoveragePackage -cne $TestPackage) { throw 'CoveragePackage must match the selected TestPackage.' }
+if ($LsiEvidence -and -not $NoBuild) { throw 'LSI evidence requires -NoBuild against a captured fresh build.' }
 $identity = if ($IsWindows) { $repoRoot.ToUpperInvariant() } else { $repoRoot }
 $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity)))
 $mutex = [Threading.Mutex]::new($false, "vc.Ifx.FrameworkTests.$digest")
@@ -65,6 +67,9 @@ try {
     else {
         $projectPath = [IO.Path]::GetFullPath((Join-Path $repoRoot $Project))
         $selection = Resolve-IfxTestSelection -ProjectPath $projectPath -SourceScope $TestSourceScope -TestPackage $TestPackage
+        $revision = & git -C $repoRoot rev-parse HEAD
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot identify test source revision.' }
+        $requiredProject = if ([IO.Path]::GetExtension($projectPath) -in @('.sln', '.slnx')) { @() } else { @($projectPath) }
         $TestSourceScope = $selection.SourceScope
         $verb = if ($BuildOnly) { 'build' } else { 'test' }
         $arguments = @($verb, $projectPath, '-c', $Configuration, '-m:1', '-p:BuildInParallel=false', '-p:CollectCoverage=false', '-p:GeneratePackageOnBuild=false',
@@ -83,7 +88,7 @@ try {
         $buildIdentity = $null
         if ($NoBuild) {
             if (-not $env:IFX_REPORT_BUILD) { throw 'NoBuild requires IFX_REPORT_BUILD pointing to a captured fresh build.' }
-            $buildIdentity = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $projectPath -Configuration $Configuration -Selection $selection
+            $buildIdentity = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $requiredProject -Configuration $Configuration -Selection $selection
         }
         if ($Filter) { $arguments += @('--filter', $Filter) }
         if (-not $BuildOnly) {
@@ -93,7 +98,7 @@ try {
                 '--blame-hang', '--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none')
             Write-Host "Test artifacts: $results"
             $null = New-Item -ItemType Directory -Path $results -Force
-            @{ testSourceScope = $TestSourceScope; testSelection = $selection; testPackage = $TestPackage; filter = $Filter; configuration = $Configuration; noBuild = [bool] $NoBuild;
+            @{ revision = $revision; testSourceScope = $TestSourceScope; testSelection = $selection; testPackage = $TestPackage; filter = $Filter; configuration = $Configuration; noBuild = [bool] $NoBuild;
                 buildIdentity = $(if ($buildIdentity) { @{ path = $buildIdentity.path; sha256 = $buildIdentity.sha256 } } else { $null }) } |
                 ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $results 'run-context.json') -Encoding utf8
             if ($buildIdentity) { Copy-Item -LiteralPath $buildIdentity.path -Destination (Join-Path $results 'consumed-build-identity.json') }
@@ -105,16 +110,27 @@ try {
           foreach ($trxFile in $trxFiles) {
             [xml] $trx = Get-Content -LiteralPath $trxFile.FullName -Raw
             $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
-            if ($null -eq $counters -or [long] $counters.executed -eq 0) { throw 'Zero tests executed.' }
+            if ($null -eq $counters) { throw 'Test result has no counters.' }
+            if ([long] $counters.executed -eq 0 -and -not $LsiEvidence) { throw 'Zero tests executed.' }
             Write-Host "Recorded test results: total=$($counters.total), executed=$($counters.executed), passed=$($counters.passed), failed=$($counters.failed), notExecuted=$($counters.notExecuted)"
             $trx.SelectNodes('//*[local-name()="UnitTestResult"][@outcome="Failed"]') | ForEach-Object {
                 Write-Host "FAILED: $($_.testName)"
             }
           }
         }
-        elseif (-not $BuildOnly -and $testExitCode -eq 0) { throw 'Missing test results; zero-test success is not accepted.' }
+        elseif (-not $BuildOnly -and $testExitCode -eq 0 -and -not $LsiEvidence) { throw 'Missing test results; zero-test success is not accepted.' }
+        if ($NoBuild) {
+            $null = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $requiredProject `
+                -Configuration $Configuration -Selection $selection -AllowAdditionalOutputs:$LsiEvidence
+        }
+        if ($LsiEvidence) {
+            Import-Module (Join-Path $PSScriptRoot 'testing/VerificationEvidence.psm1') -Force
+            $evidence = Write-IfxVerificationEvidence -RepositoryRoot $repoRoot -TestRunDirectory $results `
+                -BuildDirectory $env:IFX_REPORT_BUILD -ExitCode $testExitCode
+            if ($env:GITHUB_OUTPUT) { "verification_evidence_sha256=$($evidence.sha256)" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding utf8 }
+            if ($evidence.outcome -cne 'passed' -and $testExitCode -eq 0) { throw 'LSI evidence reports failed or incomplete tests.' }
+        }
         if ($testExitCode -ne 0) { throw "Framework $verb failed (exit $testExitCode)." }
-        if ($NoBuild) { $null = Assert-IfxBuildProvenance -BuildDirectory $env:IFX_REPORT_BUILD -RequiredProject $projectPath -Configuration $Configuration -Selection $selection }
         if ($ReportBuildDirectory) {
             $revision = & git -C $repoRoot rev-parse HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Cannot identify build revision.' }
@@ -128,3 +144,4 @@ finally {
     if ($acquired) { $mutex.ReleaseMutex() }
     $mutex.Dispose()
 }
+
