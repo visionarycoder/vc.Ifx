@@ -43,6 +43,9 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Initialize local NuGet source
+        run: mkdir -p .nupkgs
+
       - name: Execute authoritative quality steps
         id: gate
         uses: ./.infra/yaml/framework-quality
@@ -163,4 +166,3 @@ jobs:
             dotnet nuget push $package.package.file --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
             if ($LASTEXITCODE -ne 0) { throw "NuGet.org push failed for $($package.id)." }
           }
-

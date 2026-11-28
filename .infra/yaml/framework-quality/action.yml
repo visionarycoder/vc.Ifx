@@ -16,7 +16,7 @@ runs:
         python ./scripts/Test-ProjectHierarchy.py
         if ($LASTEXITCODE -ne 0) { throw 'Adopted project hierarchy validation failed.' }
 
-    - name: Build and run all solution tests without warnings
+    - name: Build all solution projects and capture fresh provenance
       id: tests
       shell: pwsh
       run: |
@@ -31,6 +31,10 @@ runs:
     - name: Validate LSI evidence writer
       shell: pwsh
       run: ./tests/infrastructure/evidence/Test-VerificationEvidence.ps1
+
+    - name: Verify multi-target build provenance
+      shell: pwsh
+      run: ./tests/infrastructure/provenance/Test-BuildProvenance.ps1
 
     - name: Validate packages and isolated compiler consumers
       id: packages
@@ -57,4 +61,3 @@ runs:
       run: |
         Import-Module ./scripts/packaging/PackageArtifactManifest.psm1
         $null = Test-PackageArtifactManifest -Directory $env:IFX_PACKAGE_UPLOAD_DIRECTORY -Revision $env:PACKAGE_REVISION -ManifestSha256 $env:PACKAGE_MANIFEST_SHA256
-
